@@ -6,11 +6,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // <-- 1. PASTIKAN BARIS INI BENAR
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable; // <-- 2. PERBAIKI TYPO DI SINI
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +44,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    
+    // ... (Fungsi relasi yang sudah kita buat sebelumnya ada di sini) ...
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+    public function createdTrips()
+    {
+        return $this->hasMany(Trip::class, 'creator_id');
+    }
+    public function trips()
+    {
+        return $this->belongsToMany(Trip::class, 'trip_members');
     }
 }
