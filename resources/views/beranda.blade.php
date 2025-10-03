@@ -143,7 +143,7 @@
             <div class="project-grid">
                 <div class="card">
                     <div class="card-content">
-                        <h4>Sistem Informasi Sekolah</h4>
+                        <h4>Sistem Informasi SETIS</h4>
                         <p>Aplikasi web untuk manajemen data siswa, guru, dan jadwal pelajaran. Dibangun dengan Laravel dan Vue.js.</p>
                     </div>
                 </div>
