@@ -124,7 +124,7 @@
 <body>
 
     <header class="header">
-        <h1>Proyek Keren Saya</h1>
+        <h1>Proyek Keren Ganteng</h1>
         <nav>
             <a href="#">Beranda</a>
             <a href="#">Tentang</a>
