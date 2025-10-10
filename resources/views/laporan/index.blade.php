@@ -3,73 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Keuangan</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; background-color: #f4f4f9; }
-        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        .table-wrapper { 
-            overflow-x: auto; /* Kunci untuk membuat tabel bisa di-scroll ke samping */
-            margin-top: 20px;
-        }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 1000px; /* Lebar minimum tabel diperbesar agar scrolling terlihat */
-        }
-        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; white-space: nowrap; } /* white-space: nowrap penting untuk scrolling */
-        th { background-color: #e53935; color: white; }
-        tr:nth-of-type(even) { background-color: #f9f9f9; }
-        .btn-excel {
-            display: inline-block;
-            background-color: #1d6f42; /* Warna hijau untuk Excel */
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Data Laporan Keuangan</h1>
-        <a href="{{ route('laporan.excel') }}" class="btn-excel">Generate Excel</a>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Generate Excel | Aplikasi Laporan</title>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
+    <!-- Tailwind (otomatis via Vite) -->
+    @vite('resources/css/app.css')
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans p-8">
+
+    <!-- Navbar -->
+    <nav class="w-full bg-red-600 text-white py-3 px-6 flex justify-between items-center rounded-lg shadow-md mb-6">
+        <h1 class="font-bold text-lg">Aplikasi Laporan Keuangan</h1>
+        <div class="space-x-4">
+            <a href="{{ url('/') }}" class="hover:underline">📍 Geotagging</a>
+            <a href="{{ route('laporan.index') }}" class="underline font-semibold">📊 Generate Excel</a>
+        </div>
+    </nav>
+
+    <div class="flex justify-center">
+        <div class="bg-white shadow-md rounded-lg p-8 w-full max-w-xl text-center">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Generate Laporan Excel</h2>
+            <p class="text-gray-600 mb-6">
+                Klik tombol di bawah untuk mengunduh laporan keuangan dalam format <b>Excel (.xlsx)</b>.
+            </p>
+
+            <a href="{{ route('laporan.excel') }}"
+               class="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold text-lg transition duration-200">
+                ⬇️ Download Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="flex justify-center mt-10">
+        <div class="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
+            <h3 class="text-lg font-semibold mb-4 text-center">📘 Data Laporan Keuangan</h3>
+            <table class="w-full border border-gray-300 rounded-lg text-sm">
+                <thead class="bg-gray-200 text-gray-700 font-semibold">
                     <tr>
-                        <th>No</th>
-                        <th>Nama Pegawai</th>
-                        <th>NIP</th>
-                        <th>Uang Harian (Rp)</th>
-                        <th>Biaya Penginapan (Rp)</th>
-                        <th>Transport (Rp)</th>
-                        <th>Nama Hotel</th>
+                        <th class="border px-3 py-2">No</th>
+                        <th class="border px-3 py-2">Tanggal</th>
+                        <th class="border px-3 py-2">Keterangan</th>
+                        <th class="border px-3 py-2">Jumlah (Rp)</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($laporan as $item)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $item->nama_pegawai }}</td>
-                            <td>{{ $item->nip }}</td>
-                            <td>{{ number_format($item->uang_harian, 2, ',', '.') }}</td>
-                            <td>{{ number_format($item->biaya_penginapan, 2, ',', '.') }}</td>
-                            <td>{{ number_format($item->transport, 2, ',', '.') }}</td>
-                            <td>{{ $item->nama_hotel }}</td>
+                    @forelse($laporan as $index => $data)
+                        <tr class="hover:bg-gray-50">
+                            <td class="border px-3 py-2 text-center">{{ $index + 1 }}</td>
+                            <td class="border px-3 py-2 text-center">{{ $data->tanggal }}</td>
+                            <td class="border px-3 py-2">{{ $data->keterangan }}</td>
+                            <td class="border px-3 py-2 text-right">{{ number_format($data->jumlah, 0, ',', '.') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="text-align: center;">Tidak ada data.</td>
+                            <td colspan="4" class="border px-3 py-3 text-center text-gray-500">
+                                Belum ada data laporan keuangan.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
+
 </body>
 </html>
-
