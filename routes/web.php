@@ -17,5 +17,8 @@ Route::get('/laporan', [LaporanKeuanganController::class, 'index'])->name('lapor
 // Generate Excel
 Route::get('/laporan/excel', [LaporanKeuanganController::class, 'generateExcel'])->name('laporan.excel');
 
-Route::view('/', 'pages.dashboard');
+// Halaman tambahan (opsional)
+Route::view('/nyoba', 'nyoba')->name('nyoba');
+
+// Dashboard
 Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
