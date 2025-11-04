@@ -1,0 +1,32 @@
+from sklearn.decomposition import TruncatedSVD
+import matplotlib.pyplot as plt
+
+# Transpos matriks dokumen-term
+DT = TD.transpose()
+print(DT)
+
+# LSA (Truncated SVD)
+model = TruncatedSVD(n_components=2, random_state=7).fit(DT)
+DT_reduced = model.transform(DT)
+QT_reduced = model.transform(TQ.transpose())
+
+print(QT_reduced)
+print(DT_reduced)
+
+# Visualisasi hasil reduksi
+plt.figure(figsize=(8, 6))
+plt.scatter(DT_reduced[:, 0], DT_reduced[:, 1], color="blue", label="Documents")
+plt.scatter(QT_reduced[:, 0], QT_reduced[:, 1], color="red", label="Query")
+
+# Menambahkan label dokumen dan query
+labels = list(doc_dict.keys())
+for i, txt in enumerate(labels):
+    plt.annotate(txt, (DT_reduced[i, 0], DT_reduced[i, 1]))
+
+plt.annotate("query", (QT_reduced[0, 0], QT_reduced[0, 1]), color="red")
+
+plt.title("Peta LSA (Truncated SVD, 2D)")
+plt.xlabel("Komponen 1")
+plt.ylabel("Komponen 2")
+plt.legend()
+plt.show()
