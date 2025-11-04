@@ -2,10 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; 
 use Illuminate\Database\Eloquent\Model;
 
 class Trip extends Model
 {
+    use HasFactory;
+
+    protected $fillable = [
+        'creator_id',
+        'nomor_surat',
+        'tujuan',
+        'start_date',
+        'end_date',
+        'lat',
+        'lon',
+        'status',
+    ];
     /**
      * Sebuah Trip dibuat oleh satu User.
      */
