@@ -2,10 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; 
 use Illuminate\Database\Eloquent\Model;
 
 class TripMember extends Model
 {
+    use HasFactory;
+
+    protected $fillable = [
+        'trip_id',
+        'user_id',
+        'jabatan_saat_perdin',
+        'is_lead',
+    ];
+
     /**
      * Setiap entri TripMember milik satu User.
      */
