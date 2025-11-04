@@ -13,61 +13,14 @@ export default {
     theme: {
         extend: {
             backgroundImage: (theme) => ({
-                "background1-pattern": "url('@/images/pattern/2025/backgrounddesktop1.png')",
-                "background2-pattern": "url('@/images/pattern/2025/pattern-desktop.png')",
-                "motif-pattern": "url('@/images/pattern/2025/pattern.png')",
-                "motif2-pattern": "url('@/images/pattern/2025/pattern-login.png')",
-                "motif3-pattern": "url('@/images/pattern/2025/motif 3.png')",
-                "putih-pattern": "url('@/images/pattern/2025/putih-pattern.png')",
-                "footer-wave": "url('@/images/pattern/2025/footer-all.png')",
-                "profil-left": "url('@/images/pattern/2025/profil-info.png')",
-                "profil-pattern": "url('@/images/pattern/2025/patternprofil.png')",
-                "login-kanan": "url('@/images/pattern/2025/login-kanan.png')",
-                "login-mobile": "url('@/images/pattern/2025/login-mobile.png')",
-                "galeri": "url('@/images/pattern/2025/pattern galeri.png')",
-                "linimasa-gradient": "linear-gradient(to bottom, rgba(139,47,75,0.9), rgba(139,47,75,0.9), rgba(30,42,74,0.95)), url('@/images/pattern/2025/motif linimasa.png')",
-
-
-
+                "footer-bg": "url('../images/pattern/footer.png')",
             }),
+
             fontFamily: {
-                bhinneka: ["Bhinneka", ...defaultTheme.fontFamily.sans],
-                archivo: ["Frank Ruhl Libre", ...defaultTheme.fontFamily.sans],
                 poppins: ["Poppins", ...defaultTheme.fontFamily.sans],
-                nunito: ["Nunito", ...defaultTheme.fontFamily.sans],
-                caruban: ["CARUBAN", "cursive"],
-                bachelor: ["BACHELOR", "cursive"],
-                bachelorReg: ["BACHELOR REGULAR", "cursive"],
-                aringgo: ["ARINGGO", "cursive"],
-                bohemianSoul: ["BOHEMIAN SOUL", "cursive"],
-                brasikaDisplay: ["BRASIKA DISPLAY"],
-                chaTime: ["CHATIME"],
-                poppins: ["POPPINS"]
 
             },
             colors: {
-                "footer-solid": {
-                    DEFAULT: "#3F2A1D",
-                },
-                "navbar-solid": {
-                    DEFAULT: "#D9D9D9",
-                },
-                "base-theme": {
-                    700: "#012E4F",
-                    600: "#254B67",
-                    500: "#49687F",
-                    400: "#778E9E",
-                    100: "#CDCAEE",
-                },
-                2025: {
-                    1:"#8B2F4B",
-                    2:"#E15585",
-                    3:"#1E2A4A",
-                    4:"#74C2F0",
-                    5:"#F9C46B",
-                    login:"#FBE2B8"
-
-                },
                 merah: {
                     700: "#d52d2d",
                     600: "#771518",
@@ -191,42 +144,7 @@ export default {
                 '2xl': '1560px',
             },
         },
-
-        keyframes: {
-            bounceSlow: {
-                '0%, 100%': {
-                    transform: 'translateY(-10%)',
-                    animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)',
-                            },
-                    '50%': {
-                        transform: 'translateY(0)',
-                        animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
-                           },
-            },
-            swayslow1: {
-                '0%, 100%': { 
-                    transform: 'translateX(-2%)', 
-                },
-                '50%': { 
-                    transform: 'translateX(2%)',  
-                },
-            },
-            swayslow2: {
-                '0%, 100%': { 
-                    transform: 'translateX(2%)', 
-                },
-                '50%': { 
-                    transform: 'translateX(-2%)', 
-                },
-            },    
-        },
-            animation: {
-                'swayslow-1': 'swayslow1 8s ease-in-out infinite',
-                'swayslow-2': 'swayslow2 8s ease-in-out infinite',
-                'bounce-slow': 'bounceSlow 3s infinite',
-                       },
     },
-
 
     plugins: [
         require('@tailwindcss/forms'),
