@@ -22,3 +22,6 @@ Route::view('/nyoba', 'nyoba')->name('nyoba');
 
 // Dashboard
 Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
+
+//Manage Pegawai
+Route::get('/pages/manage-pegawai', fn() => view('pages.managePegawai'));
