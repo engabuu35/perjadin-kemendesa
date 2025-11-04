@@ -4,12 +4,11 @@
         <div class="flex flex-col md:flex-row justify-between gap-8">
 
             <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 items-center -mt-16 md:w-auto">
-
             <img src="{{ asset('img/logo_kementerian.png') }}" 
                 alt="Logo Kementerian" 
-                class="w-32 h-32">
+                class="w-32 h-32 mt-2">
 
-            <div class="flex flex-col leading-tight -mt-4">
+            <div class="flex flex-col leading-tight -mt-2">
                 <h2 class="text-3xl font-bold">Inspektorat Jenderal</h2>
                 <p class="text-md font-medium">
                 Kementerian Desa Dan<br>
@@ -17,7 +16,7 @@
                 </p>
             </div>
 
-            <div class="col-span-2 flex justify-center mt-8 pt-12">
+            <div class="col-span-2 flex justify-center mt-4 pt-12">
                 <img src="{{ asset('img/logo_berakhlak.webp') }}" 
                     alt="Logo BerAKHLAK" 
                     class="w-auto h-24">
