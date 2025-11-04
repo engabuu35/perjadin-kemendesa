@@ -28,3 +28,6 @@ Route::get('/pages/manage-pegawai', fn() => view('pages.managePegawai'));
 
 //Tambah Pegawai
 Route::get('/pages/tambah-pegawai', fn() => view('pages.tambahPegawai'));
+
+//Edit Pegawai
+Route::get('/pages/edit-pegawai', fn() => view('pages.editPegawai'));
