@@ -32,7 +32,7 @@
 <body>
 
     <div class="header fixed top-0 left-0 right-0 z-[100] flex justify-between items-center 
-                bg-gradient-to-br from-[#1e5bb8] to-[#2d74da] text-white 
+                bg-[#2954B0] text-white 
                 py-[15px] px-5 md:px-[30px] rounded-b-[30px] shadow-[0_8px_20px_rgba(0,0,0,0.2)]">
         
         <div class="header-left flex items-center gap-[15px]">

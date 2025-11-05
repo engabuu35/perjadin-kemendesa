@@ -1,4 +1,4 @@
-<footer class="relative bg-footer-bg bg-[length:100%_100%] bg-no-repeat text-white w-full">
+<footer class="relative bg-footer-pattern bg-[length:100%_100%] bg-no-repeat text-white w-full">
 
     <div class="relative max-w-7xl mx-auto px-6 py-20">
         <div class="flex flex-col md:flex-row justify-between gap-8">

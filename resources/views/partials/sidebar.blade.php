@@ -47,16 +47,25 @@
             .overlay.active {
                 @apply opacity-100 visible pointer-events-auto;
             }
+
+            .bg-sidebar {
+            background-image: 
+                url('../img/sidebar-pattern.png'),
+                linear-gradient(to bottom, #2954B0, #24519D);
+            background-repeat: repeat, no-repeat;
+            background-size: 255px, cover;
+            }
         }
     </style>
 </head>
 <body class="bg-[#e8e9f0]"> <div class="overlay fixed top-0 left-0 w-full h-full bg-black/50 opacity-0 invisible 
                 transition-all duration-300 z-[98] pointer-events-none" 
-         onclick="toggleSidebar()"></div>
+        onclick="toggleSidebar()"></div>
 
-    <aside class="sidebar fixed left-0 top-[80px] w-[80px] h-[calc(100vh-80px)] 
-                  bg-gradient-to-b from-[#2d5ba8] to-[#1e4b98] transition-all duration-300 ease-in-out 
-                  z-[99] pt-5 rounded-r-[30px] shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
+    <aside class="sidebar bg-sidebar fixed left-0 top-[90px] w-[80px] h-[calc(100vh-80px)]
+                transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
+                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
+
         
         <ul class="sidebar-menu list-none py-5">
             <li class="my-2.5">
@@ -92,7 +101,7 @@
                         border-t border-white/20 flex flex-col items-center transition-all duration-300">
             
             <div class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center 
-                          justify-center mb-2.5 text-2xl text-white">
+                        justify-center mb-2.5 text-2xl text-white">
                 <i class="fas fa-user"></i>
             </div>
             
@@ -104,8 +113,8 @@
             </div>
             
             <button class="logout-btn flex items-center justify-center gap-2.5 py-2.5 px-[15px] 
-                           bg-white/10 border-none rounded-lg text-white cursor-pointer w-full 
-                           transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
+                            bg-white/10 border-none rounded-lg text-white cursor-pointer w-full 
+                            transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>

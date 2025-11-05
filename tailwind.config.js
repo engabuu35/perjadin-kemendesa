@@ -13,7 +13,8 @@ export default {
     theme: {
         extend: {
             backgroundImage: (theme) => ({
-                "footer-bg": "url('../images/pattern/footer.png')",
+                "footer-pattern": "url('../images/pattern/footer-pattern.png')",
+                "sidebar-pattern": "url('../images/pattern/sidebar-pattern.png')",
             }),
 
             fontFamily: {
