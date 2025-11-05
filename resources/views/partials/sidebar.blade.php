@@ -14,13 +14,11 @@
     <style type="text/tailwindcss">
         @layer base {
             body {
-                /* Menerapkan font Poppins ke seluruh halaman */
                 font-family: 'Poppins', sans-serif;
             }
         }
         
         @layer components {
-            /* Aturan untuk status .active pada Sidebar */
             .sidebar.active {
                 @apply w-[250px];
             }
@@ -29,9 +27,8 @@
                 @apply opacity-100;
             }
 
-            /* Aturan untuk status .active pada User Profile */
             .sidebar.active .user-profile {
-                @apply items-center px-[30px] py-5; /* Mengubah padding horizontal saat aktif */
+                @apply items-center px-[30px] py-5;
             }
 
             .sidebar.active .user-profile .name,
@@ -43,7 +40,6 @@
                 @apply opacity-100;
             }
 
-            /* Aturan untuk status .active pada Overlay */
             .overlay.active {
                 @apply opacity-100 visible pointer-events-auto;
             }
