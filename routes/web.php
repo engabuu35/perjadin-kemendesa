@@ -39,8 +39,15 @@ Route::get('/pic/tambah-pegawai', fn() => view('pic.tambahPegawai'));
 // Edit Pegawai
 Route::get('/pic/edit-pegawai', fn() => view('pic.editPegawai'));
 
-// Detail Perjadin Pegawai
-Route::get('/pegawai/detail-perjadin-pegawai', fn() => view('pegawai.detailPerjadinPegawai'));
+//detail pegawai
+Route::get('/pic/detail-pegawai', fn() => view('pic.detailPegawai'));
+
+//pelaporan perjadin
+Route::get('/pic/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'));
+
+//penugasan perjadin
+Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'));
+
 
 
 // Rute untuk MENAMPILKAN halaman detail perjalanan
