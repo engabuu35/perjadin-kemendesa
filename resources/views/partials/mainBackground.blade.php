@@ -1,0 +1,1 @@
+<div class="fixed inset-0 bg-background-pattern bg-repeat -z-50"></div>

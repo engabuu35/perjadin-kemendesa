@@ -33,7 +33,7 @@
   class="ml-[80px]" PENTING untuk memberi ruang bagi sidebar.
   Ini juga mengikuti pola 'detailperjadin.blade.php'
 --}}
-<main class="item-center max-w-5xl mx-auto px-5 py-8">
+<main class="item-center max-w-5xl mx-auto px-5 py-8 ">
     
     <!-- Judul -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

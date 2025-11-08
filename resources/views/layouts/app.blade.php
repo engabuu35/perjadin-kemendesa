@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
-<body class="bg-red-100 flex flex-col min-h-screen">
+<body class= "flex flex-col min-h-screen">
     @include('partials.navbar')
 
     <div class="flex flex-1">
@@ -20,5 +20,6 @@
     </div>
 
     @include('partials.footer')
+    @include('partials.mainBackground')
 </body>
 </html>
