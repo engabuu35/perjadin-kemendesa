@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Perintah untuk membuat tabel 'laporan_keuangan'
         Schema::create('laporan_keuangan', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->string('nama_pegawai');
-            $table->string('nip', 20); // NIP seringkali butuh tipe string
-            $table->decimal('uang_harian', 15, 2); // Menggunakan decimal untuk presisi mata uang
-            $table->decimal('biaya_penginapan', 15, 2);
-            $table->decimal('transport', 15, 2);
+            $table->string('nip', 20);
+            $table->decimal('uang_harian', 15);
+            $table->decimal('biaya_penginapan', 15);
+            $table->decimal('transport', 15);
             $table->string('nama_hotel');
             $table->timestamps();
         });
