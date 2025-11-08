@@ -3,12 +3,17 @@
 @section('title', 'Detail Perjalanan Dinas')
 
 @section('content')
+<div class="ml-0 md:ml-20 lg:ml-24">
+        <div class="max-w-4xl mx-auto p-6">
  <!-- Main Content -->
-<div class="bg-white rounded-lg shadow-sm p-8">
+        <div class="bg-white rounded-lg shadow-sm p-8">
             <!-- Title with Back Button -->
             <div class="flex items-center justify-between mb-8">
-                <h1 class="text-2xl font-bold text-gray-900">Detail Perjalanan Dinas</h1>
-                <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+                <div class="inline-block">
+                    <h1 class="text-2xl font-bold text-gray-900">Detail Perjalanan Dinas</h1>
+                    <!-- Garis horizontal mengikuti panjang judul -->
+                    <div class="w-full h-0.5 bg-gradient-to-r from-blue-400 to-blue-200 mt-2"></div>
+                </div>
                 <button class="bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
