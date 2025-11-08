@@ -24,10 +24,10 @@ Route::view('/nyoba', 'nyoba')->name('nyoba');
 Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
 // Manage Pegawai
-Route::get('/pages/manage-pegawai', fn() => view('pages.managePegawai'));
+Route::get('/ppk/manage-pegawai', fn() => view('ppk.managePegawai'));
 
 // Tambah Pegawai
-Route::get('/pages/tambah-pegawai', fn() => view('pages.tambahPegawai'));
+Route::get('/ppk/tambah-pegawai', fn() => view('ppk.tambahPegawai'));
 
 // Edit Pegawai
-Route::get('/pages/edit-pegawai', fn() => view('pages.editPegawai'));
+Route::get('/ppk/edit-pegawai', fn() => view('ppk.editPegawai'));
