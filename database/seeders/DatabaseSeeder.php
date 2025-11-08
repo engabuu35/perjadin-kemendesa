@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,20 +12,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
-        // Panggil seeder yang sudah kita buat untuk mengisi tabel 'roles'
+        // 1. PANGGIL SEMUA TABEL MASTER (INDEPENDEN)
         $this->call([
-            RoleSeeder::class,
-            UserSeeder::class,
+            PangkatGolonganSeeder::class,
+            RolesSeeder::class,
+            StatusPerjadinSeeder::class,
+            StatusLaporanSeeder::class,
+            KategoriBiayaSeeder::class,
+            TipeGeotaggingSeeder::class,
         ]);
-        $this->call(LaporanKeuanganSeeder::class);
-        
-    }
 
-    
+        // 2. PANGGIL TABEL ORGANISASI (TERGANTUNG DIRINYA SENDIRI)
+        $this->call([
+            UnitKerjaSeeder::class,
+        ]);
+
+        // 3. PANGGIL TABEL PENDUKUNG ORGANISASI
+        // (Tergantung UnitKerja)
+        $this->call([
+            LingkupAuditSeeder::class,
+        ]);
+
+        // 4. PANGGIL DATA DUMMY (CONTOH)
+        // (Tergantung PangkatGolongan dan UnitKerja)
+        $this->call([
+            UsersSeeder::class,
+        ]);
+
+        // 5. PANGGIL SEEDER JUNCTION
+        // (Tergantung Users dan Roles)
+        $this->call([
+            PenugasanPeranSeeder::class,
+        ]);
+    }
 }

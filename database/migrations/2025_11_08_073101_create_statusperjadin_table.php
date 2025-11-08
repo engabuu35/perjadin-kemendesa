@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->decimal('latitude', 10, 7);
-            $table->decimal('longitude', 10, 7);
-            $table->timestamps();
+        Schema::create('statusperjadin', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->string('nama_status', 50)->unique('nama_status');
         });
     }
 
@@ -24,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('statusperjadin');
     }
 };

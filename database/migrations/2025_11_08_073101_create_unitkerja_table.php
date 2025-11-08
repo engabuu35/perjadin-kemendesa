@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cache', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->mediumText('value');
-            $table->integer('expiration');
+        Schema::create('unitkerja', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->integer('id_induk')->nullable()->index('id_induk');
+            $table->string('kode_uke', 50)->unique('kode_uke');
+            $table->string('nama_uke');
         });
     }
 
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cache');
+        Schema::dropIfExists('unitkerja');
     }
 };
