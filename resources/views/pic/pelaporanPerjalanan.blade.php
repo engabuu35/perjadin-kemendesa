@@ -114,7 +114,6 @@
                     Tolak
                 </button>
             </form>
-            <form method="POST" action="{{ route('pelaporan.setujui', $pelaporan->id ?? 1) }}" class="flex-1">
                 @csrf
                 <button type="submit" class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
                     Setujui
