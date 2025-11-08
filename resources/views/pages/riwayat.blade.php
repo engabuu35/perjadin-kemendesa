@@ -103,5 +103,3 @@
 </main>
 
 @endsection
-
-{{-- Tidak ada <script> khusus untuk halaman ini --}}
