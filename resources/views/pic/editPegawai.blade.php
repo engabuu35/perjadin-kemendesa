@@ -4,13 +4,13 @@
 
 @section('content')
  <!-- Main Content -->
-    <div class="max-w-lg mx-auto px-5 py-8">
+    <div class="max-w-4xl mx-auto px-5 py-8">
         <h2 class="text-gray-700 text-2xl font-bold mb-5 pb-4 relative">
             Detail Pegawai
             <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
         </h2>
         
-        <div class="bg-white rounded-xl p-8 shadow">
+        <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.2);">
             <form>
                 <div class="mb-5">
                     <label for="nama" class="block text-gray-700 text-sm font-medium mb-2">Nama Pegawai</label>
