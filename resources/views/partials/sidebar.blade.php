@@ -109,6 +109,7 @@
                 @apply relative z-10;
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 transform: translateX(0);
+                z-index: 10;
             }
 
             /* Smooth text slide in saat sidebar aktif */
@@ -272,12 +273,17 @@
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 
+                // Dapatkan posisi relatif terhadap elemen yang diklik
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
                 // Efek ripple saat klik
                 const ripple = document.createElement('span');
                 ripple.style.cssText = `
                     position: absolute;
-                    left: ${e.offsetX}px;
-                    top: ${e.offsetY}px;
+                    left: ${x}px;
+                    top: ${y}px;
                     width: 0;
                     height: 0;
                     border-radius: 50%;
@@ -285,7 +291,7 @@
                     transform: translate(-50%, -50%);
                     animation: ripple-effect 0.6s ease-out;
                     pointer-events: none;
-                    z-index: 100;
+                    z-index: -10;
                 `;
                 
                 this.appendChild(ripple);

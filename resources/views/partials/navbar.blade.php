@@ -71,13 +71,13 @@
 
     <div class="header sticky top-0 left-0 right-0 z-[100] flex justify-between items-center 
                 bg-[#2954B0] text-white 
-                py-[15px] px-10 md:px-[50px] rounded-b-[30px] shadow-[0_8px_20px_rgba(0,0,0,0.2)]">
+                py-[15px] px-4 md:px-[20px] rounded-b-[30px] shadow-[0_8px_20px_rgba(0,0,0,0.2)]">
         
         <div class="header-left flex items-center gap-[15px]">
             <div class="menu-icon text-2xl cursor-pointer transition-all duration-300 hover:text-gray-200" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
             </div>
-            <div class="logo font-bold italic tracking-[1px] text-xl md:text-2xl">
+            <div class="logo font-bold italic tracking-[1px] text-xl md:text-3xl">
                 SIPERDIN
             </div>
         </div>
