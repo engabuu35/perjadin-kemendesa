@@ -27,6 +27,9 @@ Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 // Beranda
 Route::get('/beranda', fn() => view('pages.beranda'));
 
+// Riwayat
+Route::get('/riwayat', fn() => view('pages.riwayat'));
+
 // Manage Pegawai
 Route::get('/pic/manage-pegawai', fn() => view('pic.managePegawai'));
 
