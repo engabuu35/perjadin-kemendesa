@@ -109,7 +109,6 @@
         @else
         <!-- Tombol Tolak dan Setujui -->
         <div class="flex gap-3 mt-8">
-            <form method="POST" action="{{ route('pelaporan.tolak', $pelaporan->id ?? 1) }}" class="flex-1">
                 @csrf
                 <button type="submit" class="w-full py-3.5 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition">
                     Tolak
