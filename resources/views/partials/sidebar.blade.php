@@ -242,18 +242,29 @@
 
     <!-- JavaScript -->
     <script>
+        // FUNCTION INI HARUS SAMA dengan yang di navbar
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.querySelector('.overlay');
             
-            // Tambahkan efek scale smooth
-            sidebar.style.transform = sidebar.classList.contains('active') ? 'scale(0.98)' : 'scale(1)';
+            // Toggle class active
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
             
-            setTimeout(() => {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-                sidebar.style.transform = 'scale(1)';
-            }, 100);
+            // Sinkronisasi dengan hamburger icon di navbar (jika ada)
+            const menuIcon = document.querySelector('.menu-icon');
+            if (menuIcon) {
+                const iconElement = menuIcon.querySelector('i');
+                menuIcon.classList.toggle('active');
+                
+                if (menuIcon.classList.contains('active')) {
+                    iconElement.classList.remove('fa-bars');
+                    iconElement.classList.add('fa-bars-staggered');
+                } else {
+                    iconElement.classList.remove('fa-bars-staggered');
+                    iconElement.classList.add('fa-bars');
+                }
+            }
         }
 
         // Tambahkan smooth scroll untuk menu
