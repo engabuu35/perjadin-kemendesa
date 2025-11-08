@@ -39,7 +39,7 @@
      Wrapper ini memberi margin agar konten tidak 
      tertimpa Navbar (mt-[90px]) dan Sidebar (ml-[80px]).
 --}}
-<div class="mt-[90px] ml-[80px] p-6">
+<div class="ml-[80px] p-6">
 
     <!-- Header Halaman -->
     <div class="flex justify-between items-center mb-6">
