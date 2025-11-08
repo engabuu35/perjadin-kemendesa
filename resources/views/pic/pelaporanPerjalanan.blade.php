@@ -1,259 +1,128 @@
-<?php
-session_start();
+@extends('layouts.app')
 
+@section('title', 'Pelaporan Perjalanan Dinas')
 
-// Simulasi data pelaporan
-if (!isset($_SESSION['pelaporan'])) {
-    $pelaporan = [
-        'nomor_surat' => 'ST/001/2025',
-        'tujuan' => 'Jakarta',
-        'biaya' => [
-            ['no' => 1, 'kategori' => 'Transport', 'bukti' => 'Tiket Pesawat', 'biaya' => 'Rp 2.500.000'],
-            ['no' => 2, 'kategori' => 'Akomodasi', 'bukti' => 'Hotel Invoice', 'biaya' => 'Rp 1.500.000'],
-            ['no' => 3, 'kategori' => 'Konsumsi', 'bukti' => 'Struk Makan', 'biaya' => 'Rp 500.000'],
-        ],
-        'catatan' => '',
-        'status' => '' 
-    ];
-} else {
-    $pelaporan = $_SESSION['pelaporan'];
-}
+@section('content')
+<!-- Main Content -->
+<div class="max-w-5xl mx-auto px-5 py-8">
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-5">
+            {{ session('success') }}
+        </div>
+    @endif
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        if ($_POST['action'] === 'tolak') {
-            $pelaporan['status'] = 'ditolak';
-            $_SESSION['pelaporan'] = $pelaporan;
-            $_SESSION['info_message'] = 'Pelaporan ditolak. Silakan isi catatan.';
-        } elseif ($_POST['action'] === 'setujui') {
-            $pelaporan['status'] = 'disetujui';
-            $_SESSION['pelaporan'] = $pelaporan;
-            $_SESSION['success_message'] = 'Pelaporan berhasil disetujui!';
-        } elseif ($_POST['action'] === 'kirim_catatan') {
-            $pelaporan['catatan'] = htmlspecialchars($_POST['catatan'] ?? '');
-            $pelaporan['status'] = 'catatan_terkirim';
-            $_SESSION['pelaporan'] = $pelaporan;
-            $_SESSION['success_message'] = 'Catatan berhasil dikirim!';
-        }
-        header('Location: ' . $_SERVER['PHP_SELF']);
-        exit;
-    }
-}
+    @if(session('info'))
+        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-5">
+            {{ session('info') }}
+        </div>
+    @endif
 
-// Jika bukan dari session, ambil data default
-if (!isset($_SESSION['pelaporan'])) {
-    $pelaporan = [
-        'nomor_surat' => 'ST/001/2025',
-        'tujuan' => 'Jakarta',
-        'biaya' => [
-            ['no' => 1, 'kategori' => 'Transport', 'bukti' => 'Tiket Pesawat', 'biaya' => 'Rp 2.500.000'],
-            ['no' => 2, 'kategori' => 'Akomodasi', 'bukti' => 'Hotel Invoice', 'biaya' => 'Rp 1.500.000'],
-            ['no' => 3, 'kategori' => 'Konsumsi', 'bukti' => 'Struk Makan', 'biaya' => 'Rp 500.000'],
-        ],
-        'catatan' => '',
-        'status' => '' 
-    ];
-} else {
-    $pelaporan = $_SESSION['pelaporan'];
-}
+    <div class="flex justify-between items-center mb-5 pb-4">
+        <h2 class="text-gray-700 text-2xl font-bold relative">
+            Pelaporan Perjalanan Dinas
+            <span class="absolute bottom-0 left-0 w-64 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+        </h2>
+        <button type="button" onclick="window.history.back()" 
+                class="px-6 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Kembali
+        </button>
+    </div>
+    
+    <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.2);">
+        <div class="mb-5">
+            <label class="block text-gray-700 text-sm font-medium mb-2">Nomor Surat Tugas</label>
+            <input type="text" value="{{ $pelaporan->nomor_surat ?? 'ST/001/2025' }}" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50" 
+                   disabled>
+        </div>
 
-$successMessage = $_SESSION['success_message'] ?? '';
-$infoMessage = $_SESSION['info_message'] ?? '';
-unset($_SESSION['success_message']);
-unset($_SESSION['info_message']);
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPERDIN - Pelaporan Perjalanan Dinas</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        <?php include 'styles.css'; ?>
-        
-        /* Style khusus untuk tabel biaya */
-        .biaya-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .biaya-table th {
-            background: #2954B0;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border: 1px solid #2954B0;
-        }
-        
-        .biaya-table td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            background: white;
-        }
-        
-        .biaya-table tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-        
-        /* Style untuk textarea catatan */
-        textarea.form-input {
-            min-height: 120px;
-            padding: 12px;
-            resize: vertical;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        /* Style untuk tombol tolak */
-        .btn-reject {
-            background: #9CA3AF;
-            color: white;
-        }
-        
-        .btn-reject:hover {
-            background: #6B7280;
-        }
-        
-        /* Info message style */
-        .alert-info {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            color: #1565c0;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <img src="https://api.builder.io/api/v1/image/assets/TEMP/f14558b691a5583af0d306cff110d512631e6f64?width=2880" 
-             alt="" class="bg-image">
+        <div class="mb-5">
+            <label class="block text-gray-700 text-sm font-medium mb-2">Tujuan</label>
+            <input type="text" value="{{ $pelaporan->tujuan ?? 'Jakarta' }}" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 bg-gray-50" 
+                   disabled>
+        </div>
 
-        <nav class="navbar">
-            <div class="navbar-content">
-                <div class="navbar-left">
-                    <button class="menu-btn" onclick="toggleMenu()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
-                    <h1 class="logo">SIPERDIN</h1>
-                </div>
-                <div class="navbar-right">
-                    <span class="user-name">Raza Anu</span>
-                    <div class="user-icon">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <div class="main-content">
-            <?php if ($successMessage): ?>
-            <div class="alert alert-success">
-                <?= $successMessage ?>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($infoMessage): ?>
-            <div class="alert-info">
-                <?= $infoMessage ?>
-            </div>
-            <?php endif; ?>
-
-            <div class="page-header">
-                <h2 class="page-title">Pelaporan Perjalanan Dinas</h2>
-                <button class="btn-back" onclick="window.history.back()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                </button>
-            </div>
-
-            <div class="form-card">
-                <div class="form-group">
-                    <label>Nomor Surat Tugas</label>
-                    <input type="text" value="<?= htmlspecialchars($pelaporan['nomor_surat']) ?>" class="form-input" disabled>
-                </div>
-
-                <div class="form-group">
-                    <label>Tujuan</label>
-                    <input type="text" value="<?= htmlspecialchars($pelaporan['tujuan']) ?>" class="form-input" disabled>
-                </div>
-
-                <div class="form-group">
-                    <label>Biaya</label>
-                    <table class="biaya-table">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Kategori</th>
-                                <th>Bukti</th>
-                                <th>Biaya</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($pelaporan['biaya'] as $item): ?>
-                            <tr>
-                                <td><?= $item['no'] ?></td>
-                                <td><?= htmlspecialchars($item['kategori']) ?></td>
-                                <td><?= htmlspecialchars($item['bukti']) ?></td>
-                                <td><?= htmlspecialchars($item['biaya']) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <?php if ($pelaporan['status'] === 'ditolak'): ?>
-                <!--Tampilkan Catatan dengan tombol Kirim -->
-                <form method="POST" action="">
-                    <input type="hidden" name="action" value="kirim_catatan">
-                    <div class="form-group">
-                        <label>Catatan:</label>
-                        <textarea name="catatan" class="form-input" placeholder="Tulis catatan penolakan di sini..."><?= htmlspecialchars($pelaporan['catatan']) ?></textarea>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-save">Kirim</button>
-                    </div>
-                </form>
-                <?php elseif ($pelaporan['status'] === 'disetujui' || $pelaporan['status'] === 'catatan_terkirim'): ?>
-                <!-- Setelah disetujui atau catatan terkirim -->
-                <div class="alert alert-success">
-                    <?= ($pelaporan['status'] === 'disetujui') ? 'Pelaporan telah disetujui!' : 'Catatan telah terkirim!' ?>
-                </div>
-                <?php else: ?>
-                <!--  Tolak dan Setujui -->
-                <div class="form-actions">
-                    <form method="POST" action="" style="flex: 1;">
-                        <input type="hidden" name="action" value="tolak">
-                        <button type="submit" class="btn btn-reject">Tolak</button>
-                    </form>
-                    <form method="POST" action="" style="flex: 1;">
-                        <input type="hidden" name="action" value="setujui">
-                        <button type="submit" class="btn btn-save">Setujui</button>
-                    </form>
-                </div>
-                <?php endif; ?>
+        <div class="mb-5">
+            <label class="block text-gray-700 text-sm font-medium mb-2">Biaya</label>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-blue-700 text-white">
+                            <th class="border border-blue-700 px-4 py-3 text-left font-semibold">No</th>
+                            <th class="border border-blue-700 px-4 py-3 text-left font-semibold">Kategori</th>
+                            <th class="border border-blue-700 px-4 py-3 text-left font-semibold">Bukti</th>
+                            <th class="border border-blue-700 px-4 py-3 text-left font-semibold">Biaya</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($biaya ?? [
+                            ['no' => 1, 'kategori' => 'Transport', 'bukti' => 'Tiket Pesawat', 'biaya' => 'Rp 2.500.000'],
+                            ['no' => 2, 'kategori' => 'Akomodasi', 'bukti' => 'Hotel Invoice', 'biaya' => 'Rp 1.500.000'],
+                            ['no' => 3, 'kategori' => 'Konsumsi', 'bukti' => 'Struk Makan', 'biaya' => 'Rp 500.000']
+                        ] as $item)
+                        <tr class="{{ $loop->even ? 'bg-gray-50' : 'bg-white' }}">
+                            <td class="border border-gray-300 px-4 py-3">{{ $item['no'] }}</td>
+                            <td class="border border-gray-300 px-4 py-3">{{ $item['kategori'] }}</td>
+                            <td class="border border-gray-300 px-4 py-3">{{ $item['bukti'] }}</td>
+                            <td class="border border-gray-300 px-4 py-3">{{ $item['biaya'] }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="border border-gray-300 px-4 py-3 text-center text-gray-500">
+                                Tidak ada data biaya
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
 
-    <script>
-        <?php include 'script.js'; ?>
-    </script>
-</body>
-</html>
+        @if(($pelaporan->status ?? '') === 'ditolak')
+        <!-- Form Catatan -->
+        <form method="POST" action="{{ route('pelaporan.kirimCatatan', $pelaporan->id ?? 1) }}">
+            @csrf
+            <div class="mb-5">
+                <label for="catatan" class="block text-gray-700 text-sm font-medium mb-2">Catatan:</label>
+                <textarea id="catatan" name="catatan" rows="5"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition resize-y"
+                          placeholder="Tulis catatan penolakan di sini...">{{ old('catatan', $pelaporan->catatan ?? '') }}</textarea>
+            </div>
+            
+            <div class="flex flex-col gap-3 mt-8">
+                <button type="submit" class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
+                    Kirim
+                </button>
+            </div>
+        </form>
+
+        @elseif(in_array($pelaporan->status ?? '', ['disetujui', 'catatan_terkirim']))
+        <!-- Status Selesai -->
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+            {{ ($pelaporan->status ?? '') === 'disetujui' ? 'Pelaporan telah disetujui!' : 'Catatan telah terkirim!' }}
+        </div>
+
+        @else
+        <!-- Tombol Tolak dan Setujui -->
+        <div class="flex gap-3 mt-8">
+            <form method="POST" action="{{ route('pelaporan.tolak', $pelaporan->id ?? 1) }}" class="flex-1">
+                @csrf
+                <button type="submit" class="w-full py-3.5 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition">
+                    Tolak
+                </button>
+            </form>
+            <form method="POST" action="{{ route('pelaporan.setujui', $pelaporan->id ?? 1) }}" class="flex-1">
+                @csrf
+                <button type="submit" class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
+                    Setujui
+                </button>
+            </form>
+        </div>
+        @endif
+    </div>
+</div>
+@endsection

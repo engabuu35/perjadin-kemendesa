@@ -1,233 +1,160 @@
-<?php
-session_start();
+@extends('layouts.app')
 
-// Simpan data jika form disubmit
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nomorSurat = $_POST['nomor_surat'] ?? '';
-    $tanggal = $_POST['tanggal'] ?? '';
-    $tujuan = $_POST['tujuan'] ?? '';
-    $pegawai = $_POST['pegawai'] ?? [];
+@section('title', 'Penugasan Perjalanan Dinas')
 
-    $_SESSION['penugasan'] = [
-        'nomor_surat' => htmlspecialchars($nomorSurat),
-        'tanggal' => htmlspecialchars($tanggal),
-        'tujuan' => htmlspecialchars($tujuan),
-        'pegawai' => array_map(function ($p) {
-            return array_map('htmlspecialchars', $p);
-        }, $pegawai),
-    ];
-
-    $success = true;
-}
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPERDIN - Penugasan Perjalanan Dinas</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        <?php include 'styles.css'; ?>
-        
-        /* Override atau tambahan style khusus untuk halaman penugasan */
-        .pegawai-section {
-            margin-top: 30px;
-        }
-        
-        .pegawai-section h3 {
-            color: #3D2D6E;
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .pegawai-card {
-            background: #f1f5ff;
-            border: 1px solid #c9d7ff;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-        
-        .hapus-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #ff6b6b;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 15px;
-            cursor: pointer;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        
-        .hapus-btn:hover {
-            background: #ff5252;
-        }
-        
-        .add-btn {
-            border-radius: 10px;
-            border: 2px dashed #2954B0;
-            color: #2954B0;
-            font-weight: 700;
-            background: white;
-            padding: 12px 20px;
-            margin-top: 15px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: all 0.3s;
-        }
-        
-        .add-btn:hover {
-            background: #f0f5ff;
-            border-color: #1e3d8f;
-        }
-        
-        .form-actions-penugasan {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .form-actions-penugasan .btn {
-            flex: 1;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-
-        <nav class="navbar">
-            <div class="navbar-content">
-                <div class="navbar-left">
-                    <button class="menu-btn" onclick="toggleMenu()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
-                    <h1 class="logo">SIPERDIN</h1>
-                </div>
-                <div class="navbar-right">
-                    <span class="user-name">Raza Anu</span>
-                    <div class="user-icon">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <div class="main-content">
-            <?php if (!empty($success)): ?>
-                <div class="alert alert-success">
-                    Data penugasan berhasil disimpan!
-                </div>
-            <?php endif; ?>
-
-            <div class="page-header">
-                <h2 class="page-title">Penugasan Perjalanan Dinas</h2>
-            </div>
-
-            <div class="form-card">
-                <form method="POST" id="penugasanForm">
-                    <div class="form-group">
-                        <label>Nomor Surat Tugas</label>
-                        <input type="text" name="nomor_surat" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tanggal</label>
-                        <input type="date" name="tanggal" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tujuan</label>
-                        <input type="text" name="tujuan" class="form-input" required>
-                    </div>
-
-                    <div class="pegawai-section">
-                        <h3>Daftar Pegawai</h3>
-                        <div id="pegawaiList">
-                            <div class="pegawai-card">
-                                <button type="button" class="hapus-btn" onclick="hapusPegawai(this)">Hapus</button>
-                                <div class="form-group">
-                                    <label>NIP</label>
-                                    <input type="text" name="pegawai[0][nip]" class="form-input">
-                                </div>
-                                <div class="form-group">
-                                    <label>Nama Lengkap</label>
-                                    <input type="text" name="pegawai[0][nama]" class="form-input">
-                                </div>
-                                <div class="form-group">
-                                    <label>Nomor Telepon</label>
-                                    <input type="text" name="pegawai[0][telepon]" class="form-input">
-                                </div>
-                                <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="email" name="pegawai[0][email]" class="form-input">
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" class="add-btn" onclick="tambahPegawai()">+ Tambah Pegawai</button>
-                    </div>
-
-                    <div class="form-actions-penugasan">
-                        <button type="button" class="btn btn-cancel" onclick="window.location.reload()">Batal</button>
-                        <button type="submit" class="btn btn-save">Simpan</button>
-                    </div>
-                </form>
-            </div>
+@section('content')
+<!-- Main Content -->
+<div class="max-w-5xl mx-auto px-5 py-8">
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-5">
+            {{ session('success') }}
         </div>
+    @endif
+
+    <h2 class="text-gray-700 text-2xl font-bold mb-5 pb-4 relative">
+        Penugasan Perjalanan Dinas
+        <span class="absolute bottom-0 left-0 w-64 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+    </h2>
+    
+    <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.2);">
+        <form method="POST" action="{{ route('penugasan.store') }}" id="penugasanForm">
+            @csrf
+            
+            <div class="mb-5">
+                <label for="nomor_surat" class="block text-gray-700 text-sm font-medium mb-2">Nomor Surat Tugas</label>
+                <input type="text" id="nomor_surat" name="nomor_surat" 
+                       value="{{ old('nomor_surat') }}"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       required>
+                @error('nomor_surat')
+                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="mb-5">
+                <label for="tanggal" class="block text-gray-700 text-sm font-medium mb-2">Tanggal</label>
+                <input type="date" id="tanggal" name="tanggal" 
+                       value="{{ old('tanggal') }}"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       required>
+                @error('tanggal')
+                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="mb-5">
+                <label for="tujuan" class="block text-gray-700 text-sm font-medium mb-2">Tujuan</label>
+                <input type="text" id="tujuan" name="tujuan" 
+                       value="{{ old('tujuan') }}"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       required>
+                @error('tujuan')
+                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- Daftar Pegawai -->
+            <div class="mt-8">
+                <h3 class="text-gray-700 text-xl font-semibold mb-5">Daftar Pegawai</h3>
+                
+                <div id="pegawaiList">
+                    <div class="pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5 relative">
+                        <button type="button" onclick="hapusPegawai(this)" 
+                                class="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white text-sm rounded-lg font-semibold hover:bg-red-600 transition">
+                            Hapus
+                        </button>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
+                            <input type="text" name="pegawai[0][nip]" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
+                            <input type="text" name="pegawai[0][nama]" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nomor Telepon</label>
+                            <input type="text" name="pegawai[0][telepon]" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+                        </div>
+                        
+                        <div class="mb-0">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Email</label>
+                            <input type="email" name="pegawai[0][email]" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="tambahPegawai()" 
+                        class="w-full py-3.5 border-2 border-dashed border-blue-700 text-blue-700 rounded-lg font-bold hover:bg-blue-50 transition text-base">
+                    + Tambah Pegawai
+                </button>
+            </div>
+
+            <div class="flex flex-col gap-3 mt-8">
+                <button type="button" onclick="window.location.reload()" 
+                        class="w-full py-3.5 bg-gray-300 text-gray-600 rounded-lg font-semibold hover:bg-gray-400 transition">
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
+                    Simpan
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <script>
-        <?php include 'script.js'; ?>
-        
-        let pegawaiCount = 1;
+@push('scripts')
+<script>
+    let pegawaiCount = 1;
 
-        function tambahPegawai() {
-            const list = document.getElementById('pegawaiList');
-            const div = document.createElement('div');
-            div.className = 'pegawai-card';
-            div.innerHTML = `
-                <button type="button" class="hapus-btn" onclick="hapusPegawai(this)">Hapus</button>
-                <div class="form-group">
-                    <label>NIP</label>
-                    <input type="text" name="pegawai[${pegawaiCount}][nip]" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>Nama Lengkap</label>
-                    <input type="text" name="pegawai[${pegawaiCount}][nama]" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>Nomor Telepon</label>
-                    <input type="text" name="pegawai[${pegawaiCount}][telepon]" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="pegawai[${pegawaiCount}][email]" class="form-input">
-                </div>
-            `;
-            list.appendChild(div);
-            pegawaiCount++;
-        }
+    function tambahPegawai() {
+        const list = document.getElementById('pegawaiList');
+        const div = document.createElement('div');
+        div.className = 'pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5 relative';
+        div.innerHTML = `
+            <button type="button" onclick="hapusPegawai(this)" 
+                    class="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white text-sm rounded-lg font-semibold hover:bg-red-600 transition">
+                Hapus
+            </button>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
+                <input type="text" name="pegawai[${pegawaiCount}][nip]" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
+                <input type="text" name="pegawai[${pegawaiCount}][nama]" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">Nomor Telepon</label>
+                <input type="text" name="pegawai[${pegawaiCount}][telepon]" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+            </div>
+            
+            <div class="mb-0">
+                <label class="block text-gray-700 text-sm font-medium mb-2">Email</label>
+                <input type="email" name="pegawai[${pegawaiCount}][email]" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition">
+            </div>
+        `;
+        list.appendChild(div);
+        pegawaiCount++;
+    }
 
-        function hapusPegawai(btn) {
-            btn.parentElement.remove();
-        }
-    </script>
-
-</body>
-</html>
+    function hapusPegawai(btn) {
+        btn.closest('.pegawai-card').remove();
+    }
+</script>
+@endpush
+@endsection

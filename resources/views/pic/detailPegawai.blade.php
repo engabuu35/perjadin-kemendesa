@@ -1,139 +1,113 @@
-<?php
-session_start();
+@extends('layouts.app')
 
-// Simulasi data pegawai (nanti bisa dari database)
-$pegawai = [
-    'namaPegawai' => 'Amanda Atika Putri',
-    'nip' => '0000000000000',
-    'jabatan' => 'Staff PPK',
-    'namaUke1' => 'Inspektorat Jendral',
-    'namaUke2' => 'Sekretariat Inspektorat Jendral',
-    'pangkatGolongan' => 'III',
-];
+@section('title', 'Detail Pegawai')
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action']) && $_POST['action'] === 'simpan') {
-        $pegawai = [
-            'namaPegawai' => htmlspecialchars($_POST['namaPegawai'] ?? ''),
-            'nip' => htmlspecialchars($_POST['nip'] ?? ''),
-            'jabatan' => htmlspecialchars($_POST['jabatan'] ?? ''),
-            'namaUke1' => htmlspecialchars($_POST['namaUke1'] ?? ''),
-            'namaUke2' => htmlspecialchars($_POST['namaUke2'] ?? ''),
-            'pangkatGolongan' => htmlspecialchars($_POST['pangkatGolongan'] ?? ''),
-        ];
-
-        $_SESSION['pegawai'] = $pegawai;
-        $_SESSION['success_message'] = 'Data berhasil disimpan!';
-        header('Location: ' . $_SERVER['PHP_SELF']);
-        exit;
-    }
-}
-
-if (isset($_SESSION['pegawai'])) {
-    $pegawai = $_SESSION['pegawai'];
-}
-
-$successMessage = $_SESSION['success_message'] ?? '';
-unset($_SESSION['success_message']);
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPERDIN - Detail Pegawai</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        <?php include 'styles.css'; ?>
-    </style>
-</head>
-<body>
-    <div class="container">
-
-        <nav class="navbar">
-            <div class="navbar-content">
-                <div class="navbar-left">
-                    <button class="menu-btn" onclick="toggleMenu()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
-                    <h1 class="logo">SIPERDIN</h1>
-                </div>
-                <div class="navbar-right">
-                    <span class="user-name">Raza Anu</span>
-                    <div class="user-icon">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <div class="main-content">
-            <?php if ($successMessage): ?>
-            <div class="alert alert-success">
-                <?= $successMessage ?>
-            </div>
-            <?php endif; ?>
-
-            <div class="page-header">
-                <h2 class="page-title">Detail Pegawai</h2>
-                <button class="btn-edit" onclick="toggleEdit()">Edit</button>
-            </div>
-
-            <div class="form-card">
-                <form method="POST" action="" id="pegawaiForm">
-                    <input type="hidden" name="action" value="simpan">
-                    <div class="form-group">
-                        <label>Nama Pegawai</label>
-                        <input type="text" name="namaPegawai" value="<?= htmlspecialchars($pegawai['namaPegawai']) ?>" class="form-input" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>NIP</label>
-                        <input type="text" name="nip" value="<?= htmlspecialchars($pegawai['nip']) ?>" class="form-input" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Jabatan</label>
-                        <input type="text" name="jabatan" value="<?= htmlspecialchars($pegawai['jabatan']) ?>" class="form-input" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Nama UKE-1</label>
-                        <input type="text" name="namaUke1" value="<?= htmlspecialchars($pegawai['namaUke1']) ?>" class="form-input" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Nama UKE-2</label>
-                        <input type="text" name="namaUke2" value="<?= htmlspecialchars($pegawai['namaUke2']) ?>" class="form-input" disabled>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Pangkat Golongan</label>
-                        <input type="text" name="pangkatGolongan" value="<?= htmlspecialchars($pegawai['pangkatGolongan']) ?>" class="form-input" disabled>
-                    </div>
-                </form>
-            </div>
-
-            <div class="form-actions" id="formActions">
-                <button type="button" class="btn btn-cancel" onclick="cancelEdit()" disabled>Batal</button>
-                <button type="submit" class="btn btn-save" form="pegawaiForm" disabled>Simpan</button>
-            </div>
+@section('content')
+<!-- Main Content -->
+<div class="max-w-4xl mx-auto px-5 py-8">
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-5">
+            {{ session('success') }}
         </div>
-    </div>
+    @endif
 
-    <script>
-        <?php include 'script.js'; ?>
-    </script>
-</body>
-</html>
+    <div class="flex justify-between items-center mb-5 pb-4">
+        <h2 class="text-gray-700 text-2xl font-bold relative">
+            Detail Pegawai
+            <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+        </h2>
+        <button type="button" onclick="toggleEdit()" class="px-6 py-2 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
+            Edit
+        </button>
+    </div>
+    
+    <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.2);">
+        <form method="POST" action="{{ route('pegawai.update', $pegawai->id ?? 1) }}" id="pegawaiForm">
+            @csrf
+            @method('PUT')
+            
+            <div class="mb-5">
+                <label for="namaPegawai" class="block text-gray-700 text-sm font-medium mb-2">Nama Pegawai</label>
+                <input type="text" id="namaPegawai" name="namaPegawai" 
+                       value="{{ old('namaPegawai', $pegawai->namaPegawai ?? 'Amanda Atika Putri') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       disabled>
+            </div>
+
+            <div class="mb-5">
+                <label for="nip" class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
+                <input type="text" id="nip" name="nip" 
+                       value="{{ old('nip', $pegawai->nip ?? '0000000000000') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       disabled>
+            </div>
+
+            <div class="mb-5">
+                <label for="jabatan" class="block text-gray-700 text-sm font-medium mb-2">Jabatan</label>
+                <input type="text" id="jabatan" name="jabatan" 
+                       value="{{ old('jabatan', $pegawai->jabatan ?? 'Staff PPK') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       disabled>
+            </div>
+
+            <div class="mb-5">
+                <label for="namaUke1" class="block text-gray-700 text-sm font-medium mb-2">Nama UKE-1</label>
+                <input type="text" id="namaUke1" name="namaUke1" 
+                       value="{{ old('namaUke1', $pegawai->namaUke1 ?? 'Inspektorat Jendral') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       disabled>
+            </div>
+
+            <div class="mb-5">
+                <label for="namaUke2" class="block text-gray-700 text-sm font-medium mb-2">Nama UKE-2</label>
+                <input type="text" id="namaUke2" name="namaUke2" 
+                       value="{{ old('namaUke2', $pegawai->namaUke2 ?? 'Sekretariat Inspektorat Jendral') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       disabled>
+            </div>
+
+            <div class="mb-5">
+                <label for="pangkatGolongan" class="block text-gray-700 text-sm font-medium mb-2">Pangkat Golongan</label>
+                <input type="text" id="pangkatGolongan" name="pangkatGolongan" 
+                       value="{{ old('pangkatGolongan', $pegawai->pangkatGolongan ?? 'III') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                       disabled>
+            </div>
+
+            <div class="flex flex-col gap-3 mt-8" id="formActions">
+                <button type="button" onclick="cancelEdit()" 
+                        class="w-full py-3.5 bg-gray-300 text-gray-600 rounded-lg font-semibold hover:bg-gray-400 transition" 
+                        disabled>
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition" 
+                        disabled>
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function toggleEdit() {
+        const inputs = document.querySelectorAll('#pegawaiForm input');
+        const buttons = document.querySelectorAll('#formActions button');
+        
+        inputs.forEach(input => {
+            input.disabled = !input.disabled;
+        });
+        
+        buttons.forEach(button => {
+            button.disabled = !button.disabled;
+        });
+    }
+
+    function cancelEdit() {
+        location.reload();
+    }
+</script>
+@endpush
+@endsection
