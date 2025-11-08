@@ -22,7 +22,6 @@
     </div>
     
     <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.2);">
-        <form method="POST" action="{{ route('pegawai.update', $pegawai->id ?? 1) }}" id="pegawaiForm">
             @csrf
             @method('PUT')
             
