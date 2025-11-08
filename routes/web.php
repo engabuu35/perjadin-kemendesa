@@ -48,6 +48,9 @@ Route::get('/pic/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'));
 //penugasan perjadin
 Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'));
 
+//Laman Profile
+Route::get('/laman-profile', fn() => view('pages.lamanprofile'));
+
 
 
 // Rute untuk MENAMPILKAN halaman detail perjalanan
