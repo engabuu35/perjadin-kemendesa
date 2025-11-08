@@ -24,6 +24,9 @@ Route::view('/nyoba', 'nyoba')->name('nyoba');
 // Dashboard
 Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
+// Beranda
+Route::get('/beranda', fn() => view('pages.beranda'));
+
 // Manage Pegawai
 Route::get('/pic/manage-pegawai', fn() => view('pic.managePegawai'));
 
@@ -35,6 +38,7 @@ Route::get('/pic/edit-pegawai', fn() => view('pic.editPegawai'));
 
 // Detail Perjadin Pegawai
 Route::get('/pegawai/detail-perjadin-pegawai', fn() => view('pegawai.detailPerjadinPegawai'));
+
 
 // Rute untuk MENAMPILKAN halaman detail perjalanan
 // URL-nya akan menjadi: /perjalanan/1 (contoh jika id-nya 1)
