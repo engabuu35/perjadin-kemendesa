@@ -9,3 +9,8 @@
     font-family: "POPPINS";
     src: url("../fonts/Poppins-Regular.ttf");
 }
+
+body, input, textarea, button, select, p, span, h1, h2, h3, h4, h5, h6, a, label {
+    font-family: 'Poppins', sans-serif !important;
+}
+
