@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LaporanKeuanganController;
+use App\Http\Controllers\PerjadinController;
 use Maatwebsite\Excel\Facades\Excel;
 
 // Halaman utama geotagging
@@ -31,3 +32,16 @@ Route::get('/ppk/tambah-pegawai', fn() => view('ppk.tambahPegawai'));
 
 // Edit Pegawai
 Route::get('/ppk/edit-pegawai', fn() => view('ppk.editPegawai'));
+
+// Rute untuk MENAMPILKAN halaman detail perjalanan
+    // URL-nya akan menjadi: /perjalanan/1 (contoh jika id-nya 1)
+    Route::get('/perjalanan/{id}', [PerjadinController::class, 'show'])
+         ->name('perjalanan.detail');
+
+    // Rute untuk MEMPROSES form "Kirim" (Uraian & Biaya)
+    Route::post('/perjalanan/laporan/{id}', [PerjadinController::class, 'storeLaporan'])
+         ->name('perjalanan.storeLaporan');
+    
+    // Rute untuk Tombol "Tandai Kehadiran" (via AJAX/JavaScript)
+    Route::post('/perjalanan/hadir/{id}', [PerjadinController::class, 'tandaiKehadiran'])
+         ->name('perjalanan.hadir');
