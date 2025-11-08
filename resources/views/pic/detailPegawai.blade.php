@@ -53,8 +53,6 @@ unset($_SESSION['success_message']);
 </head>
 <body>
     <div class="container">
-        <img src="https://api.builder.io/api/v1/image/assets/TEMP/f14558b691a5583af0d306cff110d512631e6f64?width=2880" 
-             alt="" class="bg-image">
 
         <nav class="navbar">
             <div class="navbar-content">
