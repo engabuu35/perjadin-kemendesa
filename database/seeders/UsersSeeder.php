@@ -102,7 +102,7 @@ class UsersSeeder extends Seeder
                 'is_aktif' => true,
                 'created_at' => now(), 'updated_at' => now(),
             ],
-             [
+            [
                 // User 8: PIC untuk SETITJEN
                 'id_uke' => $ukeSetitjen,
                 'pangkat_gol_id' => $pangkat3a,

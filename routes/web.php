@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\PerjadinController;
@@ -11,6 +13,46 @@ use Maatwebsite\Excel\Facades\Excel;
 
 // Menyimpan lokasi dari frontend
 // Route::post('/locations', [LocationController::class, 'store'])->name('locations.store');
+
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.store');
+
+Route::get('/confirm-password', [AuthController::class,'showConfirmForm'])->middleware('auth')->name('password.confirm');
+Route::post('/confirm-password', [AuthController::class,'confirm'])->middleware('auth');
+
+// Halaman PIC
+Route::middleware(['auth', 'role:PIC'])->group(function () {
+    Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'))->name('pic.penugasan');
+    Route::get('/pic/tambah-pegawai', fn() => view('pic.tambahPegawai'))->name('pic.tambahPegawai');
+    Route::get('/pic/manage-pegawai', fn() => view('pic.managePegawai'))->name('pic.managePegawai');
+    Route::get('/pic/edit-pegawai', fn() => view('pic.editPegawai'))->name('pic.editPegawai');
+    Route::get('/pic/detail-pegawai', fn() => view('pic.detailPegawai'))->name('pic.detailPegawai');
+    Route::get('/pic/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pic.pelaporanPerjalanan');
+});
+
+// Halaman PIMPINAN (juga bisa akses halaman PEGAWAI)
+Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
+    Route::get('/riwayat', fn() => view('pages.riwayat'))->name('pimpinan.riwayat');
+});
+
+// Halaman PPK (juga bisa akses halaman PEGAWAI)
+Route::middleware(['auth', 'role:PPK'])->group(function () {
+    Route::get('/ppk/laporan', fn() => view('pages.laporan'))->name('ppk.laporan');
+});
+
+// Halaman PEGAWAI
+Route::middleware(['auth', 'role:PEGAWAI'])->group(function () {
+    Route::get('/beranda', fn() => view('pages.beranda'))->name('pegawai.beranda');
+    Route::get('/laman-profile', fn() => view('pages.lamanprofile'))->name('pegawai.lamanprofile');
+});
+
+
 
 // Halaman laporan
 Route::get('/laporan', [LaporanKeuanganController::class, 'index'])->name('laporan.index');
