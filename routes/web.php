@@ -32,7 +32,7 @@ Route::post('/confirm-password', [AuthController::class,'confirm'])->middleware(
 
 // Halaman PIC
 Route::middleware(['auth', 'role:PIC'])->group(function () {
-    Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'))->name('pic.penugasan');
+    Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'))->name('pic.penugasan'); 
     Route::get('/pic/tambah-pegawai', fn() => view('pic.tambahPegawai'))->name('pic.tambahPegawai');
     Route::get('/pic/manage-pegawai', fn() => view('pic.managePegawai'))->name('pic.managePegawai');
     Route::get('/pic/edit-pegawai', fn() => view('pic.editPegawai'))->name('pic.editPegawai');
@@ -43,6 +43,7 @@ Route::middleware(['auth', 'role:PIC'])->group(function () {
 // Halaman PIMPINAN (juga bisa akses halaman PEGAWAI)
 Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
     Route::get('/riwayat', fn() => view('pages.riwayat'))->name('pimpinan.riwayat');
+    Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 });
 
 // Halaman PPK (juga bisa akses halaman PEGAWAI)
