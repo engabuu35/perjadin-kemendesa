@@ -16,6 +16,7 @@ export default {
                 "footer-pattern": "url('../images/pattern/footer-pattern.png')",
                 "sidebar-pattern": "url('../images/pattern/sidebar-pattern.png')",
                 "background-pattern": "url('../images/pattern/background-utama.png')",
+                "login-pattern": "url('../images/pattern/login-pattern.png')",
             }),
 
             fontFamily: {
