@@ -7,15 +7,7 @@
 @section('content')
 @php
     $perjalanan_list = [
-        (object)[
-            'id' => 1, // Ganti dengan ID dari database
-            'nomor_surat' => '489/PRC.03.01/2024',
-            'lokasi' => 'Ogan Komering Ilir',
-            'tanggal' => '30 Desember 2024 - 1 Januari 2025',
-            'status' => 'Belum Lengkap',
-            'status_color' => 'red', // 'red' atau 'yellow'
-            'catatan' => 'Uraian belum diinput'
-        ],
+        
         (object)[
             'id' => 2, // Ganti dengan ID dari database
             'nomor_surat' => '489/PRC.03.01/2024',
@@ -33,7 +25,7 @@
   class="ml-[80px]" PENTING untuk memberi ruang bagi sidebar.
   Ini juga mengikuti pola 'detailperjadin.blade.php'
 --}}
-<main class="item-center max-w-5xl mx-auto px-5 py-8 ">
+<main class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8 ">
     
     <!-- Judul -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

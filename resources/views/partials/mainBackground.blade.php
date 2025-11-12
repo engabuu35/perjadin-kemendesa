@@ -1,1 +1,1 @@
-<div class="fixed inset-0 bg-background-pattern bg-cover bg-center -z-50 opacity-20"></div>
+<div class="fixed inset-0 bg-background-pattern bg-cover bg-center -z-50 opacity-50"></div>
