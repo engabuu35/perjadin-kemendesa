@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.appPegawai')
 
 {{-- 
   Data dummy untuk daftar perjalanan.
