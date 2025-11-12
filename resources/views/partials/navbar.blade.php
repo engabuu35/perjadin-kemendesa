@@ -131,8 +131,13 @@
             </li>
             <div class="dropdown-divider h-px bg-gray-200 my-2"></div>
             <li>
-                <a href="#" class="logout flex items-center gap-3 py-3 px-5 no-underline transition-colors duration-200 text-sm hover:bg-gray-100 text-red-600">
-                    <i class="fas fa-sign-out-alt w-5 text-red-600"></i> 
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                    @csrf
+                </form>
+
+                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                class="flex items-center gap-3 py-3 px-5 no-underline transition-colors duration-200 text-sm hover:bg-gray-100 text-red-600">
+                    <i class="fas fa-sign-out-alt w-5 text-red-600"></i>
                     Logout
                 </a>
             </li>

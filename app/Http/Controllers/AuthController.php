@@ -47,15 +47,15 @@ class AuthController extends Controller
 
         // pilih prioritas redirect berdasarkan kode role: NANTI DIUBAH!
         if ($user->hasRole('PIC')) {
-            return redirect()->intended('/pic/penugasan-perjadin');
+            return redirect()->intended('/pic/beranda');
         }
 
         if ($user->hasRole('PIMPINAN')) {
-            return redirect()->intended('/riwayat');
+            return redirect()->intended('/pimpinan/beranda');
         }
 
         if ($user->hasRole('PPK')) {
-            return redirect()->intended('/pic/tambah-pegawai');
+            return redirect()->intended('/ppk/beranda');
         }
 
         return redirect()->intended('/beranda'); // default pegawai

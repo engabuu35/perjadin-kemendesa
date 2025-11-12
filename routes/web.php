@@ -32,6 +32,7 @@ Route::post('/confirm-password', [AuthController::class,'confirm'])->middleware(
 
 // Halaman PIC
 Route::middleware(['auth', 'role:PIC'])->group(function () {
+    Route::get('/pic/beranda', fn() => view('pic.beranda'))->name('pic.beranda');
     Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'))->name('pic.penugasan'); 
     Route::get('/pic/tambah-pegawai', fn() => view('pic.tambahPegawai'))->name('pic.tambahPegawai');
     Route::get('/pic/manage-pegawai', fn() => view('pic.managePegawai'))->name('pic.managePegawai');
@@ -42,19 +43,17 @@ Route::middleware(['auth', 'role:PIC'])->group(function () {
 
 // Halaman PIMPINAN (juga bisa akses halaman PEGAWAI)
 Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
-    Route::get('/riwayat', fn() => view('pages.riwayat'))->name('pimpinan.riwayat');
     Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 });
 
 // Halaman PPK (juga bisa akses halaman PEGAWAI)
 Route::middleware(['auth', 'role:PPK'])->group(function () {
-    Route::get('/ppk/laporan', fn() => view('pages.laporan'))->name('ppk.laporan');
+    Route::get('/ppk/beranda', fn() => view('ppk.beranda'))->name('ppk.beranda');
 });
 
 // Halaman PEGAWAI
 Route::middleware(['auth', 'role:PEGAWAI'])->group(function () {
     Route::get('/beranda', fn() => view('pages.beranda'))->name('pegawai.beranda');
-    Route::get('/laman-profile', fn() => view('pages.lamanprofile'))->name('pegawai.lamanprofile');
 });
 
 
@@ -98,7 +97,9 @@ Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'));
 //Laman Profile
 Route::get('/laman-profile', fn() => view('pages.lamanprofile'));
 
-
+Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
+Route::get('/ppk/beranda', fn() => view('ppk.beranda'))->name('ppk.beranda');
+Route::get('/pic/beranda', fn() => view('pic.beranda'))->name('pic.beranda');
 
 // Rute untuk MENAMPILKAN halaman detail perjalanan
 // URL-nya akan menjadi: /perjalanan/1 (contoh jika id-nya 1)
