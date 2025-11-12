@@ -1,0 +1,271 @@
+@extends('layouts.app')
+
+@section('title', 'FAQ')
+
+@section('content')
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <h1 class="text-3xl font-bold text-gray-800">FAQ SIPERDIN</h1>
+                <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background-color: #0F55C9;">
+                    <span class="text-white text-2xl font-bold">?</span>
+                </div>
+            </div>
+            <p class="text-gray-600">Pertanyaan yang Sering Diajukan</p>
+        </div>
+
+        <!-- FAQ List -->
+        <div class="space-y-4">
+            <!-- FAQ Item 1 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(1)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Apa itu SIPERDIN?
+                    </span>
+                    <div id="icon-1" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-1" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            SIPERDIN (Sistem Informasi Perjalanan Dinas) adalah platform digital yang digunakan untuk mengelola dan mengajukan perjalanan dinas secara online, memudahkan proses administrasi dan pelaporan perjalanan dinas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 2 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(2)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Bagaimana cara login ke SIPERDIN?
+                    </span>
+                    <div id="icon-2" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-2" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Anda dapat login menggunakan NIP dan password yang telah terdaftar. Pastikan Anda sudah memiliki akun yang diaktivasi oleh administrator sistem.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 3 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(3)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Bagaimana cara mengajukan perjalanan dinas?
+                    </span>
+                    <div id="icon-3" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-3" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Masuk ke menu 'Pengajuan', isi formulir perjalanan dinas dengan lengkap meliputi tujuan, tanggal, keperluan, dan estimasi biaya. Setelah selesai, klik tombol 'Ajukan' untuk mengirimkan ke atasan.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 4 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(4)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Berapa lama proses persetujuan perjalanan dinas?
+                    </span>
+                    <div id="icon-4" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-4" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Proses persetujuan tergantung pada atasan langsung dan pejabat yang berwenang. Biasanya memerlukan waktu 2-5 hari kerja. Anda dapat memantau status pengajuan di dashboard.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 5 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(5)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Bagaimana cara melihat status pengajuan saya?
+                    </span>
+                    <div id="icon-5" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-5" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Status pengajuan dapat dilihat di halaman Dashboard atau menu 'Riwayat Pengajuan'. Status akan menampilkan informasi apakah pengajuan masih diproses, disetujui, atau ditolak.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 6 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(6)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Apa yang harus dilakukan jika lupa password?
+                    </span>
+                    <div id="icon-6" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-6" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Klik tombol 'Lupa Password' pada halaman login, kemudian masukkan NIP dan email terdaftar. Link reset password akan dikirimkan ke email Anda.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 7 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(7)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Bagaimana cara mengubah profil saya?
+                    </span>
+                    <div id="icon-7" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-7" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Buka halaman 'Profile', klik tombol 'Edit' di bagian bawah, lalu ubah data yang diperlukan seperti nomor HP atau email. Jangan lupa klik 'Simpan' setelah selesai.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 8 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(8)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Dokumen apa saja yang perlu diunggah?
+                    </span>
+                    <div id="icon-8" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-8" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Dokumen yang diperlukan meliputi: Surat Tugas, undangan (jika ada), proposal kegiatan, dan dokumen pendukung lainnya sesuai jenis perjalanan dinas yang diajukan.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 9 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(9)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Bagaimana cara membuat laporan perjalanan dinas?
+                    </span>
+                    <div id="icon-9" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-9" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Setelah perjalanan dinas selesai, masuk ke menu 'Laporan', pilih pengajuan yang sudah dilakukan, lalu lengkapi laporan dengan detail kegiatan, hasil, dan dokumentasi. Upload bukti kuitansi pengeluaran.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Item 10 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <button onclick="toggleFAQ(10)" class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors duration-200">
+                    <span class="font-semibold text-gray-800 pr-4">
+                        Siapa yang bisa saya hubungi jika mengalami kendala?
+                    </span>
+                    <div id="icon-10" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="answer-10" class="hidden px-6 pb-5 pt-2">
+                    <div class="border-t pt-4" style="border-color: #0F55C9;">
+                        <p class="text-gray-700 leading-relaxed">
+                            Anda dapat menghubungi Admin SIPERDIN melalui email: admin@stis.ac.id atau telepon ke bagian Kepegawaian di nomor (021) 8191437 pada jam kerja.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="mt-8 bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center mt-1" style="background-color: #0F55C9;">
+                    <span class="text-white text-sm font-bold">i</span>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-1">Butuh Bantuan Lebih Lanjut?</h3>
+                    <p class="text-gray-600 text-sm">
+                        Jika pertanyaan Anda tidak terjawab di FAQ ini, silakan hubungi Admin SIPERDIN melalui email: <span class="font-semibold" style="color: #0F55C9;">admin@stis.ac.id</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFAQ(id) {
+    const answer = document.getElementById('answer-' + id);
+    const icon = document.getElementById('icon-' + id);
+    
+    // Toggle answer visibility
+    answer.classList.toggle('hidden');
+    
+    // Toggle icon color and rotation
+    if (answer.classList.contains('hidden')) {
+        icon.style.backgroundColor = '#E5E7EB';
+        icon.innerHTML = `<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>`;
+    } else {
+        icon.style.backgroundColor = '#0F55C9';
+        icon.innerHTML = `<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+        </svg>`;
+    }
+}
+</script>
+@endsection

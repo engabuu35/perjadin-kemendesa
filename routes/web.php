@@ -97,6 +97,9 @@ Route::get('/pic/penugasan-perjadin', fn() => view('pic.penugasan'));
 //Laman Profile
 Route::get('/laman-profile', fn() => view('pages.lamanprofile'));
 
+//Laman Bantuan
+Route::get('/laman-bantuan', fn() => view('pages.lamanBantuan'));
+
 Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 Route::get('/ppk/beranda', fn() => view('ppk.beranda'))->name('ppk.beranda');
 Route::get('/pic/beranda', fn() => view('pic.beranda'))->name('pic.beranda');
