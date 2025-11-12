@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.appPPK')
 
 @section('title', 'Beranda PPK')
 
