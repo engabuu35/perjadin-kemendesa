@@ -12,7 +12,7 @@
     @include('partials.navbar')
 
     <div class="flex flex-1">
-        @include('partials.sidebarPIC')
+        @include('partials.sidebar')
 
         <main class="flex-1 p-6 overflow-y-auto">
             @yield('content')
