@@ -303,6 +303,28 @@
                     <span class="opacity-0 transition-opacity duration-300">Penugasan</span>
                 </a>
             </li>
+
+            <!-- Menu Pelaporan -->
+            <li class="my-2.5">
+                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                    <span class="icon w-6 h-6 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-file"></i>
+                    </span>
+                    <span class="opacity-0 transition-opacity duration-300">Pelaporan</span>
+                </a>
+            </li>
+
+            <!-- Menu Pegawai -->
+            <li class="my-2.5">
+                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                    <span class="icon w-6 h-6 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-users-rectangle"></i>
+                    </span>
+                    <span class="opacity-0 transition-opacity duration-300">Pegawai</span>
+                </a>
+            </li>
             
             <!-- Menu Riwayat -->
             <li class="my-2.5">
