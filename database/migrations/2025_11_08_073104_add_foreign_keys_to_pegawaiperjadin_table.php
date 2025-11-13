@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::table('pegawaiperjadin', function (Blueprint $table) {
             $table->foreign(['id_perjadin'], 'pegawaiperjadin_ibfk_1')->references(['id'])->on('perjalanandinas')->onUpdate('restrict')->onDelete('cascade');
-            $table->foreign(['id_user'], 'pegawaiperjadin_ibfk_2')->references(['id'])->on('users')->onUpdate('restrict')->onDelete('cascade');
+            
+            // DIUBAH: Merujuk ke 'nip' (primary key baru) di tabel 'users'
+            $table->foreign(['id_user'], 'pegawaiperjadin_ibfk_2')->references(['nip'])->on('users')->onUpdate('restrict')->onDelete('cascade');
         });
     }
 

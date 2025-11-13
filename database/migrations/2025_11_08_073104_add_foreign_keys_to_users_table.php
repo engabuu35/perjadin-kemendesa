@@ -4,6 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+// TIDAK ADA PERUBAHAN
+// File ini menambahkan foreign key DARI tabel users KE tabel lain,
+// jadi tidak terpengaruh oleh perubahan primary key di 'users'.
 return new class extends Migration
 {
     /**

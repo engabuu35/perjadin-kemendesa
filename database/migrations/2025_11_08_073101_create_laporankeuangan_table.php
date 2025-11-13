@@ -15,7 +15,8 @@ return new class extends Migration
             $table->integer('id', true);
             $table->integer('id_perjadin')->index('id_perjadin');
             $table->integer('id_status')->index('id_status');
-            $table->integer('verified_by')->nullable()->index('verified_by');
+            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            $table->string('verified_by', 30)->nullable()->index('verified_by');
             $table->timestamp('verified_at')->nullable();
             $table->string('nomor_spm', 100)->nullable();
             $table->date('tanggal_spm')->nullable();

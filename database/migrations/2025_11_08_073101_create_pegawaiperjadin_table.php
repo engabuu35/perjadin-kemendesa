@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pegawaiperjadin', function (Blueprint $table) {
             $table->integer('id_perjadin');
-            $table->integer('id_user')->index('id_user');
+            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            $table->string('id_user', 30)->index('id_user');
             $table->string('role_perjadin', 100)->nullable();
             $table->boolean('is_lead')->default(false);
             $table->text('laporan_individu')->nullable();

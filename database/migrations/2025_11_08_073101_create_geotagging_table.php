@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('geotagging', function (Blueprint $table) {
             $table->integer('id', true);
             $table->integer('id_perjadin')->index('id_perjadin');
-            $table->integer('id_user')->index('id_user');
+            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            $table->string('id_user', 30)->index('id_user');
             $table->integer('id_tipe')->index('id_tipe');
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);

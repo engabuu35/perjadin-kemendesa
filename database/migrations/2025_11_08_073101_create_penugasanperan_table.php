@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('penugasanperan', function (Blueprint $table) {
-            $table->integer('user_id');
+            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            $table->string('user_id', 30);
             $table->integer('role_id')->index('role_id');
 
             $table->primary(['user_id', 'role_id']);

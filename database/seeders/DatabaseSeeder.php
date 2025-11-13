@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. PANGGIL SEMUA TABEL MASTER (INDEPENDEN)
+        // DIUBAH: .call menjadi ->call
         $this->call([
             PangkatGolonganSeeder::class,
             RolesSeeder::class,
@@ -22,27 +23,35 @@ class DatabaseSeeder extends Seeder
             TipeGeotaggingSeeder::class,
         ]);
 
-        // 2. PANGGIL TABEL ORGANISASI (TERGANTUNG DIRINYA SENDIRI)
+        // 2. PANGGIL TABEL ORGANISASI
+        // DIUBAH: .call menjadi ->call
         $this->call([
             UnitKerjaSeeder::class,
         ]);
 
         // 3. PANGGIL TABEL PENDUKUNG ORGANISASI
-        // (Tergantung UnitKerja)
+        // DIUBAH: .call menjadi ->call
         $this->call([
             LingkupAuditSeeder::class,
         ]);
 
-        // 4. PANGGIL DATA DUMMY (CONTOH)
-        // (Tergantung PangkatGolongan dan UnitKerja)
+        // 4. PANGGIL DATA USER (TOTAL 30 USERS)
+        // Seeder ini sekarang juga mengisi tabel 'penugasanperan'
+        // DIUBAH: .call menjadi ->call
         $this->call([
             UsersSeeder::class,
         ]);
 
-        // 5. PANGGIL SEEDER JUNCTION
-        // (Tergantung Users dan Roles)
+        // 5. PANGGIL SEEDER DATA TRANSAKSI PERJADIN
+        // PENTING: Ini harus dijalankan setelah Users dan Master
+        // DIUBAH: .call menjadi ->call
         $this->call([
-            PenugasanPeranSeeder::class,
+            PerjadinDataSeeder::class,
         ]);
+        
+        // 6. Panggilan ke PenugasanPeranSeeder::class DIHAPUS
+        // $this->call([
+        //     PenugasanPeranSeeder::class,
+        // ]);
     }
 }

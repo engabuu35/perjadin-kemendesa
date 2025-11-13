@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::table('geotagging', function (Blueprint $table) {
             $table->foreign(['id_perjadin'], 'geotagging_ibfk_1')->references(['id'])->on('perjalanandinas')->onUpdate('restrict')->onDelete('cascade');
-            $table->foreign(['id_user'], 'geotagging_ibfk_2')->references(['id'])->on('users')->onUpdate('restrict')->onDelete('cascade');
+            
+            // DIUBAH: Merujuk ke 'nip' (primary key baru) di tabel 'users'
+            $table->foreign(['id_user'], 'geotagging_ibfk_2')->references(['nip'])->on('users')->onUpdate('restrict')->onDelete('cascade');
+            
             $table->foreign(['id_tipe'], 'geotagging_ibfk_3')->references(['id'])->on('tipegeotagging')->onUpdate('restrict')->onDelete('restrict');
         });
     }

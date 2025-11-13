@@ -12,9 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('perjalanandinas', function (Blueprint $table) {
-            $table->foreign(['id_pembuat'], 'perjalanandinas_ibfk_1')->references(['id'])->on('users')->onUpdate('restrict')->onDelete('restrict');
+            // DIUBAH: Merujuk ke 'nip' (primary key baru) di tabel 'users'
+            $table->foreign(['id_pembuat'], 'perjalanandinas_ibfk_1')->references(['nip'])->on('users')->onUpdate('restrict')->onDelete('restrict');
+            
             $table->foreign(['id_status'], 'perjalanandinas_ibfk_2')->references(['id'])->on('statusperjadin')->onUpdate('restrict')->onDelete('restrict');
-            $table->foreign(['approved_by'], 'perjalanandinas_ibfk_3')->references(['id'])->on('users')->onUpdate('restrict')->onDelete('restrict');
+            
+            // DIUBAH: Merujuk ke 'nip' (primary key baru) di tabel 'users'
+            $table->foreign(['approved_by'], 'perjalanandinas_ibfk_3')->references(['nip'])->on('users')->onUpdate('restrict')->onDelete('restrict');
         });
     }
 

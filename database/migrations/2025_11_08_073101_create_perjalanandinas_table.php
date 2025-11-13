@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('perjalanandinas', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('id_pembuat')->index('id_pembuat');
+            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            $table->string('id_pembuat', 30)->index('id_pembuat');
             $table->integer('id_status')->index('id_status');
-            $table->integer('approved_by')->nullable()->index('approved_by');
+            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            $table->string('approved_by', 30)->nullable()->index('approved_by');
             $table->timestamp('approved_at')->nullable();
             $table->string('nomor_surat', 100)->unique('nomor_surat');
             $table->date('tanggal_surat');
