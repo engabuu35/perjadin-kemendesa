@@ -13,6 +13,7 @@
             font-family: sans-serif;
             background-color: #e8e9f0;
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="2" fill="%23d0d0dc" opacity="0.3"/></svg>');
+            padding-top: 80px; /* Sesuaikan dengan tinggi navbar */
         }
         
         /* Animasi untuk hamburger menu */
@@ -69,7 +70,8 @@
 </head>
 <body>
 
-    <div class="header sticky top-0 left-0 right-0 z-[100] flex justify-between items-center 
+    <!-- Navbar dengan position fixed -->
+    <div class="header fixed top-0 left-0 right-0 z-[100] flex justify-between items-center 
                 bg-[#2954B0] text-white 
                 py-[15px] px-4 md:px-[20px] rounded-b-[30px] shadow-[0_8px_20px_rgba(0,0,0,0.2)]">
         
@@ -143,7 +145,6 @@
             </li>
         </ul>
     </div>
-
 
     <script>
         function toggleSidebar() {
