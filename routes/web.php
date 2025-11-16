@@ -7,6 +7,7 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\PerjadinController;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\PimpinanController;
 
 // Halaman utama geotagging
 // Route::get('/', [LocationController::class, 'index']);
@@ -39,6 +40,15 @@ Route::middleware(['auth', 'role:PIC'])->group(function () {
     Route::get('/pic/edit-pegawai', fn() => view('pic.editPegawai'))->name('pic.editPegawai');
     Route::get('/pic/detail-pegawai', fn() => view('pic.detailPegawai'))->name('pic.detailPegawai');
     Route::get('/pic/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pic.pelaporanPerjalanan');
+});
+
+// Halaman PIMPINAN
+Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
+    // Dashboard/Monitoring Pimpinan - path: /pimpinan/monitoring
+    Route::get('/pimpinan/monitoring', [App\Http\Controllers\PimpinanController::class, 'index'])->name('pimpinan.monitoring');
+    
+    // Detail Perjalanan Dinas
+    Route::get('/pimpinan/detail/{id}', [App\Http\Controllers\PimpinanController::class, 'detail'])->name('pimpinan.detail');
 });
 
 // Halaman PIMPINAN (juga bisa akses halaman PEGAWAI)
