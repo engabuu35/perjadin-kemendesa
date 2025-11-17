@@ -96,12 +96,83 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(
             Role::class,
-            'penugasanperan', // pivot table
-            'user_id',        // FK on pivot to this model
-            'role_id',         // FK on pivot to Role model
-            'nip',
-            'id'
+            'penugasanperan', // tabel pivot
+            'user_id',        // foreign key di pivot yg merujuk ke User
+            'role_id',        // foreign key di pivot yg merujuk ke Role
+            'nip',            // local key di model INI (User)
+            'id'              // related key di model Role
         );
+    }
+
+    /**
+     * Relasi one-to-many ke UnitKerja (via 'id_uke').
+     */
+    public function unitKerja()
+    {
+        // Asumsi model UnitKerja ada
+        return $this->belongsTo(UnitKerja::class, 'id_uke', 'id');
+    }
+
+    /**
+     * Relasi one-to-many ke PangkatGolongan (via 'pangkat_gol_id').
+     */
+    public function pangkatGolongan()
+    {
+        // Asumsi model PangkatGolongan ada
+        return $this->belongsTo(PangkatGolongan::class, 'pangkat_gol_id', 'id');
+    }
+
+    /**
+     * Relasi PerjalananDinas yang DIBUAT oleh user ini.
+     * Sesuai migrasi: perjalanandinas.id_pembuat -> users.nip
+     */
+    public function perjalananDinasDibuat()
+    {
+        return $this->hasMany(PerjalananDinas::class, 'id_pembuat', 'nip');
+    }
+
+    /**
+     * Relasi PerjalananDinas yang DISETUJUI oleh user ini.
+     * Sesuai migrasi: perjalanandinas.approved_by -> users.nip
+     */
+    public function perjalananDinasDisetujui()
+    {
+        return $this->hasMany(PerjalananDinas::class, 'approved_by', 'nip');
+    }
+
+    /**
+     * Relasi LaporanKeuangan yang DIVERIFIKASI oleh user ini.
+     * Sesuai migrasi: laporankeuangan.verified_by -> users.nip
+     */
+    public function laporanKeuanganDiverifikasi()
+    {
+        return $this->hasMany(LaporanKeuangan::class, 'verified_by', 'nip');
+    }
+
+    /**
+     * Relasi Geotagging yang dibuat oleh user ini.
+     * Sesuai migrasi: geotagging.id_user -> users.nip
+     */
+    public function geotagging()
+    {
+        // Asumsi model Geotagging ada
+        return $this->hasMany(Geotagging::class, 'id_user', 'nip');
+    }
+
+    /**
+     * Relasi many-to-many ke PerjalananDinas (sebagai pegawai/peserta).
+     * Sesuai migrasi: 'pegawaiperjadin'
+     */
+    public function perjalananDinas()
+    {
+        return $this->belongsToMany(
+            PerjalananDinas::class,
+            'pegawaiperjadin', // tabel pivot
+            'id_user',         // foreign key di pivot yg merujuk ke User
+            'id_perjadin',     // foreign key di pivot yg merujuk ke Perjadin
+            'nip',             // local key di model INI (User)
+            'id'               // related key di model PerjalananDinas
+        )->withPivot('role_perjadin', 'is_lead', 'laporan_individu');
     }
 
 
