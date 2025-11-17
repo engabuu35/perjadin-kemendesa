@@ -32,19 +32,18 @@ class PimpinanController extends Controller
         $totalSebulanTerakhir = 0;
         $sebulanLalu = Carbon::now()->subMonth();
         
-        for ($i = 11; $i >= 0; $i--) {
-            $bulan = Carbon::now()->subMonths($i);
-            
-            // Hitung jumlah perjalanan dinas per bulan
+        // Loop dari Januari (bulan 1) sampai Desember (bulan 12)
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
+            // Hitung jumlah perjalanan dinas per bulan di tahun ini
             $count = DB::table('perjalanandinas')
-                ->whereYear('tgl_mulai', $bulan->year)
-                ->whereMonth('tgl_mulai', $bulan->month)
+                ->whereYear('tgl_mulai', Carbon::now()->year)
+                ->whereMonth('tgl_mulai', $bulan)
                 ->count();
             
             $barChartData[] = $count;
             
             // Hitung total sebulan terakhir
-            if ($bulan->month == $sebulanLalu->month && $bulan->year == $sebulanLalu->year) {
+            if ($bulan == $sebulanLalu->month) {
                 $totalSebulanTerakhir = $count;
             }
         }
@@ -53,21 +52,20 @@ class PimpinanController extends Controller
         $lineChartData = [];
         $anggaranSebulanTerakhir = 0;
         
-        for ($i = 11; $i >= 0; $i--) {
-            $bulan = Carbon::now()->subMonths($i);
-            
+        // Loop dari Januari (bulan 1) sampai Desember (bulan 12)
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
             // Hitung total anggaran dari laporan keuangan per bulan
             $totalAnggaran = DB::table('laporankeuangan')
                 ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
-                ->whereYear('perjalanandinas.tgl_mulai', $bulan->year)
-                ->whereMonth('perjalanandinas.tgl_mulai', $bulan->month)
+                ->whereYear('perjalanandinas.tgl_mulai', Carbon::now()->year)
+                ->whereMonth('perjalanandinas.tgl_mulai', $bulan)
                 ->whereNotNull('laporankeuangan.biaya_rampung')
                 ->sum('laporankeuangan.biaya_rampung');
             
             $lineChartData[] = (int)$totalAnggaran;
             
             // Hitung anggaran sebulan terakhir
-            if ($bulan->month == $sebulanLalu->month && $bulan->year == $sebulanLalu->year) {
+            if ($bulan == $sebulanLalu->month) {
                 $anggaranSebulanTerakhir = (int)$totalAnggaran;
             }
         }
