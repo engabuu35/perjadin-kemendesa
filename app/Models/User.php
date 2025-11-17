@@ -60,7 +60,9 @@ class User extends Authenticatable
             Role::class,
             'penugasanperan', // pivot table
             'user_id',        // FK on pivot to this model
-            'role_id'         // FK on pivot to Role model
+            'role_id',         // FK on pivot to Role model
+            'nip',              //kolom PK di tabel users
+            'id'                //Kolom PK di tabel users
         );
     }
 
