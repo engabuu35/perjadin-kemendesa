@@ -46,14 +46,9 @@ Route::middleware(['auth', 'role:PIC'])->group(function () {
 Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
     // Dashboard/Monitoring Pimpinan - path: /pimpinan/monitoring
     Route::get('/pimpinan/monitoring', [App\Http\Controllers\PimpinanController::class, 'index'])->name('pimpinan.monitoring');
-    
+    Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
     // Detail Perjalanan Dinas
     Route::get('/pimpinan/detail/{id}', [App\Http\Controllers\PimpinanController::class, 'detail'])->name('pimpinan.detail');
-});
-
-// Halaman PIMPINAN (juga bisa akses halaman PEGAWAI)
-Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
-    Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 });
 
 // Halaman PPK (juga bisa akses halaman PEGAWAI)
@@ -109,6 +104,10 @@ Route::get('/laman-profile', fn() => view('pages.lamanprofile'));
 
 //Laman Bantuan
 Route::get('/laman-bantuan', fn() => view('pages.lamanBantuan'));
+
+    Route::get('/pimpinan/monitoring', [App\Http\Controllers\PimpinanController::class, 'index'])->name('pimpinan.monitoring');
+    // Detail Perjalanan Dinas
+    Route::get('/pimpinan/detail/{id}', [App\Http\Controllers\PimpinanController::class, 'detail'])->name('pimpinan.detail');
 
 Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 Route::get('/ppk/beranda', fn() => view('ppk.beranda'))->name('ppk.beranda');
