@@ -32,19 +32,49 @@
             display: inline-block;
         }
         
-        /* Hover effect untuk logo */
+        /* Hover effect untuk logo dengan gradient shimmer */
         .logo {
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+            background-size: 200% 100%;
+            background-position: -100% 0;
+            -webkit-background-clip: text;
+            background-clip: text;
         }
         
         .logo:hover {
-            letter-spacing: 2px;
-            transform: scale(1.02);
+            letter-spacing: 3px;
+            transform: scale(1.05) translateY(-2px);
+            text-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+            background-position: 100% 0;
+            animation: shimmer 1.5s ease-in-out;
         }
         
-        /* Hover effect untuk user info */
+        @keyframes shimmer {
+            0% { background-position: -100% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        /* Hover effect untuk user info - simple and subtle */
+        .user-info {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
         .user-info:hover {
             background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px) scaleX(1.05);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+        }
+        
+        .user-info:active {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(-3px) scale(0.98);
+        }
+        
+        .user-info.active {
+            background-color: rgba(255, 255, 255, 0.15);
         }
         
         .user-info .user-icon {
@@ -52,7 +82,16 @@
         }
         
         .user-info:hover .user-icon {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        .user-info span {
+            transition: all 0.3s ease;
+        }
+        
+        .user-info:hover span {
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
         }
         
         /* Aturan untuk status .active pada dropdown */
@@ -77,7 +116,7 @@
             overflow: hidden;
             transform-origin: center;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border-radius: 8px;
+            border-radius: 12px;
             isolation: isolate;
         }
 
@@ -101,7 +140,7 @@
             transform: scale(1.02);
             background-color: rgba(239, 68, 68, 0.12);
             box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
-            border-radius: 8px;
+            border-radius: 12px;
         }
 
         .logout-link:hover::before {
@@ -150,7 +189,7 @@
         </div>
 
         <div class="user-info flex items-center gap-6 text-xl cursor-pointer py-[6px] pl-3 pr-2 
-                    rounded-full transition-all duration-300 active:bg-black/20" 
+                    rounded-full transition-all duration-300" 
              onclick="toggleProfileDropdown()">
             
             <span class="hidden md:inline">Reza Anu</span>
@@ -164,7 +203,7 @@
     <div class="dropdown-overlay fixed inset-0 w-full h-full z-[99] hidden" onclick="toggleProfileDropdown()"></div>
 
     <!-- Profile Dropdown -->
-    <div class="profile-dropdown fixed top-[70px] right-[15px] md:right-[30px] bg-white rounded-xl 
+    <div class="profile-dropdown fixed top-[70px] right-[15px] md:right-[30px] bg-white rounded-2xl 
                 shadow-[0_4px_12px_rgba(0,0,0,0.15)] min-w-[300px] opacity-0 invisible 
                 -translate-y-2.5 transition-all duration-300 z-[101] overflow-hidden">
         
@@ -181,15 +220,17 @@
         
         <ul class="dropdown-menu list-none py-3">
             <li>
-                <a href="#" class="flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-colors duration-200 text-base hover:bg-gray-100 rounded-lg mx-2">
-                    <i class="fas fa-user-circle w-6 text-xl text-gray-500"></i> 
-                    Profile Saya
+                <a href="#" class="dropdown-item flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-all duration-300 text-base mx-2 rounded-xl relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></div>
+                    <i class="fas fa-user-circle w-6 text-xl text-gray-500 relative z-10 transition-all duration-300 group-hover:text-[#2954B0] group-hover:scale-110 group-hover:rotate-12"></i> 
+                    <span class="relative z-10 transition-all duration-300 group-hover:translate-x-1">Profile Saya</span>
                 </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-colors duration-200 text-base hover:bg-gray-100 rounded-lg mx-2">
-                    <i class="fas fa-question-circle w-6 text-xl text-gray-500"></i> 
-                    Bantuan
+                <a href="#" class="dropdown-item flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-all duration-300 text-base mx-2 rounded-xl relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></div>
+                    <i class="fas fa-question-circle w-6 text-xl text-gray-500 relative z-10 transition-all duration-300 group-hover:text-[#2954B0] group-hover:scale-110 group-hover:rotate-12"></i> 
+                    <span class="relative z-10 transition-all duration-300 group-hover:translate-x-1">Bantuan</span>
                 </a>
             </li>
             <div class="dropdown-divider h-px bg-gray-200 my-2 mx-2"></div>
@@ -203,11 +244,13 @@
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                    class="logout-link flex items-center gap-4 py-4 px-6 no-underline transition-colors duration-200 text-base text-red-600 mx-2">
                     <i class="fas fa-sign-out-alt w-6 text-xl text-red-600"></i>
-                    Logout
+                    <span>Logout</span>
                 </a>
             </li>
         </ul>
     </div>
+
+
 
     <script>
         function toggleSidebar() {
@@ -232,9 +275,11 @@
         function toggleProfileDropdown() {
             const dropdown = document.querySelector('.profile-dropdown');
             const overlay = document.querySelector('.dropdown-overlay');
+            const userInfo = document.querySelector('.user-info');
             
             dropdown.classList.toggle('active');
             overlay.classList.toggle('active');
+            userInfo.classList.toggle('active');
         }
 
         // Close dropdown when clicking outside
@@ -246,6 +291,7 @@
             if (!userInfo.contains(event.target) && !dropdown.contains(event.target)) {
                 dropdown.classList.remove('active');
                 document.querySelector('.dropdown-overlay').classList.remove('active');
+                userInfo.classList.remove('active');
             }
         });
     </script>
