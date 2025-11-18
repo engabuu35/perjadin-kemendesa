@@ -267,6 +267,20 @@
         .logout-btn:hover i {
             transform: translateX(-3px) rotate(-10deg);
         }
+        
+        /* Cursor pointer untuk area yang bisa diklik */
+        .sidebar {
+            cursor: pointer;
+        }
+        
+        .user-profile,
+        .user-profile * {
+            cursor: default;
+        }
+        
+        .logout-btn {
+            cursor: pointer !important;
+        }
     </style>
 </head>
 <body class="bg-[#e8e9f0]">
@@ -371,7 +385,7 @@
             
             <!-- Logout Button -->
             <button class="logout-btn flex items-center justify-center gap-2.5 py-2.5 px-[15px] 
-                           bg-white/10 border-none rounded-lg text-white cursor-pointer w-full 
+                           bg-white/10 border-none rounded-lg text-white w-full 
                            transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
@@ -381,10 +395,20 @@
 
     <!-- JavaScript -->
     <script>
-        // Ripple effect saat klik di sidebar - 1 gelombang aja
         const sidebar = document.querySelector('.sidebar');
+        const userProfile = document.querySelector('.user-profile');
+        const logoutBtn = document.querySelector('.logout-btn');
         
+        // Ripple effect saat klik di sidebar
         sidebar.addEventListener('click', function(e) {
+            // Cek apakah klik di area user profile atau logout button
+            if (userProfile.contains(e.target)) {
+                return; // Jangan toggle jika klik di user profile
+            }
+            
+            // Toggle sidebar
+            toggleSidebar();
+            
             // Dapatkan posisi klik relatif terhadap sidebar
             const rect = sidebar.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -411,6 +435,13 @@
             // Hapus ripple setelah animasi selesai
             setTimeout(() => ripple.remove(), 1000);
         });
+        
+        // Prevent toggle saat klik logout button
+        logoutBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Tambahkan logika logout di sini
+            alert('Logout clicked!');
+        });
 
         // Handle menu click dengan smooth transition
         const menuLinks = document.querySelectorAll('.sidebar-menu a');
@@ -418,6 +449,7 @@
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation(); // Prevent sidebar toggle
                 
                 // Hapus class active dari semua menu dengan smooth transition
                 menuLinks.forEach(item => {

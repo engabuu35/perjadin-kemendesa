@@ -8,6 +8,7 @@ use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\PerjadinController;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\PimpinanController;
+use App\Http\Controllers\RiwayatController;
 
 // Halaman utama geotagging
 // Route::get('/', [LocationController::class, 'index']);
@@ -122,7 +123,8 @@ Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 Route::get('/beranda', fn() => view('pages.beranda'));
 
 // Riwayat
-Route::get('/riwayat', fn() => view('pages.riwayat'));
+// Riwayat - Ambil data dari database
+Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 
 // Manage Pegawai
 Route::get('/pic/manage-pegawai', fn() => view('pic.managePegawai'));
