@@ -9,11 +9,17 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    /**
+     * Tampilkan halaman login.
+     */
     public function showLogin()
     {
         return view('auth.login');
     }
 
+    /**
+     * Proses login.
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -21,65 +27,68 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $nip = $request->nip;
-        $password = $request->password;
+        $nip = $request->input('nip');
+        $password = $request->input('password');
 
+        // Cari user berdasarkan NIP/NIK
         $user = User::where('nip', $nip)->first();
 
         if (! $user) {
-            return back()->withErrors(['nip' => 'NIP/NIK tidak ditemukan.'])->onlyInput('nip');
+            return back()
+                ->withErrors(['nip' => 'NIP/NIK tidak ditemukan.'])
+                ->onlyInput('nip');
         }
 
         if (! $user->is_aktif) {
-            return back()->withErrors(['nip' => 'Akun tidak aktif.'])->onlyInput('nip');
+            return back()
+                ->withErrors(['nip' => 'Akun tidak aktif.'])
+                ->onlyInput('nip');
         }
 
-        // Cek password manual dulu
+        // Cek password
         if (! Hash::check($password, $user->getAuthPassword())) {
-            return back()->withErrors(['nip' => 'NIP/NIK atau password salah.'])->onlyInput('nip');
+            return back()
+                ->withErrors(['nip' => 'NIP/NIK atau password salah.'])
+                ->onlyInput('nip');
         }
 
-        // Login user
+        // Login user dan regenerate session
         Auth::login($user, $request->filled('remember'));
         $request->session()->regenerate();
 
-        $user = $request->user();  
+        // Redirect ke single beranda (jika ada intended url, pakai intended)
+        return redirect()->intended(route('pages.beranda'));
+    }
 
-        // pilih prioritas redirect berdasarkan kode role: NANTI DIUBAH!
-        if ($user->hasRole('PIC')) {
-            return redirect()->intended('/pic/beranda');
-        }
-
-        if ($user->hasRole('PIMPINAN')) {
-            return redirect()->intended('/pimpinan/beranda');
-        }
-
-        if ($user->hasRole('PPK')) {
-            return redirect()->intended('/ppk/beranda');
-        }
-
-        return redirect()->intended('/beranda'); // default pegawai
-
-        }
-
-    //logout
+    /**
+     * Logout user.
+     */
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 
-    //confirm password
+    /**
+     * Tampilkan form konfirmasi password.
+     */
     public function showConfirmForm()
     {
         return view('auth.confirm-password');
     }
 
+    /**
+     * Proses konfirmasi password.
+     */
     public function confirm(Request $request)
     {
-        $request->validate(['password' => 'required|string']);
+        $request->validate([
+            'password' => 'required|string',
+        ]);
 
         $user = $request->user();
 
@@ -87,9 +96,9 @@ class AuthController extends Controller
             return back()->withErrors(['password' => 'Password tidak cocok.']);
         }
 
-        // tandai password sudah dikonfirmasi (timestamp)
+        // Tandai password telah dikonfirmasi (timestamp)
         $request->session()->put('auth.password_confirmed_at', time());
 
-        return redirect()->intended('/');
+        return redirect()->intended(route('pages.beranda'));
     }
 }
