@@ -46,9 +46,14 @@ Route::middleware(['auth', 'role:PIC'])->group(function () {
 Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
     // Dashboard/Monitoring Pimpinan - path: /pimpinan/monitoring
     Route::get('/pimpinan/monitoring', [App\Http\Controllers\PimpinanController::class, 'index'])->name('pimpinan.monitoring');
-    Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
+    
     // Detail Perjalanan Dinas
     Route::get('/pimpinan/detail/{id}', [App\Http\Controllers\PimpinanController::class, 'detail'])->name('pimpinan.detail');
+});
+
+// Halaman PIMPINAN (juga bisa akses halaman PEGAWAI)
+Route::middleware(['auth', 'role:PIMPINAN'])->group(function () {
+    Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 });
 
 // Halaman PPK (juga bisa akses halaman PEGAWAI)
@@ -61,7 +66,45 @@ Route::middleware(['auth', 'role:PEGAWAI'])->group(function () {
     Route::get('/beranda', fn() => view('pages.beranda'))->name('pegawai.beranda');
 });
 
+Route::prefix('laporan-keuangan')->name('laporan.')
+        ->controller(LaporanKeuanganController::class)
+        ->group(function () {
 
+            // Menampilkan daftar laporan keuangan
+            // GET /laporan-keuangan
+            Route::get('/', 'index')
+                ->name('index')
+                ->middleware('role:PIC,PPK,PIMPINAN'); // Hanya PIC, PPK, Pimpinan yang bisa lihat daftar
+
+            // Mengunduh laporan Excel
+            // GET /laporan-keuangan/export-excel
+            Route::get('/export-excel', 'generateExcel')
+                ->name('export')
+                ->middleware('role:PIC,PPK,PIMPINAN'); // Hanya PIC, PPK, Pimpinan yang bisa ekspor
+
+            // Menampilkan detail satu laporan keuangan
+            // GET /laporan-keuangan/1
+            Route::get('/{id}', 'show')
+                ->name('show'); // Diasumsikan semua peran (termasuk Pegawai ybs) bisa melihat detail
+
+            // Menampilkan form untuk mengedit rincian (SPM, SP2D, dll)
+            // GET /laporan-keuangan/1/edit
+            Route::get('/{id}/edit', 'edit')
+                ->name('edit')
+                ->middleware('role:PIC,PPK'); // Hanya PIC atau PPK yang bisa mengedit
+
+            // Menyimpan perubahan dari form edit
+            // PUT /laporan-keuangan/1
+            Route::put('/{id}', 'update')
+                ->name('update')
+                ->middleware('role:PIC,PPK'); // Hanya PIC atau PPK yang bisa update
+
+            // Memproses verifikasi (Setuju/Tolak) oleh PPK
+            // POST /laporan-keuangan/1/verify
+            Route::post('/{id}/verify', 'verify')
+                ->name('verify')
+                ->middleware('role:PPK'); // Hanya PPK yang bisa verifikasi
+    });
 
 // Halaman laporan
 Route::get('/laporan', [LaporanKeuanganController::class, 'index'])->name('laporan.index');
@@ -104,10 +147,6 @@ Route::get('/laman-profile', fn() => view('pages.lamanprofile'));
 
 //Laman Bantuan
 Route::get('/laman-bantuan', fn() => view('pages.lamanBantuan'));
-
-    Route::get('/pimpinan/monitoring', [App\Http\Controllers\PimpinanController::class, 'index'])->name('pimpinan.monitoring');
-    // Detail Perjalanan Dinas
-    Route::get('/pimpinan/detail/{id}', [App\Http\Controllers\PimpinanController::class, 'detail'])->name('pimpinan.detail');
 
 Route::get('/pimpinan/beranda', fn() => view('pimpinan.beranda'))->name('pimpinan.beranda');
 Route::get('/ppk/beranda', fn() => view('ppk.beranda'))->name('ppk.beranda');
