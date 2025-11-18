@@ -192,7 +192,7 @@
                     rounded-full transition-all duration-300" 
              onclick="toggleProfileDropdown()">
             
-            <span class="hidden md:inline">Reza Anu</span>
+            <span class="hidden md:inline">{{ Auth::user()->nama }}</span>
             <div class="user-icon w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#1e5bb8] text-xl">
                 <i class="fas fa-user"></i>
             </div>
@@ -213,14 +213,18 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="info">
-                <div class="name text-[#2c3e50] text-base font-semibold mb-1">Reza Anu</div>
-                <div class="role text-gray-500 text-sm">Administrator</div>
+                <div class="name text-[#2c3e50] text-base font-semibold mb-1">
+                    {{ Auth::user()->nama }}
+                </div>
+                <div class="role text-gray-500 text-sm">
+                    {{ Auth::user()->nip }}
+                </div>
             </div>
         </div>
         
         <ul class="dropdown-menu list-none py-3">
             <li>
-                <a href="#" class="dropdown-item flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-all duration-300 text-base mx-2 rounded-xl relative overflow-hidden group">
+                <a href="{{ route('profile') }}" class="dropdown-item flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-all duration-300 text-base mx-2 rounded-xl relative overflow-hidden group">
                     <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></div>
                     <i class="fas fa-user-circle w-6 text-xl text-gray-500 relative z-10 transition-all duration-300 group-hover:text-[#2954B0] group-hover:scale-110 group-hover:rotate-12"></i> 
                     <span class="relative z-10 transition-all duration-300 group-hover:translate-x-1">Profile Saya</span>
