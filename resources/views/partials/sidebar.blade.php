@@ -298,7 +298,7 @@
         <ul class="sidebar-menu list-none py-5">
             <!-- Menu Beranda -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                <a href="{{ route('pic.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
                                    transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-home"></i>
@@ -342,7 +342,7 @@
 
             <!-- Menu Pegawai -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                <a href="" class="flex items-center py-[15px] px-[26px] text-white no-underline 
                                    transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-users-rectangle"></i>
@@ -448,7 +448,7 @@
         
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
-                e.preventDefault();
+                //e.preventDefault();
                 e.stopPropagation(); // Prevent sidebar toggle
                 
                 // Hapus class active dari semua menu dengan smooth transition
