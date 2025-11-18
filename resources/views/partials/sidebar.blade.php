@@ -315,14 +315,14 @@
                 </a>
             </li>
 
-                        <!-- Menu LS Rampung -->
+             <!-- Menu LS Rampung -->
             <li class="my-2.5">
                 <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
                                    transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-money-check-dollar"></i>
                     </span>
-                    <span class="opacity-0 transition-opacity duration-300">Pelaporan</span>
+                    <span class="opacity-0 transition-opacity duration-300">LS Rampung</span>
                 </a>
             </li>
 
