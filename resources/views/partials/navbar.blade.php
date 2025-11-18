@@ -13,7 +13,7 @@
             font-family: sans-serif;
             background-color: #e8e9f0;
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="2" fill="%23d0d0dc" opacity="0.3"/></svg>');
-            padding-top: 80px; /* Sesuaikan dengan tinggi navbar */
+            padding-top: 80px;
         }
         
         /* Animasi untuk hamburger menu */
@@ -66,6 +66,71 @@
         .dropdown-overlay.active {
             display: block;
         }
+
+        /* ========================================
+           SIDEBAR LOGOUT HOVER EFFECT
+           ======================================== */
+        
+        /* Logout Button - Base Style */
+        .logout-link {
+            position: relative;
+            overflow: hidden;
+            transform-origin: center;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 8px;
+            isolation: isolate;
+        }
+
+        /* Pseudo-element ::before (Circular Ripple Effect) */
+        .logout-link::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.25));
+            border-radius: 50%;
+            transition: all 0.6s ease-out;
+            z-index: -1;
+        }
+
+        /* Hover State */
+        .logout-link:hover {
+            transform: scale(1.02);
+            background-color: rgba(239, 68, 68, 0.12);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+        }
+
+        .logout-link:hover::before {
+            width: 280px;
+            height: 280px;
+        }
+
+        /* Active State (Click) */
+        .logout-link:active {
+            transform: scale(0.98);
+            transition: all 0.1s ease-in-out;
+        }
+
+        /* Icon Animation */
+        .logout-link i {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .logout-link:hover i {
+            transform: translateX(-4px) rotate(-12deg);
+        }
+
+        /* Text z-index */
+        .logout-link span {
+            position: relative;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -95,51 +160,49 @@
         </div>
     </div>
 
+    <!-- Overlay untuk dropdown -->
     <div class="dropdown-overlay fixed inset-0 w-full h-full z-[99] hidden" onclick="toggleProfileDropdown()"></div>
 
+    <!-- Profile Dropdown -->
     <div class="profile-dropdown fixed top-[70px] right-[15px] md:right-[30px] bg-white rounded-xl 
-                shadow-[0_4px_12px_rgba(0,0,0,0.15)] min-w-[220px] opacity-0 invisible 
-                -translate-y-2.5 transition-all duration-300 z-[101]">
+                shadow-[0_4px_12px_rgba(0,0,0,0.15)] min-w-[300px] opacity-0 invisible 
+                -translate-y-2.5 transition-all duration-300 z-[101] overflow-hidden">
         
-        <div class="dropdown-header p-5 border-b border-gray-200 flex items-center gap-3">
-            <div class="avatar w-[50px] h-[50px] bg-gradient-to-br from-[#1e5bb8] to-[#2d74da] 
-                        rounded-full flex items-center justify-center text-xl text-white">
+        <div class="dropdown-header p-6 border-b border-gray-200 flex items-center gap-4">
+            <div class="avatar w-[60px] h-[60px] bg-gradient-to-br from-[#1e5bb8] to-[#2d74da] 
+                        rounded-full flex items-center justify-center text-2xl text-white">
                 <i class="fas fa-user"></i>
             </div>
             <div class="info">
-                <div class="name text-[#2c3e50] text-[15px] font-semibold mb-[2px]">Reza Anu</div>
-                <div class="role text-gray-500 text-[13px]">Administrator</div>
+                <div class="name text-[#2c3e50] text-base font-semibold mb-1">Reza Anu</div>
+                <div class="role text-gray-500 text-sm">Administrator</div>
             </div>
         </div>
         
-        <ul class="dropdown-menu list-none py-2.5">
+        <ul class="dropdown-menu list-none py-3">
             <li>
-                <a href="#" class="flex items-center gap-3 py-3 px-5 text-[#2c3e50] no-underline transition-colors duration-200 text-sm hover:bg-gray-100">
-                    <i class="fas fa-user-circle w-5 text-gray-500"></i> 
+                <a href="#" class="flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-colors duration-200 text-base hover:bg-gray-100 rounded-lg mx-2">
+                    <i class="fas fa-user-circle w-6 text-xl text-gray-500"></i> 
                     Profile Saya
                 </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 py-3 px-5 text-[#2c3e50] no-underline transition-colors duration-200 text-sm hover:bg-gray-100">
-                    <i class="fas fa-cog w-5 text-gray-500"></i> 
-                    Pengaturan
-                </a>
-            </li>
-            <li>
-                <a href="#" class="flex items-center gap-3 py-3 px-5 text-[#2c3e50] no-underline transition-colors duration-200 text-sm hover:bg-gray-100">
-                    <i class="fas fa-question-circle w-5 text-gray-500"></i> 
+                <a href="#" class="flex items-center gap-4 py-4 px-6 text-[#2c3e50] no-underline transition-colors duration-200 text-base hover:bg-gray-100 rounded-lg mx-2">
+                    <i class="fas fa-question-circle w-6 text-xl text-gray-500"></i> 
                     Bantuan
                 </a>
             </li>
-            <div class="dropdown-divider h-px bg-gray-200 my-2"></div>
+            <div class="dropdown-divider h-px bg-gray-200 my-2 mx-2"></div>
             <li>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
                     @csrf
                 </form>
 
-                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                class="flex items-center gap-3 py-3 px-5 no-underline transition-colors duration-200 text-sm hover:bg-gray-100 text-red-600">
-                    <i class="fas fa-sign-out-alt w-5 text-red-600"></i>
+                <!-- LOGOUT BUTTON DENGAN SIDEBAR HOVER EFFECT -->
+                <a href="#" 
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                   class="logout-link flex items-center gap-4 py-4 px-6 no-underline transition-colors duration-200 text-base text-red-600 mx-2">
+                    <i class="fas fa-sign-out-alt w-6 text-xl text-red-600"></i>
                     Logout
                 </a>
             </li>
