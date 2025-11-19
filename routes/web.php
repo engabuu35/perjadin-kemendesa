@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::view('/laman-bantuan', 'pages.lamanBantuan')->name('bantuan');
 
     // Riwayat 
-    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat');
 
     // Perjalanan (Perjadin)
     Route::get('/perjalanan/{id}', [PerjadinController::class, 'show'])->name('perjalanan.detail');
@@ -74,7 +74,7 @@ Route::middleware('auth')->group(function () {
 
 
 // PIMPINAN
-Route::middleware(['auth','role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
+Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
     // Beranda dihapus dari sini — global
     // Riwayat dihapus dari sini — global
     Route::get('/monitoring', [PimpinanController::class, 'index'])->name('monitoring');
