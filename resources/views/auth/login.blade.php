@@ -27,7 +27,8 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" class="w-full">
+            <form method="POST" action="{{ route('login.attempt') }}" class="w-full">
+
                 @csrf
 
                 <div class="mb-4">
