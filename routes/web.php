@@ -8,6 +8,7 @@ use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\PerjadinController;
 use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\RiwayatController;
+use App\Http\Controllers\BerandaController;
 
 use Illuminate\Http\Request;
 
@@ -60,6 +61,7 @@ Route::middleware('auth')->group(function () {
     // Common dashboard (opsional)
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
+    Route::get('/beranda', [BerandaController::class, 'index'])->middleware('auth')->name('pages.beranda');
     Route::view('/beranda', 'pages.beranda')->name('pages.beranda');
 
     // Profile & Bantuan

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\PenugasanPeran;
 
 class User extends Authenticatable
 {
@@ -239,4 +240,19 @@ class User extends Authenticatable
 
         return $roles[0] ?? null;
     }
+    
+    public function penugasanPeran()
+    {
+        // nip di users sesuai user_id di penugasanperan
+        return $this->hasOne(PenugasanPeran::class, 'user_id', 'nip');
+    }
+
+    // Accessor untuk kode role
+    public function getRoleKodeAttribute()
+    {
+        return $this->penugasanPeran && $this->penugasanPeran->role
+            ? $this->penugasanPeran->role->kode
+            : null;
+    }
+
 }
