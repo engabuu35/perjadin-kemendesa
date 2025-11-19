@@ -10,24 +10,6 @@ use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\BerandaController;
 
-use Illuminate\Http\Request;
-
-Route::get('/_debug/session', function (Request $req) {
-    // menampilkan session id, laravel_session cookie, csrf token dan isi session
-    return response()->json([
-        'time' => now()->toDateTimeString(),
-        'session_id' => session()->getId(),
-        'csrf_token' => csrf_token(),
-        'session_all' => session()->all(),
-        'cookies' => $req->cookies->all(),
-    ]);
-});
-
-Route::post('/_debug/session-write', function (Request $req) {
-    session(['last_post_at' => now()->toDateTimeString()]);
-    return redirect('/_debug/session');
-});
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes (Cleaned & Unified Beranda)
