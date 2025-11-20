@@ -384,10 +384,9 @@
             </div>
             
             <!-- Logout Button -->
-            <form method="POST" action="{{ route('logout') }}">
+            <form id="logoutForm" method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit"
-                    class="logout-btn flex items-center justify-center gap-2.5 
+                <button id="logoutBtn" type="button" class="logout-btn flex items-center justify-center gap-2.5 
                         py-3 px-6
                         w-full
                         bg-white/10 border-none rounded-lg text-white cursor-pointer 
@@ -396,25 +395,60 @@
                     <span>Logout</span>
                 </button>
             </form>
+
+            <!-- Modal Konfirmasi Logout -->
+            <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-50">
+                <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+                    <h3 class="text-lg font-bold mb-4 text-gray-800">Konfirmasi Logout</h3>
+                    <p class="text-gray-600 mb-5">Apakah kamu yakin ingin keluar dari akun ini?</p>
+                    <div class="flex justify-between gap-3">
+                        <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
+                        <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </aside>
 
     <!-- JavaScript -->
     <script>
+        // Ripple effect saat klik di sidebar - 1 gelombang aja
         const sidebar = document.querySelector('.sidebar');
-        const userProfile = document.querySelector('.user-profile');
+        // const userProfile = document.querySelector('.user-profile');
         const logoutBtn = document.querySelector('.logout-btn');
-        
-        // Ripple effect saat klik di sidebar
-        sidebar.addEventListener('click', function(e) {
-            // Cek apakah klik di area user profile atau logout button
-            if (userProfile.contains(e.target)) {
-                return; // Jangan toggle jika klik di user profile
+        const logoutForm = document.getElementById('logoutForm');
+        const logoutModal = document.getElementById('logoutModal');
+        const cancelLogout = document.getElementById('cancelLogout');
+        const confirmLogout = document.getElementById('confirmLogout');
+
+        logoutBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault(); // sangat penting supaya form gak submit langsung
+            logoutModal.classList.remove('opacity-0', 'invisible');
+            logoutModal.classList.add('opacity-100', 'visible');
+        });
+
+        // Tutup modal saat klik Batal
+        cancelLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutModal.classList.add('opacity-0', 'invisible');
+            logoutModal.classList.remove('opacity-100', 'visible');
+        });
+
+        // Logout sesungguhnya saat klik Logout
+        confirmLogout.addEventListener('click', () => {
+            logoutForm.submit();
+        });
+
+        // tutup modal jika klik di luar dialog (di overlay modal)
+        logoutModal.addEventListener('click', (e) => {
+            if (e.target === logoutModal) {
+                logoutModal.classList.add('opacity-0', 'invisible');
+                logoutModal.classList.remove('opacity-100', 'visible');
             }
-            
-            // Toggle sidebar
-            toggleSidebar();
-            
+        });
+
+        sidebar.addEventListener('click', function(e) {
             // Dapatkan posisi klik relatif terhadap sidebar
             const rect = sidebar.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -440,13 +474,6 @@
             
             // Hapus ripple setelah animasi selesai
             setTimeout(() => ripple.remove(), 1000);
-        });
-        
-        // Prevent toggle saat klik logout button
-        logoutBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            // Tambahkan logika logout di sini
-            alert('Logout clicked!');
         });
 
         // Handle menu click dengan smooth transition
@@ -476,6 +503,7 @@
             });
         });
 
+
         // FUNCTION INI HARUS SAMA dengan yang di navbar
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
@@ -501,5 +529,117 @@
             }
         }
     </script>
+    <!-- <script>
+    
+
+    // ===== Sidebar Ripple Effect =====
+    sidebar.addEventListener('click', function(e) {
+        // Jangan toggle jika klik di user profile atau logout button
+        if (userProfile.contains(e.target)) return;
+
+        toggleSidebar();
+
+        // Dapatkan posisi klik relatif terhadap sidebar
+        const rect = sidebar.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Buat ripple
+        const ripple = document.createElement('span');
+        ripple.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            animation: ripple-effect-1 1s ease-out;
+            pointer-events: none;
+            z-index: 9999;
+        `;
+        sidebar.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 1000);
+    });
+
+    // ===== Logout Modal =====
+    const logoutModalHTML = `
+    <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-50">
+        <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+            <h3 class="text-lg font-bold mb-4 text-gray-800">Konfirmasi Logout</h3>
+            <p class="text-gray-600 mb-5">Apakah kamu yakin ingin keluar dari akun ini?</p>
+            <div class="flex justify-between gap-3">
+                <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
+                <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Logout</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', logoutModalHTML);
+
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
+
+    logoutBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Jangan trigger ripple sidebar
+        logoutModal.classList.remove('opacity-0', 'invisible');
+        logoutModal.classList.add('opacity-100', 'visible');
+    });
+
+    // Tutup modal saat klik Batal
+    cancelLogout.addEventListener('click', () => {
+        logoutModal.classList.add('opacity-0', 'invisible');
+        logoutModal.classList.remove('opacity-100', 'visible');
+    });
+
+    // Logout sesungguhnya saat klik Logout
+    confirmLogout.addEventListener('click', () => {
+        logoutForm.submit();
+    });
+
+    // ===== Menu Click Smooth Transition =====
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            menuLinks.forEach(item => {
+                if (item !== this && item.classList.contains('active')) {
+                    item.style.transition = 'all 0.3s ease-out';
+                    item.classList.remove('active');
+                }
+            });
+
+            this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            this.classList.add('active');
+
+            const url = this.getAttribute('href');
+            setTimeout(() => { window.location.href = url; }, 150);
+        });
+    });
+
+    // ===== Toggle Sidebar =====
+    function toggleSidebar() {
+        const overlay = document.querySelector('.overlay');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+
+        const menuIcon = document.querySelector('.menu-icon');
+        if (menuIcon) {
+            const iconElement = menuIcon.querySelector('i');
+            menuIcon.classList.toggle('active');
+
+            if (menuIcon.classList.contains('active')) {
+                iconElement.classList.remove('fa-bars');
+                iconElement.classList.add('fa-bars-staggered');
+            } else {
+                iconElement.classList.remove('fa-bars-staggered');
+                iconElement.classList.add('fa-bars');
+            }
+        }
+    }
+    </script> -->
 </body>
 </html>
