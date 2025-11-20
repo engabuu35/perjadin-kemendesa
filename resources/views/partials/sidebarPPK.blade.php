@@ -328,21 +328,27 @@
             
             <!-- User Name -->
             <div class="name text-white text-sm font-bold mb-[5px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
-                Fernanda Aditia Putra
+                {{ Auth::user()->nama }}
             </div>
             
             <!-- User Role/NPM -->
             <div class="role text-white/70 text-xs mb-[15px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
-                NPM: 2021011
+                {{ Auth::user()->nip }}
             </div>
             
             <!-- Logout Button -->
-            <button class="logout-btn flex items-center justify-center gap-2.5 py-2.5 px-[15px] 
-                        bg-white/10 border-none rounded-lg text-white cursor-pointer w-full 
-                        transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </button>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                    class="logout-btn flex items-center justify-center gap-2.5 
+                        py-3 px-6
+                        w-full
+                        bg-white/10 border-none rounded-lg text-white cursor-pointer 
+                        transition-all duration-300 hover:bg-white/20 text-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
         </div>
     </aside>
 
