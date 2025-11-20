@@ -87,6 +87,8 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     // Riwayat dihapus dari sini — global
     Route::get('/penugasan-perjadin', fn() => view('pic.penugasan'))->name('penugasan');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
+    Route::get('/lsrampung', fn() => view('pic.lsrampung'))->name('lsrampung');
+
 
     // Pegawai management (list, tambah, edit, detail)
     Route::get('/pegawai', fn() => view('pic.managePegawai'))->name('pegawai.index');

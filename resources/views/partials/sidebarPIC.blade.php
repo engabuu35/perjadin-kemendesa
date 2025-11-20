@@ -287,19 +287,19 @@
     <!-- Overlay -->
     <div class="overlay fixed top-0 left-0 w-full h-full bg-black/50 opacity-0 invisible 
                 transition-all duration-300 z-[98] pointer-events-none" 
-         onclick="toggleSidebar()"></div>
+        onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar bg-sidebar fixed left-0 top-[90px] w-[80px] h-[calc(100vh-80px)]
-                  transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
-                  shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
+                transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
+                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
 
         <!-- Menu List -->
         <ul class="sidebar-menu list-none py-5">
             <!-- Menu Beranda -->
             <li class="my-2.5">
                 <a href="{{ route('pages.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -309,8 +309,8 @@
             
             <!-- Menu Penugasan -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.penugasan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-briefcase"></i>
                     </span>
@@ -320,8 +320,8 @@
 
             <!-- Menu Pelaporan -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.pelaporan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-file"></i>
                     </span>
@@ -329,10 +329,10 @@
                 </a>
             </li>
 
-             <!-- Menu LS Rampung -->
+            <!-- Menu LS Rampung -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.lsrampung') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-money-check-dollar"></i>
                     </span>
@@ -342,8 +342,8 @@
 
             <!-- Menu Pegawai -->
             <li class="my-2.5">
-                <a href="" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.pegawai.index') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-users-rectangle"></i>
                     </span>
@@ -353,8 +353,8 @@
             
             <!-- Menu Riwayat -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('riwayat') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-history"></i>
                     </span>
@@ -385,8 +385,8 @@
             
             <!-- Logout Button -->
             <button class="logout-btn flex items-center justify-center gap-2.5 py-2.5 px-[15px] 
-                           bg-white/10 border-none rounded-lg text-white w-full 
-                           transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
+                        bg-white/10 border-none rounded-lg text-white w-full 
+                        transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>
@@ -448,22 +448,25 @@
         
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
-                //e.preventDefault();
-                e.stopPropagation(); // Prevent sidebar toggle
-                
-                // Hapus class active dari semua menu dengan smooth transition
+                e.preventDefault();
+
+                // Hapus class active dari semua menu
                 menuLinks.forEach(item => {
                     if (item !== this && item.classList.contains('active')) {
                         item.style.transition = 'all 0.3s ease-out';
                         item.classList.remove('active');
                     }
                 });
-                
-                // Tambahkan class active ke menu yang diklik dengan delay kecil
+
+                // Tambahkan class active ke menu yang diklik
+                this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                this.classList.add('active');
+
+                // Redirect ke URL setelah delay animasi
+                const url = this.getAttribute('href');
                 setTimeout(() => {
-                    this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                    this.classList.add('active');
-                }, 150);
+                    window.location.href = url;
+                }, 150); // delay sesuai animasi
             });
         });
 
