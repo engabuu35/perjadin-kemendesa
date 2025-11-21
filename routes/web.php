@@ -9,6 +9,8 @@ use App\Http\Controllers\PerjadinController;
 use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\BerandaController;
+use App\Http\Controllers\PPKController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +104,8 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
     // Beranda dihapus dari sini — global
     // Riwayat dihapus dari sini — global
     Route::get('/pelaporan', fn() => view('ppk.pelaporan'))->name('pelaporan');
+    Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
+    Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');
 });
 
 // PEGAWAI
