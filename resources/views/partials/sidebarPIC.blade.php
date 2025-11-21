@@ -287,19 +287,19 @@
     <!-- Overlay -->
     <div class="overlay fixed top-0 left-0 w-full h-full bg-black/50 opacity-0 invisible 
                 transition-all duration-300 z-[98] pointer-events-none" 
-         onclick="toggleSidebar()"></div>
+        onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar bg-sidebar fixed left-0 top-[90px] w-[80px] h-[calc(100vh-80px)]
-                  transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
-                  shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
+                transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
+                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
 
         <!-- Menu List -->
         <ul class="sidebar-menu list-none py-5">
             <!-- Menu Beranda -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pages.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -309,8 +309,8 @@
             
             <!-- Menu Penugasan -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.penugasan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-briefcase"></i>
                     </span>
@@ -320,8 +320,8 @@
 
             <!-- Menu Pelaporan -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.pelaporan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-file"></i>
                     </span>
@@ -329,10 +329,10 @@
                 </a>
             </li>
 
-             <!-- Menu LS Rampung -->
+            <!-- Menu LS Rampung -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.lsrampung') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-money-check-dollar"></i>
                     </span>
@@ -342,8 +342,8 @@
 
             <!-- Menu Pegawai -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pic.pegawai.index') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-users-rectangle"></i>
                     </span>
@@ -353,8 +353,8 @@
             
             <!-- Menu Riwayat -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('riwayat') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-history"></i>
                     </span>
@@ -375,40 +375,80 @@
             
             <!-- User Name -->
             <div class="name text-white text-sm font-bold mb-[5px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
-                Fernanda Aditia Putra
+                {{ Auth::user()->nama }}
             </div>
             
             <!-- User Role/NPM -->
             <div class="role text-white/70 text-xs mb-[15px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
-                NPM: 2021011
+                {{ Auth::user()->nip }}
             </div>
             
             <!-- Logout Button -->
-            <button class="logout-btn flex items-center justify-center gap-2.5 py-2.5 px-[15px] 
-                           bg-white/10 border-none rounded-lg text-white w-full 
-                           transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </button>
+            <form id="logoutForm" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button id="logoutBtn" type="button" class="logout-btn flex items-center justify-center gap-2.5 
+                        py-3 px-6
+                        w-full
+                        bg-white/10 border-none rounded-lg text-white cursor-pointer 
+                        transition-all duration-300 hover:bg-white/20 text-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+
+            <!-- Modal Konfirmasi Logout -->
+            <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-50">
+                <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+                    <h3 class="text-lg font-bold mb-4 text-gray-800">Konfirmasi Logout</h3>
+                    <p class="text-gray-600 mb-5">Apakah kamu yakin ingin keluar dari akun ini?</p>
+                    <div class="flex justify-between gap-3">
+                        <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
+                        <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </aside>
 
     <!-- JavaScript -->
     <script>
+        // Ripple effect saat klik di sidebar - 1 gelombang aja
         const sidebar = document.querySelector('.sidebar');
-        const userProfile = document.querySelector('.user-profile');
+        // const userProfile = document.querySelector('.user-profile');
         const logoutBtn = document.querySelector('.logout-btn');
-        
-        // Ripple effect saat klik di sidebar
-        sidebar.addEventListener('click', function(e) {
-            // Cek apakah klik di area user profile atau logout button
-            if (userProfile.contains(e.target)) {
-                return; // Jangan toggle jika klik di user profile
+        const logoutForm = document.getElementById('logoutForm');
+        const logoutModal = document.getElementById('logoutModal');
+        const cancelLogout = document.getElementById('cancelLogout');
+        const confirmLogout = document.getElementById('confirmLogout');
+
+        logoutBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault(); // sangat penting supaya form gak submit langsung
+            logoutModal.classList.remove('opacity-0', 'invisible');
+            logoutModal.classList.add('opacity-100', 'visible');
+        });
+
+        // Tutup modal saat klik Batal
+        cancelLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutModal.classList.add('opacity-0', 'invisible');
+            logoutModal.classList.remove('opacity-100', 'visible');
+        });
+
+        // Logout sesungguhnya saat klik Logout
+        confirmLogout.addEventListener('click', () => {
+            logoutForm.submit();
+        });
+
+        // tutup modal jika klik di luar dialog (di overlay modal)
+        logoutModal.addEventListener('click', (e) => {
+            if (e.target === logoutModal) {
+                logoutModal.classList.add('opacity-0', 'invisible');
+                logoutModal.classList.remove('opacity-100', 'visible');
             }
-            
-            // Toggle sidebar
-            toggleSidebar();
-            
+        });
+
+        sidebar.addEventListener('click', function(e) {
             // Dapatkan posisi klik relatif terhadap sidebar
             const rect = sidebar.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -435,13 +475,6 @@
             // Hapus ripple setelah animasi selesai
             setTimeout(() => ripple.remove(), 1000);
         });
-        
-        // Prevent toggle saat klik logout button
-        logoutBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            // Tambahkan logika logout di sini
-            alert('Logout clicked!');
-        });
 
         // Handle menu click dengan smooth transition
         const menuLinks = document.querySelectorAll('.sidebar-menu a');
@@ -449,23 +482,27 @@
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation(); // Prevent sidebar toggle
-                
-                // Hapus class active dari semua menu dengan smooth transition
+
+                // Hapus class active dari semua menu
                 menuLinks.forEach(item => {
                     if (item !== this && item.classList.contains('active')) {
                         item.style.transition = 'all 0.3s ease-out';
                         item.classList.remove('active');
                     }
                 });
-                
-                // Tambahkan class active ke menu yang diklik dengan delay kecil
+
+                // Tambahkan class active ke menu yang diklik
+                this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                this.classList.add('active');
+
+                // Redirect ke URL setelah delay animasi
+                const url = this.getAttribute('href');
                 setTimeout(() => {
-                    this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                    this.classList.add('active');
-                }, 150);
+                    window.location.href = url;
+                }, 150); // delay sesuai animasi
             });
         });
+
 
         // FUNCTION INI HARUS SAMA dengan yang di navbar
         function toggleSidebar() {
@@ -492,5 +529,117 @@
             }
         }
     </script>
+    <!-- <script>
+    
+
+    // ===== Sidebar Ripple Effect =====
+    sidebar.addEventListener('click', function(e) {
+        // Jangan toggle jika klik di user profile atau logout button
+        if (userProfile.contains(e.target)) return;
+
+        toggleSidebar();
+
+        // Dapatkan posisi klik relatif terhadap sidebar
+        const rect = sidebar.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Buat ripple
+        const ripple = document.createElement('span');
+        ripple.style.cssText = `
+            position: absolute;
+            left: ${x}px;
+            top: ${y}px;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            animation: ripple-effect-1 1s ease-out;
+            pointer-events: none;
+            z-index: 9999;
+        `;
+        sidebar.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 1000);
+    });
+
+    // ===== Logout Modal =====
+    const logoutModalHTML = `
+    <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-50">
+        <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+            <h3 class="text-lg font-bold mb-4 text-gray-800">Konfirmasi Logout</h3>
+            <p class="text-gray-600 mb-5">Apakah kamu yakin ingin keluar dari akun ini?</p>
+            <div class="flex justify-between gap-3">
+                <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
+                <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Logout</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', logoutModalHTML);
+
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
+
+    logoutBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Jangan trigger ripple sidebar
+        logoutModal.classList.remove('opacity-0', 'invisible');
+        logoutModal.classList.add('opacity-100', 'visible');
+    });
+
+    // Tutup modal saat klik Batal
+    cancelLogout.addEventListener('click', () => {
+        logoutModal.classList.add('opacity-0', 'invisible');
+        logoutModal.classList.remove('opacity-100', 'visible');
+    });
+
+    // Logout sesungguhnya saat klik Logout
+    confirmLogout.addEventListener('click', () => {
+        logoutForm.submit();
+    });
+
+    // ===== Menu Click Smooth Transition =====
+    const menuLinks = document.querySelectorAll('.sidebar-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            menuLinks.forEach(item => {
+                if (item !== this && item.classList.contains('active')) {
+                    item.style.transition = 'all 0.3s ease-out';
+                    item.classList.remove('active');
+                }
+            });
+
+            this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            this.classList.add('active');
+
+            const url = this.getAttribute('href');
+            setTimeout(() => { window.location.href = url; }, 150);
+        });
+    });
+
+    // ===== Toggle Sidebar =====
+    function toggleSidebar() {
+        const overlay = document.querySelector('.overlay');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+
+        const menuIcon = document.querySelector('.menu-icon');
+        if (menuIcon) {
+            const iconElement = menuIcon.querySelector('i');
+            menuIcon.classList.toggle('active');
+
+            if (menuIcon.classList.contains('active')) {
+                iconElement.classList.remove('fa-bars');
+                iconElement.classList.add('fa-bars-staggered');
+            } else {
+                iconElement.classList.remove('fa-bars-staggered');
+                iconElement.classList.add('fa-bars');
+            }
+        }
+    }
+    </script> -->
 </body>
 </html>

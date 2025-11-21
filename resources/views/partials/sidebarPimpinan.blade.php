@@ -273,19 +273,19 @@
     <!-- Overlay -->
     <div class="overlay fixed top-0 left-0 w-full h-full bg-black/50 opacity-0 invisible 
                 transition-all duration-300 z-[98] pointer-events-none" 
-         onclick="toggleSidebar()"></div>
+        onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar bg-sidebar fixed left-0 top-[90px] w-[80px] h-[calc(100vh-80px)]
-                  transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
-                  shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
+                transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
+                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
 
         <!-- Menu List -->
         <ul class="sidebar-menu list-none py-5">
             <!-- Menu Beranda -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pages.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -293,10 +293,10 @@
                 </a>
             </li>
             
-            <!-- Menu Penugasan -->
+            <!-- Menu Monitoring -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('pimpinan.monitoring') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-desktop"></i>
                     </span>
@@ -306,8 +306,8 @@
             
             <!-- Menu Riwayat -->
             <li class="my-2.5">
-                <a href="#" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                   transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                <a href="{{ route('riwayat') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-history"></i>
                     </span>
@@ -328,21 +328,27 @@
             
             <!-- User Name -->
             <div class="name text-white text-sm font-bold mb-[5px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
-                Fernanda Aditia Putra
+                {{ Auth::user()->nama }}
             </div>
             
             <!-- User Role/NPM -->
             <div class="role text-white/70 text-xs mb-[15px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
-                NPM: 2021011
+                {{ Auth::user()->nip }}
             </div>
             
             <!-- Logout Button -->
-            <button class="logout-btn flex items-center justify-center gap-2.5 py-2.5 px-[15px] 
-                           bg-white/10 border-none rounded-lg text-white cursor-pointer w-full 
-                           transition-all duration-300 text-sm opacity-0 hover:bg-white/20">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </button>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                    class="logout-btn flex items-center justify-center gap-2.5 
+                        py-3 px-6
+                        w-full
+                        bg-white/10 border-none rounded-lg text-white cursor-pointer 
+                        transition-all duration-300 hover:bg-white/20 text-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -385,20 +391,24 @@
         menuLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                // Hapus class active dari semua menu dengan smooth transition
+
+                // Hapus class active dari semua menu
                 menuLinks.forEach(item => {
                     if (item !== this && item.classList.contains('active')) {
                         item.style.transition = 'all 0.3s ease-out';
                         item.classList.remove('active');
                     }
                 });
-                
-                // Tambahkan class active ke menu yang diklik dengan delay kecil
+
+                // Tambahkan class active ke menu yang diklik
+                this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                this.classList.add('active');
+
+                // Redirect ke URL setelah delay animasi
+                const url = this.getAttribute('href');
                 setTimeout(() => {
-                    this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                    this.classList.add('active');
-                }, 150);
+                    window.location.href = url;
+                }, 150); // delay sesuai animasi
             });
         });
 

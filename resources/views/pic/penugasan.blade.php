@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.appPIC')
 
 @section('title', 'Penugasan Perjalanan Dinas')
 
