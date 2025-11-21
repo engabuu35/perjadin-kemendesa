@@ -105,8 +105,8 @@
             </div>
         </div>
 
-        <div class="user-info flex items-center gap-3 text-base">
-            <span class="hidden md:inline font-light tracking-wide italic font-semibold text-white/95">
+        <div class="user-info flex items-center gap-3 text-lg mr-6">
+            <span class="hidden md:inline font-light tracking-wide font-semibold text-white/95">
                 Selamat {{ $greeting }}, {{ Auth::user()->nama }}!
             </span>
         </div>
