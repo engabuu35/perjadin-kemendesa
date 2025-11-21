@@ -12,13 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pegawaiperjadin', function (Blueprint $table) {
+            // Foreign Key ke tabel surat (perjalanandinas)
             $table->integer('id_perjadin');
-            // DIUBAH: dari integer ke string(30) untuk mencocokkan NIP
+            
+            // Foreign Key ke user (NIP)
             $table->string('id_user', 30)->index('id_user');
-            $table->string('role_perjadin', 100)->nullable();
+            
+            // HANYA PERLU JABATAN DALAM TIM
+            // Kolom status_laporan, bukti_transport, dll SUDAH DIHAPUS
+            // Karena file sekarang disimpan di tabel induk (perjalanandinas)
+            $table->string('role_perjadin', 100)->default('Anggota');
             $table->boolean('is_lead')->default(false);
-            $table->text('laporan_individu')->nullable();
-
+            
+            // Primary Key Gabungan (Satu pegawai hanya bisa masuk 1x di surat yang sama)
             $table->primary(['id_perjadin', 'id_user']);
         });
     }
