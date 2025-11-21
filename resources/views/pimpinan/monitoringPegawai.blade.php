@@ -1,6 +1,6 @@
 @extends('layouts.appPimpinan')
 
-@section('title', 'Beranda Pimpinan')
+@section('title', 'Monitoring Pimpinan')
 
 @section('content')
 <style>
