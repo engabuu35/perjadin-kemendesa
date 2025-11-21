@@ -26,6 +26,7 @@
 
                     <th rowspan="3" class="border px-4 py-2">No.</th>
                     <th rowspan="3" class="border px-4 py-2">NIP</th>
+                    <th rowspan="3" class="border px-4 py-2">Nama</th>
 
                     <!-- Rincian Peembayaran -->
                     <th colspan="9" class="border px-4 py-2">Rincian Pembayaran</th>
@@ -88,6 +89,7 @@
                 <tr class="hover:bg-gray-50">
                     <td class="border px-4 py-2">1</td>
                     <td class="border px-4 py-2">199909092029092009</td>
+                    <td class="border px-4 py-2">Paijo Pegawai</td>
 
                     <td class="border px-4 py-2">4.500.000</td>
 
