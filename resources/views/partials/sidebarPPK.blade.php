@@ -306,12 +306,12 @@
             
             <!-- Menu Tabel Rekapan -->
             <li class="my-2.5">
-                <a href="{{ route('riwayat') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                <a href="{{ route('ppk.tabelrekap') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
                                 transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-table"></i>
                     </span>
-                    <span class="opacity-0 transition-opacity duration-300">Rekap</span>
+                    <span class="opacity-0 transition-opacity duration-300">Tabel Rekap</span>
                 </a>
             </li>
 

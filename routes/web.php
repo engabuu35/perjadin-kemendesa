@@ -105,6 +105,7 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
     // Riwayat dihapus dari sini — global
     Route::get('/pelaporan', fn() => view('ppk.pelaporan'))->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
+    Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');
 });
 
 // PEGAWAI
