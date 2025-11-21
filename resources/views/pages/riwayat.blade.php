@@ -5,16 +5,17 @@
 {{-- Konten main dengan margin kiri untuk sidebar dan centered --}}
 <main class="ml-0 sm:ml-[80px] min-h-screen flex justify-center py-4 sm:py-6 lg:py-8">
     
-    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         
         <!-- Header dengan Info -->
         <div class="mb-4 sm:mb-6">
-            <h2 class="text-gray-800 text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
+            <h2 class="text-gray-700 text-4xl font-bold pb-3 relative">
                 Riwayat Perjalanan Dinas
+                <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>               
             </h2>
             
             <!-- Info Box -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3 transition-colors hover:bg-blue-100">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3 transition-colors hover:bg-blue-100">
                 <i class="fa-solid fa-circle-info text-blue-600 text-base sm:text-lg mt-0.5 flex-shrink-0"></i>
                 <p class="text-blue-800 text-xs sm:text-sm">
                     Riwayat perjalanan dinas yang ditampilkan hanya untuk 1 tahun terakhir.
