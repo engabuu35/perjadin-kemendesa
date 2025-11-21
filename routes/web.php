@@ -46,7 +46,6 @@ Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
     Route::get('/beranda', [BerandaController::class, 'index'])->middleware('auth')->name('pages.beranda');
-    Route::view('/beranda', 'pages.beranda')->name('pages.beranda');
 
     // Profile & Bantuan
     Route::view('/profile', 'pages.lamanprofile')->name('profile');
@@ -109,7 +108,7 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
 });
 
 // PEGAWAI
-Route::middleware(['auth','role:PEGAWAI'])->prefix('pegawai')->name('pegawai.')->group(function () {
-    // Beranda dihapus dari sini — global
-    // Riwayat dihapus dari sini — global
-});
+// Route::middleware(['auth','role:PEGAWAI'])->prefix('pegawai')->name('pegawai.')->group(function () {
+//     // Beranda dihapus dari sini — global
+//     // Riwayat dihapus dari sini — global
+// });
