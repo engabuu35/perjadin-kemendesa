@@ -5,7 +5,7 @@
   Konten <main>
   class="ml-[80px]" memberi ruang untuk sidebar.
 --}}
-<main class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8 ml-[80px]">
+<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
     
     <!-- Judul -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -14,7 +14,7 @@
                 Perjalanan Dinas
                 <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
             </h2>
-            <p class="text-gray-500 text-sm">Daftar penugasan perjalanan dinas Anda.</p>
+            <p class="text-gray-700 text-xl mt-4">Daftar penugasan perjalanan dinas Anda.</p>
         </div>
     </div>
 
@@ -23,72 +23,78 @@
 
         @forelse ($perjalanan_list as $perjalanan)
             
-            {{-- Logika Warna Badge & Border --}}
+            {{-- Logika Warna Badge --}}
             @php
                 $badge_class = 'bg-gray-500'; 
-                $border_class = 'border-gray-200';
                 $bg_catatan = 'bg-gray-50';
                 $text_catatan = 'text-gray-700';
 
                 if ($perjalanan->status_color == 'red') {
                     $badge_class = 'bg-red-500';
-                    $border_class = 'border-red-500'; // Border kiri merah
                     $bg_catatan = 'bg-red-50';
                     $text_catatan = 'text-red-700';
                 } elseif ($perjalanan->status_color == 'yellow') {
                     $badge_class = 'bg-yellow-500';
-                    $border_class = 'border-yellow-500'; // Border kiri kuning
                     $bg_catatan = 'bg-yellow-50';
                     $text_catatan = 'text-yellow-700';
                 } elseif ($perjalanan->status_color == 'green') {
                     $badge_class = 'bg-green-600';
-                    $border_class = 'border-green-600'; // Border kiri hijau
                     $bg_catatan = 'bg-green-50';
                     $text_catatan = 'text-green-700';
                 } elseif ($perjalanan->status_color == 'blue') {
                     $badge_class = 'bg-blue-500';
-                    $border_class = 'border-blue-500';
                     $bg_catatan = 'bg-blue-50';
                     $text_catatan = 'text-blue-700';
                 }
             @endphp
 
             <!-- Kartu Perjalanan -->
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg border border-gray-100">
+            <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
                 
                 <!-- Bagian Atas Kartu (Info Utama) -->
-                {{-- Border Left tebal sesuai status --}}
-                <div class="border-l-[6px] {{ $border_class }} p-6">
+                <div class="border-l-[6px] border-blue-500 p-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
                         
                         <!-- Info Kiri -->
-                        <div class="space-y-3">
-                            <h3 class="text-blue-800 font-bold text-xl tracking-wide">{{ $perjalanan->nomor_surat }}</h3>
+                        <div class="flex-1 space-y-3 min-w-0">
+                            <h3 class="text-blue-800 font-bold text-xl tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-200 pb-2 truncate">
+                                {{ $perjalanan->nomor_surat }}
+                            </h3>
                             
-                            <p class="flex items-center gap-3 text-gray-700 text-base">
-                                <i class="fa-solid fa-location-dot w-5 text-center text-gray-400"></i>
-                                <span class="font-medium">{{ $perjalanan->lokasi }}</span>
-                            </p>
-                            <p class="flex items-center gap-3 text-gray-600 text-sm">
-                                <i class="fa-regular fa-calendar w-5 text-center text-gray-400"></i>
-                                <span>{{ $perjalanan->tanggal }}</span>
-                            </p>
+                            <div class="space-y-2">
+                                <p class="flex items-start gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
+                                    <i class="fa-solid fa-location-dot w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                                    <span class="font-medium break-words">{{ $perjalanan->lokasi }}</span>
+                                </p>
+                                <p class="flex items-start gap-3 text-gray-600 text-sm group-hover:translate-x-1 transition-transform duration-300 delay-100">
+                                    <i class="fa-regular fa-calendar w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                                    <span class="break-words">{{ $perjalanan->tanggal }}</span>
+                                </p>
+                            </div>
                         </div>
 
                         <!-- Info Kanan (Status & Link) -->
-                        <div class="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                        <div class="flex flex-col items-center sm:items-center gap-3 sm:min-w-[150px]">
                             
                             <!-- Badge Status -->
-                            <span class="px-4 py-1.5 text-sm font-bold text-white rounded-full shadow-sm {{ $badge_class }}">
+                            <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-2 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
+                                @if($perjalanan->status_color == 'red')
+                                    <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                                @elseif($perjalanan->status_color == 'yellow')
+                                    <i class="fa-solid fa-spinner text-xs animate-pulse"></i>
+                                @elseif($perjalanan->status_color == 'green')
+                                    <i class="fa-solid fa-circle-check text-xs"></i>
+                                @else
+                                    <i class="fa-solid fa-circle text-xs animate-pulse"></i>
+                                @endif
                                 {{ $perjalanan->status }}
                             </span>
                             
                             <!-- Link Detail -->
-                            <a href="{{ route('perjalanan.detail', $perjalanan->id) }}" class="group flex items-center text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors mt-1">
-                                Lihat Detail
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                </svg>
+                            <a href="{{ route('perjalanan.detail', $perjalanan->id) }}" 
+                               class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold transition-all duration-200 flex items-center gap-2 group/link px-2 py-1 rounded hover:bg-blue-50">
+                                <span>Lihat Detail</span>
+                                <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
                             </a>
                         </div>
                     </div>
