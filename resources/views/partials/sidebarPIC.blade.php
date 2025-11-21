@@ -14,7 +14,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <style>
+   <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
@@ -98,9 +98,14 @@
         }
 
         .sidebar-menu a.active::before {
-            width: 60px;
-            height: 60px;
+            content: "";
+            position: absolute;
+            width: 55px;            /* ukuran lingkaran */
+            height: 55px;
+            background: #ffffffd0;  /* putih lembut */
+            border-radius: 50%;     /* bentuk lingkaran */
             opacity: 1;
+            z-index: -1;
         }
 
         .sidebar-menu a.active .icon {
@@ -111,6 +116,19 @@
         .sidebar-menu a.active span:last-child {
             color: #2954B0 !important;
         }
+        
+        .sidebar-menu a.active {
+            background: none !important;
+        }
+        .sidebar-menu a .icon {
+            position: relative;
+        }
+
+        /* icon active berubah biru */
+        .sidebar-menu a.active .icon {
+            color: #2954B0 !important;
+        }
+
 
         /* Hover memanjang saat sidebar aktif */
         .sidebar.active .sidebar-menu a {
@@ -267,20 +285,6 @@
         .logout-btn:hover i {
             transform: translateX(-3px) rotate(-10deg);
         }
-        
-        /* Cursor pointer untuk area yang bisa diklik */
-        .sidebar {
-            cursor: pointer;
-        }
-        
-        .user-profile,
-        .user-profile * {
-            cursor: default;
-        }
-        
-        .logout-btn {
-            cursor: pointer !important;
-        }
     </style>
 </head>
 <body class="bg-[#e8e9f0]">
@@ -299,7 +303,7 @@
             <!-- Menu Beranda -->
             <li class="my-2.5">
                 <a href="{{ route('pages.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pages.beranda') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -310,7 +314,7 @@
             <!-- Menu Penugasan -->
             <li class="my-2.5">
                 <a href="{{ route('pic.penugasan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pic.penugasan') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-briefcase"></i>
                     </span>
@@ -321,7 +325,7 @@
             <!-- Menu Pelaporan -->
             <li class="my-2.5">
                 <a href="{{ route('pic.pelaporan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pic.pelaporan') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-file"></i>
                     </span>
@@ -332,7 +336,7 @@
             <!-- Menu LS Rampung -->
             <li class="my-2.5">
                 <a href="{{ route('pic.lsrampung') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pic.lsrampung') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-money-check-dollar"></i>
                     </span>
@@ -343,7 +347,7 @@
             <!-- Menu Pegawai -->
             <li class="my-2.5">
                 <a href="{{ route('pic.pegawai.index') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pic.pegawai.index') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-users-rectangle"></i>
                     </span>
@@ -354,7 +358,7 @@
             <!-- Menu Riwayat -->
             <li class="my-2.5">
                 <a href="{{ route('riwayat') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('riwayat') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-history"></i>
                     </span>
