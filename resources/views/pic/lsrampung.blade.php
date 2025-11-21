@@ -34,7 +34,7 @@
                     <!-- Penginapan & Pesawat -->
                     <th colspan="2" class="border px-4 py-2">Penginapan</th>
                     <th colspan="2" class="border px-4 py-2">Pesawat</th>
-                    <th rowspan="3" class="border px-4 py-2">Geotangging</th>
+                    <th rowspan="3" class="border px-4 py-2">Geotagging</th>
                 </tr>
 
                 <!-- HEADER LEVEL 2 -->
