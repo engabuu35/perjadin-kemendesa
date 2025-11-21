@@ -1,29 +1,11 @@
 @extends('layouts.app')
 
-{{-- 
-  Data dummy untuk daftar perjalanan.
-  Nantinya, ini akan Anda kirim dari Controller.
---}}
 @section('content')
-@php
-    $perjalanan_list = [
-        (object)[
-            'id' => 2,
-            'nomor_surat' => '489/PRC.03.01/2024',
-            'lokasi' => 'Ogan Komering Ilir',
-            'tanggal' => '30 Desember 2024 - 1 Januari 2025',
-            'status' => 'On Progress',
-            'status_color' => 'yellow',
-            'catatan' => 'Surat Tugas Belum Lengkap'
-        ]
-    ];
-@endphp
-
 {{-- 
   Konten <main>
-  class="ml-[80px]" PENTING untuk memberi ruang bagi sidebar.
+  class="ml-[80px]" memberi ruang untuk sidebar.
 --}}
-<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
+<main class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8 ml-[80px]">
     
     <!-- Judul -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -32,86 +14,115 @@
                 Perjalanan Dinas
                 <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
             </h2>
-            <p class="text-gray-500 text-sm">Daftar perjalanan dinas Anda yang sedang berjalan.</p>
+            <p class="text-gray-500 text-sm">Daftar penugasan perjalanan dinas Anda.</p>
         </div>
     </div>
 
     <!-- Daftar Kartu Perjalanan -->
     <div class="space-y-6">
 
-        @foreach ($perjalanan_list as $perjalanan)
+        @forelse ($perjalanan_list as $perjalanan)
             
-            {{-- Menentukan warna badge status --}}
+            {{-- Logika Warna Badge & Border --}}
             @php
-                $status_bg_color = 'bg-gray-500';
+                $badge_class = 'bg-gray-500'; 
+                $border_class = 'border-gray-200';
+                $bg_catatan = 'bg-gray-50';
+                $text_catatan = 'text-gray-700';
+
                 if ($perjalanan->status_color == 'red') {
-                    $status_bg_color = 'bg-red-500';
+                    $badge_class = 'bg-red-500';
+                    $border_class = 'border-red-500'; // Border kiri merah
+                    $bg_catatan = 'bg-red-50';
+                    $text_catatan = 'text-red-700';
                 } elseif ($perjalanan->status_color == 'yellow') {
-                    $status_bg_color = 'bg-yellow-500';
+                    $badge_class = 'bg-yellow-500';
+                    $border_class = 'border-yellow-500'; // Border kiri kuning
+                    $bg_catatan = 'bg-yellow-50';
+                    $text_catatan = 'text-yellow-700';
+                } elseif ($perjalanan->status_color == 'green') {
+                    $badge_class = 'bg-green-600';
+                    $border_class = 'border-green-600'; // Border kiri hijau
+                    $bg_catatan = 'bg-green-50';
+                    $text_catatan = 'text-green-700';
+                } elseif ($perjalanan->status_color == 'blue') {
+                    $badge_class = 'bg-blue-500';
+                    $border_class = 'border-blue-500';
+                    $bg_catatan = 'bg-blue-50';
+                    $text_catatan = 'text-blue-700';
                 }
             @endphp
 
             <!-- Kartu Perjalanan -->
-            <div class="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group bg-white">
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg border border-gray-100">
                 
-                <div class="flex">
-                    <!-- Garis Tebal di Samping Kiri -->
-                    <div class="w-1.5 bg-blue-600"></div>
-                    
-                    <!-- Konten Kartu -->
-                    <div class="flex-1">
-                        <!-- Bagian Info Utama -->
-                        <div class="p-6">
-                            <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                
-                                <!-- Info Kiri -->
-                                <div class="flex-1 space-y-2.5">
-                                    <h3 class="text-blue-700 font-bold text-xl group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-600 pb-2">
-                                        {{ $perjalanan->nomor_surat }}
-                                    </h3>
-                                    
-                                    <div class="space-y-1.5">
-                                        <p class="flex items-center gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
-                                            <i class="fa-solid fa-map-marker-alt w-5 text-gray-400"></i>
-                                            <span>{{ $perjalanan->lokasi }}</span>
-                                        </p>
-                                        <p class="flex items-center gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-100">
-                                            <i class="fa-solid fa-calendar-days w-5 text-gray-400"></i>
-                                            <span>{{ $perjalanan->tanggal }}</span>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Info Kanan (Status & Link) -->
-                                <div class="flex flex-col items-center gap-3 sm:min-w-[140px]">
-                                    
-                                    <span class="px-5 py-2 text-sm font-semibold text-white rounded-full {{ $status_bg_color }} shadow-sm flex items-center gap-2 hover:brightness-110 transition-all duration-200">
-                                        <i class="fa-solid fa-circle text-xs animate-pulse"></i>
-                                        {{ $perjalanan->status }}
-                                    </span>
-                                    
-                                    <a href="{{ route('perjalanan.detail', $perjalanan->id) }}" 
-                                       class="text-blue-600 hover:text-blue-700 hover:underline text-sm font-medium transition-all duration-200 flex items-center gap-1.5 group/link">
-                                        <span>Lihat Detail</span>
-                                        <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
-                                    </a>
-                                </div>
-                            </div>
+                <!-- Bagian Atas Kartu (Info Utama) -->
+                {{-- Border Left tebal sesuai status --}}
+                <div class="border-l-[6px] {{ $border_class }} p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        
+                        <!-- Info Kiri -->
+                        <div class="space-y-3">
+                            <h3 class="text-blue-800 font-bold text-xl tracking-wide">{{ $perjalanan->nomor_surat }}</h3>
+                            
+                            <p class="flex items-center gap-3 text-gray-700 text-base">
+                                <i class="fa-solid fa-location-dot w-5 text-center text-gray-400"></i>
+                                <span class="font-medium">{{ $perjalanan->lokasi }}</span>
+                            </p>
+                            <p class="flex items-center gap-3 text-gray-600 text-sm">
+                                <i class="fa-regular fa-calendar w-5 text-center text-gray-400"></i>
+                                <span>{{ $perjalanan->tanggal }}</span>
+                            </p>
                         </div>
 
-                        <!-- Banner Catatan (Bagian Bawah) -->
-                        <div class="bg-red-50 px-6 py-4 border-t border-red-200">
-                            <p class="text-red-700 text-base font-medium flex items-center gap-2">
-                                <i class="fa-solid fa-circle-exclamation w-4 text-center"></i>
-                                <span>{{ $perjalanan->catatan }}</span>
-                            </p>
+                        <!-- Info Kanan (Status & Link) -->
+                        <div class="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                            
+                            <!-- Badge Status -->
+                            <span class="px-4 py-1.5 text-sm font-bold text-white rounded-full shadow-sm {{ $badge_class }}">
+                                {{ $perjalanan->status }}
+                            </span>
+                            
+                            <!-- Link Detail -->
+                            <a href="{{ route('perjalanan.detail', $perjalanan->id) }}" class="group flex items-center text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors mt-1">
+                                Lihat Detail
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
                         </div>
                     </div>
                 </div>
 
+                <!-- Banner Catatan (Bagian Bawah) -->
+                <div class="{{ $bg_catatan }} px-6 py-3 border-t border-gray-100">
+                    <p class="{{ $text_catatan }} text-sm font-medium flex items-center gap-2">
+                        @if($perjalanan->status_color == 'red')
+                            <i class="fa-solid fa-circle-exclamation text-lg"></i>
+                        @elseif($perjalanan->status_color == 'yellow')
+                             <i class="fa-solid fa-spinner fa-spin text-lg"></i>
+                        @elseif($perjalanan->status_color == 'green')
+                            <i class="fa-solid fa-circle-check text-lg"></i>
+                        @else
+                            <i class="fa-solid fa-info-circle text-lg"></i>
+                        @endif
+                        <span>{{ $perjalanan->catatan }}</span>
+                    </p>
+                </div>
+
             </div>
             <!-- Akhir Kartu Perjalanan -->
-        @endforeach
+
+        @empty
+            <!-- Tampilan Jika Tidak Ada Data -->
+            <div class="bg-white rounded-2xl shadow-sm p-10 text-center border border-gray-100">
+                <div class="mb-4">
+                    <i class="fa-solid fa-suitcase-rolling text-6xl text-gray-200"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-600">Belum ada Perjalanan Dinas</h3>
+                <p class="text-gray-500 mt-2">Saat ini Anda tidak memiliki jadwal perjalanan dinas aktif.</p>
+            </div>
+        @endforelse
 
     </div>
 
