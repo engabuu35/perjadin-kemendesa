@@ -45,7 +45,7 @@
                         
                         <!-- Info Kiri -->
                         <div class="flex-1 space-y-2.5">
-                            <h3 class="text-white font-bold text-xl group-hover:translate-x-1 transition-transform duration-300">
+                            <h3 class="text-white font-bold text-xl group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-white pb-2">
                                 {{ $riwayat->nomor_surat }}
                             </h3>
                             
@@ -57,10 +57,6 @@
                                 <p class="flex items-center gap-3 text-white text-base group-hover:translate-x-1 transition-transform duration-300 delay-100">
                                     <i class="fa-solid fa-calendar-days w-5"></i>
                                     <span>{{ \Carbon\Carbon::parse($riwayat->tgl_mulai)->format('d M Y') }} - {{ \Carbon\Carbon::parse($riwayat->tgl_selesai)->format('d M Y') }}</span>
-                                </p>
-                                <p class="flex items-center gap-3 text-white text-base group-hover:translate-x-1 transition-transform duration-300 delay-125">
-                                    <i class="fa-solid fa-file-alt w-5"></i>
-                                    <span>{{ $riwayat->hasil_perjalanan ?? 'Belum ada hasil' }}</span>
                                 </p>
                             </div>
                         </div>
