@@ -57,6 +57,6 @@ class LSRampungController extends Controller
             }
         }
 
-        return view('pages.lsrampung', compact('daftarLaporan', 'selectedLaporan', 'rekapBiaya'));
+        return view('pic.lsrampung', compact('daftarLaporan', 'selectedLaporan', 'rekapBiaya'));
     }
 }
