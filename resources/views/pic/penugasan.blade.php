@@ -17,7 +17,7 @@
     </h2>
 
     <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.2);">
-        <form action="{{ route('pic.penugasan.store') }}" method="POST">
+        <form action="{{ route('pic.penugasan.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <!-- Nomor Surat -->
@@ -80,6 +80,18 @@
                 @enderror
             </div>
 
+            <!-- Surat Tugas (PDF) -->
+            <div class="mb-5">
+                <label for="surat_tugas" class="block text-gray-700 text-sm font-medium mb-2">Surat Tugas (PDF)</label>
+                <input type="file" id="surat_tugas" name="surat_tugas" 
+                    accept="application/pdf"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                    required>
+                @error('surat_tugas')
+                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+
             <!-- Daftar Pegawai -->
             <div class="mt-8">
                 <h3 class="text-gray-700 text-xl font-semibold mb-5">Daftar Pegawai</h3>
@@ -87,13 +99,23 @@
                 <!-- Datalist di luar -->
                 <datalist id="nipList">
                     @foreach($users as $user)
-                        <option value="{{ $user->nip }}">{{ $user->nama }}</option>
+                        <option value="{{ $user->nip }}">
+                            {{ $user->nama }} 
+                            @if(isset($pegawaiStatus[$user->nip]) && $pegawaiStatus[$user->nip] == 2)
+                                (Sedang Berlangsung)
+                            @endif
+                        </option>
                     @endforeach
                 </datalist>
 
                 <datalist id="namaList">
                     @foreach($users as $user)
-                        <option value="{{ $user->nama }}">{{ $user->nip }}</option>
+                        <option value="{{ $user->nama }}">
+                            {{ $user->nip }}
+                            @if(isset($pegawaiStatus[$user->nip]) && $pegawaiStatus[$user->nip] == 2)
+                                (Sedang Berlangsung)
+                            @endif
+                        </option>
                     @endforeach
                 </datalist>
 

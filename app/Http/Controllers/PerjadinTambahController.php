@@ -14,7 +14,16 @@ class PerjadinTambahController extends Controller
     {
         // Ambil semua pegawai dari users (nip & nama)
         $users = User::select('nip','nama')->get();
-        return view('pic.penugasan', compact('users'));
+
+        // Ambil status perjalanan dinas tiap pegawai yang sedang "Sedang Berlangsung" (id_status = 2)
+        $pegawaiStatus = DB::table('pegawaiperjadin')
+            ->join('perjalanandinas', 'pegawaiperjadin.id_perjadin', '=', 'perjalanandinas.id')
+            ->select('pegawaiperjadin.id_user', 'perjalanandinas.id_status')
+            ->where('perjalanandinas.id_status', 2) // status sedang berlangsung
+            ->pluck('id_status','id_user')
+            ->toArray();
+
+        return view('pic.penugasan', compact('users', 'pegawaiStatus'));
     }
 
     public function store(Request $request)
@@ -27,23 +36,8 @@ class PerjadinTambahController extends Controller
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'pegawai' => 'required|array|min:1',
             'pegawai.*.nip' => 'required|string|exists:users,nip',
+            'surat_tugas' => 'nullable|file|mimes:pdf|max:5120',
         ]);
-        
-        // foreach ($validated['pegawai'] as $pegawai) {
-        //     $nip = $pegawai['nip'];
-
-        //     $sedangAktif = DB::table('pegawaiperjadin')
-        //         ->join('perjalanandinas', 'pegawaiperjadin.id_perjadin', '=', 'perjalanandinas.id')
-        //         ->where('pegawaiperjadin.id_user', $nip)
-        //         ->where('perjalanandinas.id_status', 2) // perjalanan status aktif
-        //         ->exists();
-
-        //     if ($sedangAktif) {
-        //         return back()->withErrors([
-        //             'pegawai' => "Pegawai dengan NIP $nip sudah memiliki perjalanan dinas aktif."
-        //         ])->withInput();
-        //     }
-        // }
 
         DB::transaction(function() use ($validated) {
             $perjalanan = PerjalananDinas::create([

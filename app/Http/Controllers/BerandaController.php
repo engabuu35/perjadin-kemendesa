@@ -19,7 +19,7 @@ class BerandaController extends Controller
             ->select(
                 'perjalanandinas.*',
                 // Ambil file dari tabel induk
-                'perjalanandinas.file_bukti_transport'
+                'perjalanandinas.pdf_keuangan'
             )
             ->orderBy('perjalanandinas.tgl_mulai', 'desc')
             ->get();
@@ -33,7 +33,7 @@ class BerandaController extends Controller
             // Jika file di induk ada = SELESAI (Hijau)
             // Jika tidak ada = Cek Tanggal
             
-            $isSubmitted = !empty($item->file_bukti_transport); 
+            $isSubmitted = !empty($item->pdf_keuangan); 
             
             if ($isSubmitted) {
                 $status = 'Selesai';

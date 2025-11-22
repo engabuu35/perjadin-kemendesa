@@ -23,6 +23,7 @@ class PerjadinDataSeeder extends Seeder
         // === DATA USER ===
         $nipPic1 = '199103032021031003';
         $nipPimpinan = '198001012010011001';
+        
         // User Grup 1 (Untuk data selesai)
         $usersGrup1 = ['199103032021031003', '199204042022042004', '198001012010011001', '199909092029092009', 'PPNPN-001'];
         
@@ -39,10 +40,11 @@ class PerjadinDataSeeder extends Seeder
             $tglMulai = now()->subMonths(2)->addDays($i * 5);
             $tglSelesai = $tglMulai->copy()->addDays(3);
 
-            // 1. Insert Surat + File PDF
+            // Insert perjalanandinas
             $perjadinId = DB::table('perjalanandinas')->insertGetId([
                 'id_pembuat' => $usersGrup1[0],
                 'id_status' => $statusSelesai,
+                'id_atasan' => $nipPimpinan,
                 'approved_by' => $nipPimpinan,
                 'approved_at' => $tglMulai->copy()->subDay(),
                 'nomor_surat' => 'ST/' . (100 + $i) . '/ITJEN/2025',
@@ -50,16 +52,15 @@ class PerjadinDataSeeder extends Seeder
                 'tujuan' => 'Audit Gabungan Kota ' . ($i+1),
                 'tgl_mulai' => $tglMulai,
                 'tgl_selesai' => $tglSelesai,
-                
-                // FILE DISIMPAN DISINI (Otomatis dianggap selesai oleh sistem)
-                'file_bukti_transport' => 'tiket_tim_gabungan.pdf', 
-                'laporan_akhir' => 'Laporan selesai.',
-                
+                'uraian' => 'Audit selesai dan dokumen lengkap.',
+                'pdf_keuangan' => 'tiket_tim_gabungan.pdf',
+                'surat_tugas' => 'surat_tugas_tim_' . ($i+1) . '.pdf',
+                'tgl_acc' => $tglMulai->copy()->subDay(),
                 'created_at' => $tglMulai,
                 'updated_at' => $tglSelesai,
             ]);
 
-            // 2. Insert Pegawai (Cukup Link ID, tidak perlu status individu)
+            // Insert pegawai
             DB::table('pegawaiperjadin')->insert([
                 ['id_perjadin' => $perjadinId, 'id_user' => $usersGrup1[($i) % 5], 'role_perjadin' => 'Ketua', 'is_lead' => 1],
                 ['id_perjadin' => $perjadinId, 'id_user' => $usersGrup1[($i + 1) % 5], 'role_perjadin' => 'Anggota', 'is_lead' => 0],
@@ -75,44 +76,46 @@ class PerjadinDataSeeder extends Seeder
             $userB = $usersGrup3[$counter + 1];
             $counter += 2;
 
-            // Logic Status Tanggal
             $status = $statusProses;
-            $tglMulai = now(); // Hari ini
+            $tglMulai = now();
             $tglSelesai = now()->addDays(2);
 
-            // Skenario Telat (Untuk test warna Merah)
-            if ($j >= 3) {
+            if ($j >= 3) { // skenario telat
                 $status = $statusTunggu;
                 $tglMulai = now()->subDays(5);
                 $tglSelesai = now()->subDays(2);
             }
 
-            // 1. Insert Surat (File Transport NULL = Belum Selesai)
             $perjadinId = DB::table('perjalanandinas')->insertGetId([
                 'id_pembuat' => $nipPic1,
                 'id_status' => $status,
+                'id_atasan' => $nipPimpinan,
                 'approved_by' => $nipPimpinan,
                 'nomor_surat' => 'ST/TIM-GAB/' . (200 + $j),
                 'tanggal_surat' => $tglMulai->copy()->subDay(),
                 'tujuan' => 'Tugas Tim ' . ($j+1),
                 'tgl_mulai' => $tglMulai,
                 'tgl_selesai' => $tglSelesai,
-                'file_bukti_transport' => null, // KOSONG
+                'uraian' => null,
+                'pdf_keuangan' => null,
+                'surat_tugas' => null,
+                'tgl_acc' => null,
             ]);
 
-            // 2. Insert Pegawai
+            // Insert pegawai
             DB::table('pegawaiperjadin')->insert([
                 ['id_perjadin' => $perjadinId, 'id_user' => $userA, 'role_perjadin' => 'Ketua', 'is_lead' => 1],
                 ['id_perjadin' => $perjadinId, 'id_user' => $userB, 'role_perjadin' => 'Anggota', 'is_lead' => 0],
             ]);
-            
-            // Tambah Geotagging supaya peta tidak kosong
+
+            // Geotagging
             if ($status == $statusProses) {
-                 DB::table('geotagging')->insert([
+                DB::table('geotagging')->insert([
                     'id_perjadin' => $perjadinId,
                     'id_user' => $userA,
                     'id_tipe' => $tipeGeotagging,
-                    'latitude' => -6.200000, 'longitude' => 106.816666, 
+                    'latitude' => -6.200000,
+                    'longitude' => 106.816666,
                     'created_at' => now(),
                 ]);
             }
