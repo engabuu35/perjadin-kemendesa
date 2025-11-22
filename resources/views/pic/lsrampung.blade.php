@@ -19,7 +19,7 @@
 
     <!-- [BAGIAN BARU] Dropdown Pilih Pegawai -->
     <div class="bg-white p-4 rounded-xl shadow-sm border mb-6">
-        <form action="{{ route('lsrampung.index') }}" method="GET" class="flex items-center gap-4">
+        <form action="{{ route('pic.lsrampung') }}" method="GET" class="flex items-center gap-4">
             <label class="text-sm font-bold text-gray-700">Pilih Pegawai (Pelapor):</label>
             <select name="laporan_id" onchange="this.form.submit()" class="border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 w-1/2">
                 <option value="">-- Pilih Pegawai / NIP --</option>
