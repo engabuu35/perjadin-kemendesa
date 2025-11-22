@@ -116,6 +116,12 @@
                             <li class="flex items-center justify-between bg-gray-50 p-2 rounded text-xs">
                                 <div class="flex flex-col">
                                     <span class="font-semibold text-gray-600">{{ $file->kategori }}</span>
+                                    
+                                    {{-- [TAMBAHAN] Tampilkan Nominal jika ada di database --}}
+                                    @if($file->nominal)
+                                        <span class="text-gray-500 font-medium">Rp {{ number_format($file->nominal, 0, ',', '.') }}</span>
+                                    @endif
+
                                     <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 truncate max-w-[150px]">{{ $file->nama_file }}</a>
                                 </div>
                                 @if(!$laporan->is_final)
@@ -132,20 +138,27 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Upload Bukti Baru</label>
                         <div id="upload-container" class="space-y-3">
                             <div class="flex gap-2">
-                                <!-- [PERUBAHAN 1] Awalnya input type="text", sekarang diubah menjadi SELECT dropdown -->
+                                <!-- [PERUBAHAN 1] Layout 3 Kolom (Kategori - Nominal - File) -->
+                                
+                                <!-- 1. Kategori (Lebar w-1/3) -->
                                 <select name="kategori[]" class="w-1/3 text-xs border-gray-300 rounded" required>
                                     <option value="" disabled selected>Pilih Kategori</option>
-                                        <option value="Tiket">Tiket</option>
-                                        <option value="Uang Harian">Uang Harian</option>
-                                        <option value="Penginapan">Penginapan</option>
-                                        <option value="Uang Representasi">Uang Representasi</option>
-                                        <option value="Sewa Kendaraan">Sewa Kendaraan</option>
-                                        <option value="Pengeluaran Riil">Pengeluaran Riil</option>
-                                        <option value="SSPB">SSPB</option>
+                                    <option value="Tiket">Tiket</option>
+                                    <option value="Uang Harian">Uang Harian</option>
+                                    <option value="Penginapan">Penginapan</option>
+                                    <option value="Uang Representasi">Uang Representasi</option>
+                                    <option value="Sewa Kendaraan">Sewa Kendaraan</option>
+                                    <option value="Pengeluaran Riil">Pengeluaran Riil</option>
+                                    <option value="SSPB">SSPB</option>
                                 </select>
-                                <!-- [AKHIR PERUBAHAN 1] -->
 
-                                <input type="file" name="bukti[]" class="w-2/3 text-xs text-gray-500" required>
+                                <!-- 2. [TAMBAHAN] Input Nominal Rupiah (Lebar w-1/3) -->
+                                <input type="number" name="nominal[]" class="w-1/3 text-xs border-gray-300 rounded" placeholder="Rp Biaya" required>
+
+                                <!-- 3. Input File (Lebar w-1/3) -->
+                                <input type="file" name="bukti[]" class="w-1/3 text-xs text-gray-500" required>
+                                
+                                <!-- [AKHIR PERUBAHAN 1] -->
                             </div>
                         </div>
                         <button type="button" id="add-upload" class="mt-2 text-xs text-blue-600 font-semibold hover:underline">+ Tambah File Lain</button>
@@ -222,9 +235,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const div = document.createElement('div');
             div.className = 'flex gap-2';
             
-            // [PERUBAHAN 2]
-            // Script Javascript untuk menambah baris baru juga diubah.
-            // Sekarang menyisipkan elemen SELECT dropdown, bukan input text lagi.
+            // [PERUBAHAN 2] Script Javascript
+            // Menambahkan input 'nominal' pada baris baru agar user bisa input biaya untuk file tambahan
             div.innerHTML = `
                 <select name="kategori[]" class="w-1/3 text-xs border-gray-300 rounded" required>
                     <option value="" disabled selected>Pilih Kategori</option>
@@ -236,7 +248,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <option value="Pengeluaran Riil">Pengeluaran Riil</option>
                     <option value="SSPB">SSPB</option>
                 </select>
-                <input type="file" name="bukti[]" class="w-2/3 text-xs text-gray-500" required>
+
+                <!-- Input Nominal -->
+                <input type="number" name="nominal[]" class="w-1/3 text-xs border-gray-300 rounded" placeholder="Rp Biaya" required>
+
+                <input type="file" name="bukti[]" class="w-1/3 text-xs text-gray-500" required>
             `;
             // [AKHIR PERUBAHAN 2]
 

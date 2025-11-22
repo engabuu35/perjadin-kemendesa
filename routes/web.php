@@ -89,7 +89,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan');
     Route::post('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'store'])->name('penugasan.store');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
-    Route::get('/lsrampung', fn() => view('pic.lsrampung'))->name('lsrampung');
+    Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 
 
     // Pegawai management (list, tambah, edit, detail)
