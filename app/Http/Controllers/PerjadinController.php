@@ -179,7 +179,10 @@ class PerjadinController extends Controller
                         'id_laporan' => $laporan->id,
                         'nama_file' => $file->getClientOriginalName(),
                         'path_file' => $path,
-                        'kategori' => $kategoris[$index] ?? 'Umum'
+                        'kategori' => $kategoris[$index] ?? 'Umum',
+                        // [TAMBAHAN] Simpan nominal ke database
+                        // Jika user lupa isi, otomatis set ke 0
+                        'nominal' => $nominals[$index] ?? 0 
                     ]);
                 }
             }
