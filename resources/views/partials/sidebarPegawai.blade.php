@@ -57,7 +57,7 @@
         /* Sidebar Background */
         .bg-sidebar {
             background-image: 
-                url('../img/sidebar-pattern.png'),
+                url('/img/sidebar-pattern.png'),
                 linear-gradient(to bottom, #2954B0, #24519D);
             background-repeat: repeat, no-repeat;
             background-size: 255px, cover;

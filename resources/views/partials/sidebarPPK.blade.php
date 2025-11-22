@@ -57,7 +57,7 @@
         /* Sidebar Background */
         .bg-sidebar {
             background-image: 
-                url('../img/sidebar-pattern.png'),
+                url('/img/sidebar-pattern.png'),
                 linear-gradient(to bottom, #2954B0, #24519D);
             background-repeat: repeat, no-repeat;
             background-size: 255px, cover;
@@ -314,7 +314,7 @@
             <!-- Menu Pelaporan -->
             <li class="my-2.5">
                 <a href="{{ route('ppk.pelaporan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('ppk.pelaporan') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap  {{ request()->routeIs('ppk.pelaporan', 'ppk.detailPelaporan') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-file"></i>
                     </span>

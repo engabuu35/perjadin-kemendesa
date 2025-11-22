@@ -57,7 +57,7 @@
         /* Sidebar Background */
         .bg-sidebar {
             background-image: 
-                url('../img/sidebar-pattern.png'),
+                url('/img/sidebar-pattern.png'),
                 linear-gradient(to bottom, #2954B0, #24519D);
             background-repeat: repeat, no-repeat;
             background-size: 255px, cover;
@@ -303,7 +303,7 @@
             <!-- Menu Beranda -->
             <li class="my-2.5">
                 <a href="{{ route('pages.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pages.beranda') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pages.beranda','perjalanan.detail') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -314,7 +314,7 @@
             <!-- Menu Monitoring -->
             <li class="my-2.5">
                 <a href="{{ route('pimpinan.monitoring') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pimpinan.monitoring') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pimpinan.monitoring','pimpinan.detail') ? 'active' : '' }}">
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-desktop"></i>
                     </span>
