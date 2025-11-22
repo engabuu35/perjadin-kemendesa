@@ -89,7 +89,13 @@ class PerjalananDinas extends Model
      */
     public function pegawai()
     {
-        return $this->belongsToMany(User::class, 'pegawaiperjadin', 'id_perjadin', 'id_user', 'id', 'nip')
-            ->withPivot('role_perjadin', 'is_lead', 'laporan_individu');
+        return $this->belongsToMany(
+            User::class,
+            'pegawaiperjadin', // nama pivot table
+            'id_perjadin',     // FK di pivot ke perjalanandinas
+            'id_user',         // FK di pivot ke users
+            'id',              // local key di perjalanandinas
+            'nip'              // related key di users
+        )->withPivot('role_perjadin', 'is_lead', 'laporan_individu');
     }
 }

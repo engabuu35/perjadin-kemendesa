@@ -22,5 +22,6 @@
 
     @include('partials.footer')
     @include('partials.mainBackground')
+    @stack('scripts')
 </body>
 </html>

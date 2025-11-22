@@ -86,7 +86,8 @@ Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan
 Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(function () {
     // Beranda dihapus dari sini — global
     // Riwayat dihapus dari sini — global
-    Route::get('/penugasan-perjadin', fn() => view('pic.penugasan'))->name('penugasan');
+    Route::get('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan');
+    Route::post('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'store'])->name('penugasan.store');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', fn() => view('pic.lsrampung'))->name('lsrampung');
 
