@@ -86,8 +86,11 @@ Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan
 Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(function () {
     // Beranda dihapus dari sini — global
     // Riwayat dihapus dari sini — global
-    Route::get('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan');
+    Route::get('/manajemen-perjadin', [\App\Http\Controllers\PerjadinController::class, 'index'])->name('penugasan');
+    Route::get('/penugasan-perjadin/create', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan.create');
     Route::post('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'store'])->name('penugasan.store');
+    Route::get('/penugasan-perjadin/{id}/edit', [\App\Http\Controllers\PerjadinTambahController::class, 'edit'])->name('penugasan.edit');
+    Route::patch('/penugasan-perjadin/{id}', [\App\Http\Controllers\PerjadinTambahController::class, 'update'])->name('penugasan.update');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 

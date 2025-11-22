@@ -4,23 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\StatusPerjadin;
+use App\Models\LaporanKeuangan;
 
 class PerjalananDinas extends Model
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
     protected $table = 'perjalanandinas';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'id_pembuat',
         'id_status',
@@ -31,14 +24,10 @@ class PerjalananDinas extends Model
         'tujuan',
         'tgl_mulai',
         'tgl_selesai',
+        // pastikan ini sesuai kolom di DB: 'hasil_perjadin' atau 'uraian'
         'hasil_perjadin',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'approved_at' => 'datetime',
         'tanggal_surat' => 'date',
@@ -48,54 +37,61 @@ class PerjalananDinas extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Get the user who created the document.
-     * Links to 'nip' on 'users' table.
-     */
+    // Jika primary key bukan 'id', aktifkan baris ini
+    // protected $primaryKey = 'id';
+
     public function pembuat()
     {
         return $this->belongsTo(User::class, 'id_pembuat', 'nip');
     }
 
-    /**
-     * Get the user who approved the document.
-     * Links to 'nip' on 'users' table.
-     */
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by', 'nip');
     }
 
-    /**
-     * Get the status of the travel.
-     */
     public function status()
     {
-        // Asumsi ada model StatusPerjadin
         return $this->belongsTo(StatusPerjadin::class, 'id_status', 'id');
     }
 
-    /**
-     * Get the associated financial report.
-     */
     public function laporanKeuangan()
     {
         return $this->hasOne(LaporanKeuangan::class, 'id_perjadin', 'id');
     }
 
-    /**
-     * Get the employees associated with this travel (Many-to-Many).
-     * Links 'perjalanandinas.id' to 'users.nip' via 'pegawaiperjadin'.
-     */
     public function pegawai()
     {
         return $this->belongsToMany(
             User::class,
-            'pegawaiperjadin', // nama pivot table
-            'id_perjadin',     // FK di pivot ke perjalanandinas
-            'id_user',         // FK di pivot ke users
-            'id',              // local key di perjalanandinas
-            'nip'              // related key di users
+            'pegawaiperjadin', // pivot table
+            'id_perjadin',     // FK on pivot to perjalanandinas
+            'id_user',         // FK on pivot to users (we store NIP here)
+            'id',              // local key on this model
+            'nip'              // related key on users table
         )->withPivot('role_perjadin', 'is_lead', 'laporan_individu');
+    }
+
+    /**
+     * Helper accessor: ambil nama status (jika relasi ada).
+     */
+    public function getStatusNameAttribute()
+    {
+        return $this->status->nama_status ?? null;
+    }
+
+    /**
+     * Helper accessor: mapping class warna untuk UI berdasarkan id_status.
+     */
+    public function getStatusClassAttribute()
+    {
+        $map = [
+            1 => 'bg-red-500',    // contoh: menunggu
+            2 => 'bg-yellow-500', // contoh: on progress
+            3 => 'bg-blue-500',
+            4 => 'bg-green-600',  // selesai
+        ];
+
+        return $map[intval($this->id_status)] ?? 'bg-gray-500';
     }
 }

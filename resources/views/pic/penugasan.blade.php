@@ -1,270 +1,120 @@
 @extends('layouts.appPIC')
 
-@section('title', 'Penugasan Perjalanan Dinas')
+@section('title', 'Manajemen Perjalanan Dinas')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-5 py-8">
+<main class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8 ">
 
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-5">
-            {{ session('success') }}
+    <!-- Header + Search + Button Tambah -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-gray-700 text-2xl font-bold pb-3 relative">
+                Manajemen Perjalanan Dinas
+                <span class="absolute bottom-0 left-0 w-60 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+            </h2>
+            <p class="text-gray-500 text-sm">Kelola penugasan dan perjalanan dinas pegawai.</p>
         </div>
-    @endif
 
-    <h2 class="text-gray-700 text-2xl font-bold mb-5 pb-4 relative">
-        Penugasan Perjalanan Dinas
-        <span class="absolute bottom-0 left-0 w-64 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
-    </h2>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <form action="{{ route('pic.penugasan') }}" method="GET" class="mr-3 w-full sm:w-auto">
+                <div class="flex items-center gap-2">
+                    <input type="search" name="q" value="{{ $q ?? '' }}" placeholder="Cari nomor surat atau tujuan..." class="px-3 py-2 border rounded-lg text-sm w-full sm:w-64">
+                    <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">Cari</button>
+                </div>
+            </form>
 
-    <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.2);">
-        <form action="{{ route('pic.penugasan.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
+            <a href="{{ route('pic.penugasan.create') }}"
+               class="px-5 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
+                + Tambah
+            </a>
+        </div>
+    </div>
 
-            <!-- Nomor Surat -->
-            <div class="mb-5">
-                <label for="nomor_surat" class="block text-gray-700 text-sm font-medium mb-2">Nomor Surat Tugas</label>
-                <input type="text" id="nomor_surat" name="nomor_surat" 
-                    value="{{ old('nomor_surat') }}"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
-                    required>
-                @error('nomor_surat')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
+    <!-- Daftar Kartu Perjalanan -->
+    <div class="space-y-6">
+        @forelse ($penugasans as $perjalanan)
+            @php
+                // preferensi: gunakan relasi status jika tersedia
+                $statusName = $perjalanan->status->nama_status ?? null;
+                $statusId = intval($perjalanan->id_status ?? 0);
 
-            <!-- Tanggal Surat -->
-            <div class="mb-5">
-                <label for="tanggal_surat" class="block text-gray-700 text-sm font-medium mb-2">Tanggal Surat</label>
-                <input type="date" id="tanggal_surat" name="tanggal_surat" 
-                    value="{{ old('tanggal_surat') }}"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
-                    required>
-                @error('tanggal_surat')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
+                // jika PerjalananDinas model menyediakan accessor status_class/status_name gunakan itu
+                if (isset($perjalanan->status_name) && $perjalanan->status_name) {
+                    $statusName = $perjalanan->status_name;
+                }
+                if (isset($perjalanan->status_class) && $perjalanan->status_class) {
+                    $statusClass = $perjalanan->status_class;
+                } else {
+                    // fallback mapping berdasarkan id_status
+                    $map = [
+                        1 => 'bg-red-500',    // contoh: Menunggu / Draft
+                        2 => 'bg-yellow-500', // contoh: On Progress
+                        3 => 'bg-blue-500',
+                        4 => 'bg-green-600',  // Selesai
+                    ];
+                    $statusClass = $map[$statusId] ?? 'bg-gray-500';
+                }
 
-            <!-- Tujuan -->
-            <div class="mb-5">
-                <label for="tujuan" class="block text-gray-700 text-sm font-medium mb-2">Tujuan</label>
-                <input type="text" id="tujuan" name="tujuan" 
-                    value="{{ old('tujuan') }}"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
-                    required>
-                @error('tujuan')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
+                // default label jika kosong
+                $statusLabel = $statusName ?? match($statusId) {
+                    1 => 'Menunggu',
+                    2 => 'On Progress',
+                    4 => 'Selesai',
+                    default => 'Draft'
+                };
 
-            <!-- Tanggal Mulai -->
-            <div class="mb-5">
-                <label for="tgl_mulai" class="block text-gray-700 text-sm font-medium mb-2">Tanggal Mulai</label>
-                <input type="date" id="tgl_mulai" name="tgl_mulai" 
-                    value="{{ old('tgl_mulai') }}"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
-                    required>
-                @error('tgl_mulai')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
+                // gunakan tujuan sebagai lokasi jika kolom lokasi tidak ada
+                $lokasi = $perjalanan->tujuan ?? ($perjalanan->lokasi ?? '-');
+                // catatan: cek beberapa kemungkinan field
+                $catatan = $perjalanan->uraian ?? $perjalanan->hasil_perjadin ?? $perjalanan->catatan ?? '-';
+            @endphp
 
-            <!-- Tanggal Selesai -->
-            <div class="mb-5">
-                <label for="tgl_selesai" class="block text-gray-700 text-sm font-medium mb-2">Tanggal Selesai</label>
-                <input type="date" id="tgl_selesai" name="tgl_selesai" 
-                    value="{{ old('tgl_selesai') }}"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
-                    required>
-                @error('tgl_selesai')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+                <div class="border-t-4 border-blue-600 p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div class="space-y-3">
+                            <h3 class="text-blue-700 font-bold text-lg tracking-wide">{{ $perjalanan->nomor_surat }}</h3>
 
-            <!-- Surat Tugas (PDF) -->
-            <div class="mb-5">
-                <label for="surat_tugas" class="block text-gray-700 text-sm font-medium mb-2">Surat Tugas (PDF)</label>
-                <input type="file" id="surat_tugas" name="surat_tugas" 
-                    accept="application/pdf"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
-                    required>
-                @error('surat_tugas')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <!-- Daftar Pegawai -->
-            <div class="mt-8">
-                <h3 class="text-gray-700 text-xl font-semibold mb-5">Daftar Pegawai</h3>
-
-                <!-- Datalist di luar -->
-                <datalist id="nipList">
-                    @foreach($users as $user)
-                        <option value="{{ $user->nip }}">
-                            {{ $user->nama }} 
-                            @if(isset($pegawaiStatus[$user->nip]) && $pegawaiStatus[$user->nip] == 2)
-                                (Sedang Berlangsung)
-                            @endif
-                        </option>
-                    @endforeach
-                </datalist>
-
-                <datalist id="namaList">
-                    @foreach($users as $user)
-                        <option value="{{ $user->nama }}">
-                            {{ $user->nip }}
-                            @if(isset($pegawaiStatus[$user->nip]) && $pegawaiStatus[$user->nip] == 2)
-                                (Sedang Berlangsung)
-                            @endif
-                        </option>
-                    @endforeach
-                </datalist>
-
-                <div id="pegawaiList">
-                    <div class="pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5 relative" data-index="0">
-                        <div class="flex justify-end">
-                            <button type="button" class="hapus-pegawai px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm shadow-sm flex items-center gap-2">Hapus</button>
+                            <p class="flex items-center gap-2 text-gray-700 text-base">
+                                <i class="fa-solid fa-map-marker-alt w-4 text-center text-gray-400"></i>
+                                <span>{{ $lokasi }}</span>
+                            </p>
+                            <p class="flex items-center gap-2 text-gray-700 text-base">
+                                <i class="fa-solid fa-calendar-days w-4 text-center text-gray-400"></i>
+                                <span>{{ \Carbon\Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') }}
+                                    - {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}</span>
+                            </p>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
-                            <input list="nipList" name="pegawai[0][nip]" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition nip">
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
-                            <input list="namaList" name="pegawai[0][nama]" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition nama">
+
+                        <div class="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
+                            <span class="item-center px-4 py-1.5 text-sm font-semibold text-white rounded-full {{ $statusClass }}">
+                                {{ $statusLabel }}
+                            </span>
+
+                            <a href="{{ route('pic.penugasan.edit', $perjalanan->id) }}" class="text-blue-600 hover:underline text-base font-medium mr-[30px]">
+                                Lihat Detail
+                            </a>
                         </div>
                     </div>
                 </div>
-                    <button type="button" id="btnTambahPegawai" 
-                    class="w-full py-3.5 border-2 border-dashed border-blue-700 text-blue-700 rounded-lg font-bold hover:bg-blue-50 transition text-base">
-                    + Tambah Pegawai
-                </button>
-            </div>
 
-            <!-- Submit -->
-            <div class="flex flex-col gap-3 mt-8">
-                <button type="button" onclick="window.location.reload()" 
-                    class="w-full py-3.5 bg-gray-300 text-gray-600 rounded-lg font-semibold hover:bg-gray-400 transition">
-                    Batal
-                </button>
-                <button type="submit" 
-                    class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
-                    Simpan
-                </button>
+                <div class="bg-red-50 px-6 py-4 border-t border-red-200">
+                    <p class="text-red-700 text-base font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation w-4 text-center"></i>
+                        <span>{{ $catatan }}</span>
+                    </p>
+                </div>
             </div>
-        </form>
+        @empty
+            <div class="bg-white p-6 rounded-lg text-center text-gray-500">
+                Belum ada penugasan perjalanan dinas.
+            </div>
+        @endforelse
     </div>
-</div>
 
-@push('scripts')
-<script>
-    const users = @json($users);
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const pegawaiListEl = document.getElementById('pegawaiList');
-        const btnTambah = document.getElementById('btnTambahPegawai');
-
-        if (!pegawaiListEl) {
-            console.error('Elemen #pegawaiList tidak ditemukan.');
-            return;
-        }
-        if (!btnTambah) {
-            console.error('Tombol #btnTambahPegawai tidak ditemukan.');
-            return;
-        }
-
-        let pegawaiCount = document.querySelectorAll('.pegawai-card').length || 0;
-
-        function tambahPegawaiInternal() {
-            const index = pegawaiCount;
-            const div = document.createElement('div');
-            div.className = 'pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5 relative';
-            div.dataset.index = index;
-
-            div.innerHTML = `
-                <div class="flex justify-end">
-                    <button 
-                        type="button"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold 
-                            hover:bg-red-700 transition text-sm shadow-sm flex items-center gap-2">
-                        Hapus
-                    </button>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
-                    <input list="nipList" name="pegawai[${index}][nip]" 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition nip">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
-                    <input list="namaList" name="pegawai[${index}][nama]" 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition nama">
-                </div>
-            `;
-
-            pegawaiListEl.appendChild(div);
-            pegawaiCount++;
-            const newNip = div.querySelector('.nip');
-            if (newNip) newNip.focus();
-        }
-
-        function reindexPegawai() {
-            const cards = document.querySelectorAll('.pegawai-card');
-            cards.forEach((card, idx) => {
-                card.dataset.index = idx;
-                const nipInput = card.querySelector('.nip');
-                const namaInput = card.querySelector('.nama');
-                if (nipInput) nipInput.name = `pegawai[${idx}][nip]`;
-                if (namaInput) namaInput.name = `pegawai[${idx}][nama]`;
-            });
-            pegawaiCount = cards.length;
-        }
-
-        // klik untuk tambah (dari tombol yang sekarang punya id)
-        btnTambah.addEventListener('click', function () {
-            tambahPegawaiInternal();
-        });
-
-        // event delegation: klik hapus
-        pegawaiListEl.addEventListener('click', function (e) {
-            const hapusBtn = e.target.closest('.hapus-pegawai');
-            if (hapusBtn) {
-                const card = hapusBtn.closest('.pegawai-card');
-                if (card) {
-                    card.remove();
-                    reindexPegawai();
-                }
-            }
-        });
-
-        // event delegation: input auto-fill NIP <-> Nama
-        pegawaiListEl.addEventListener('input', function (e) {
-            const target = e.target;
-            const card = target.closest('.pegawai-card');
-            if (!card) return;
-
-            const findByNip = (val) => users.find(u => String(u.nip).trim() === String(val).trim());
-            const findByNama = (val) => users.find(u => String(u.nama).trim().toLowerCase() === String(val).trim().toLowerCase());
-
-            if (target.classList.contains('nip')) {
-                const match = findByNip(target.value || '');
-                if (match) {
-                    const namaEl = card.querySelector('.nama');
-                    if (namaEl) namaEl.value = match.nama;
-                }
-            } else if (target.classList.contains('nama')) {
-                const match = findByNama(target.value || '');
-                if (match) {
-                    const nipEl = card.querySelector('.nip');
-                    if (nipEl) nipEl.value = match.nip;
-                }
-            }
-        });
-
-        // reindex awal (jika sudah ada card default)
-        reindexPegawai();
-    });
-</script>
-@endpush
+    <!-- pagination -->
+    <div class="mt-6">
+        {{ $penugasans->links() }}
+    </div>
+</main>
 @endsection

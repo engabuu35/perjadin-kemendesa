@@ -199,4 +199,28 @@ class PerjadinController extends Controller
         }
         return back()->with('error', 'Bukti tidak ditemukan');
     }
+
+    /**
+     * Tampilkan daftar penugasan perjalanan dinas (index).
+     */
+    public function index(Request $request)
+    {
+        // optional: search sederhana berdasarkan nomor_surat atau tujuan
+        $q = $request->input('q');
+
+        $query = PerjalananDinas::query();
+
+        if ($q) {
+            $query->where(function($sub) use ($q) {
+                $sub->where('nomor_surat', 'like', "%{$q}%")
+                    ->orWhere('tujuan', 'like', "%{$q}%");
+            });
+        }
+
+        // ambil data dengan pagination
+        $penugasans = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+
+        // kita kirim ke view; view akan melakukan mapping warna/status presentation
+        return view('pic.penugasan', compact('penugasans', 'q'));
+    }
 }
