@@ -366,7 +366,7 @@
             </div>
             
             <!-- Logout Button -->
-            <form method="POST" action="{{ route('logout') }}">
+            <form id="logoutForm" method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
                     class="logout-btn flex items-center justify-center gap-2.5 
@@ -378,6 +378,17 @@
                     <span>Logout</span>
                 </button>
             </form>
+            <!-- Modal Konfirmasi Logout -->
+            <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-50">
+                <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+                    <h3 class="text-lg font-bold mb-4 text-gray-800">Konfirmasi Logout</h3>
+                    <p class="text-gray-600 mb-5">Apakah kamu yakin ingin keluar dari akun ini?</p>
+                    <div class="flex justify-between gap-3">
+                        <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
+                        <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -385,7 +396,39 @@
     <script>
         // Ripple effect saat klik di sidebar - 1 gelombang aja
         const sidebar = document.querySelector('.sidebar');
-        
+        // const userProfile = document.querySelector('.user-profile');
+        const logoutBtn = document.querySelector('.logout-btn');
+        const logoutForm = document.getElementById('logoutForm');
+        const logoutModal = document.getElementById('logoutModal');
+        const cancelLogout = document.getElementById('cancelLogout');
+        const confirmLogout = document.getElementById('confirmLogout');
+
+        logoutBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault(); // sangat penting supaya form gak submit langsung
+            logoutModal.classList.remove('opacity-0', 'invisible');
+            logoutModal.classList.add('opacity-100', 'visible');
+        });
+
+        // Tutup modal saat klik Batal
+        cancelLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutModal.classList.add('opacity-0', 'invisible');
+            logoutModal.classList.remove('opacity-100', 'visible');
+        });
+
+        // Logout sesungguhnya saat klik Logout
+        confirmLogout.addEventListener('click', () => {
+            logoutForm.submit();
+        });
+
+        // tutup modal jika klik di luar dialog (di overlay modal)
+        logoutModal.addEventListener('click', (e) => {
+            if (e.target === logoutModal) {
+                logoutModal.classList.add('opacity-0', 'invisible');
+                logoutModal.classList.remove('opacity-100', 'visible');
+            }
+        });   
         sidebar.addEventListener('click', function(e) {
             // Dapatkan posisi klik relatif terhadap sidebar
             const rect = sidebar.getBoundingClientRect();
