@@ -55,7 +55,7 @@
                                 <div class="space-y-1.5">
                                     <p class="flex items-center gap-3 text-white text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
                                         <i class="fa-solid fa-map-marker-alt w-5"></i>
-                                        <span>{{ $riwayat->tujuan }}</span>
+                                        <span class="font-medium break-words">{{ $riwayat->tujuan }}</span>
                                     </p>
                                     <p class="flex items-center gap-3 text-white text-base group-hover:translate-x-1 transition-transform duration-300 delay-100">
                                         <i class="fa-solid fa-calendar-days w-5"></i>
