@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        <!-- KOLOM KANAN (Laporan) - Tetap Sama -->
+        <!-- KOLOM KANAN (Laporan) -->
         <div class="lg:col-span-1">
             <div class="bg-white p-6 rounded-2xl shadow-md sticky top-24">
                 <h2 class="text-lg font-bold text-gray-800 mb-4">Laporan Kegiatan</h2>
@@ -114,7 +114,10 @@
                         <ul class="space-y-2">
                             @foreach($laporan->bukti as $file)
                             <li class="flex items-center justify-between bg-gray-50 p-2 rounded text-xs">
-                                <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 truncate max-w-[150px]">{{ $file->nama_file }}</a>
+                                <div class="flex flex-col">
+                                    <span class="font-semibold text-gray-600">{{ $file->kategori }}</span>
+                                    <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 truncate max-w-[150px]">{{ $file->nama_file }}</a>
+                                </div>
                                 @if(!$laporan->is_final)
                                     <a href="{{ route('bukti.delete', $file->id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Hapus file ini?')">x</a>
                                 @endif
@@ -129,8 +132,20 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Upload Bukti Baru</label>
                         <div id="upload-container" class="space-y-3">
                             <div class="flex gap-2">
-                                <input type="text" name="kategori[]" placeholder="Ket." class="w-1/3 text-xs border-gray-300 rounded">
-                                <input type="file" name="bukti[]" class="w-2/3 text-xs text-gray-500">
+                                <!-- [PERUBAHAN 1] Awalnya input type="text", sekarang diubah menjadi SELECT dropdown -->
+                                <select name="kategori[]" class="w-1/3 text-xs border-gray-300 rounded" required>
+                                    <option value="" disabled selected>Pilih Kategori</option>
+                                        <option value="Tiket">Tiket</option>
+                                        <option value="Uang Harian">Uang Harian</option>
+                                        <option value="Penginapan">Penginapan</option>
+                                        <option value="Uang Representasi">Uang Representasi</option>
+                                        <option value="Sewa Kendaraan">Sewa Kendaraan</option>
+                                        <option value="Pengeluaran Riil">Pengeluaran Riil</option>
+                                        <option value="SSPB">SSPB</option>
+                                </select>
+                                <!-- [AKHIR PERUBAHAN 1] -->
+
+                                <input type="file" name="bukti[]" class="w-2/3 text-xs text-gray-500" required>
                             </div>
                         </div>
                         <button type="button" id="add-upload" class="mt-2 text-xs text-blue-600 font-semibold hover:underline">+ Tambah File Lain</button>
@@ -206,7 +221,25 @@ document.addEventListener('DOMContentLoaded', function() {
         addUploadBtn.addEventListener('click', () => {
             const div = document.createElement('div');
             div.className = 'flex gap-2';
-            div.innerHTML = `<input type="text" name="kategori[]" placeholder="Ket." class="w-1/3 text-xs border-gray-300 rounded"><input type="file" name="bukti[]" class="w-2/3 text-xs text-gray-500">`;
+            
+            // [PERUBAHAN 2]
+            // Script Javascript untuk menambah baris baru juga diubah.
+            // Sekarang menyisipkan elemen SELECT dropdown, bukan input text lagi.
+            div.innerHTML = `
+                <select name="kategori[]" class="w-1/3 text-xs border-gray-300 rounded" required>
+                    <option value="" disabled selected>Pilih Kategori</option>
+                    <option value="Tiket">Tiket</option>
+                    <option value="Uang Harian">Uang Harian</option>
+                    <option value="Penginapan">Penginapan</option>
+                    <option value="Uang Representasi">Uang Representasi</option>
+                    <option value="Sewa Kendaraan">Sewa Kendaraan</option>
+                    <option value="Pengeluaran Riil">Pengeluaran Riil</option>
+                    <option value="SSPB">SSPB</option>
+                </select>
+                <input type="file" name="bukti[]" class="w-2/3 text-xs text-gray-500" required>
+            `;
+            // [AKHIR PERUBAHAN 2]
+
             uploadContainer.appendChild(div);
         });
     }
