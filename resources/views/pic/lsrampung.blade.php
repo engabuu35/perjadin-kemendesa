@@ -143,7 +143,7 @@
                         <td class="border px-4 py-2">-</td> 
                         
                         <!-- 13. Kota -->
-                        <td class="border px-4 py-2">{{ $selectedLaporan->perjalanan->tujuan ?? '-' }}</td>
+                        <td class="border px-4 py-2">{{ $selectedLaporan->perjadin->tujuan ?? '-' }}</td>
                         
                         <!-- 14. Kode Tiket -->
                         <td class="border px-4 py-2">-</td>

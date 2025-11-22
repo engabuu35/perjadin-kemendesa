@@ -31,7 +31,7 @@ class LSRampungController extends Controller
 
         // 2. Jika User memilih salah satu pegawai dari Dropdown
         if ($request->has('laporan_id') && $request->laporan_id != '') {
-            $selectedLaporan = LaporanPerjadin::with(['user', 'bukti', 'perjalanan'])->find($request->laporan_id);
+            $selectedLaporan = LaporanPerjadin::with(['user', 'bukti', 'perjadin'])->find($request->laporan_id);
 
             if ($selectedLaporan) {
                 // 3. Logika Penjumlahan (Pivot) berdasarkan Kategori
