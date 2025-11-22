@@ -17,13 +17,27 @@
         </div>
     </div>
 
+    <!-- [BAGIAN BARU] Dropdown Pilih Pegawai -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border mb-6">
+        <form action="{{ route('lsrampung.index') }}" method="GET" class="flex items-center gap-4">
+            <label class="text-sm font-bold text-gray-700">Pilih Pegawai (Pelapor):</label>
+            <select name="laporan_id" onchange="this.form.submit()" class="border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 w-1/2">
+                <option value="">-- Pilih Pegawai / NIP --</option>
+                @foreach($daftarLaporan as $lapor)
+                    <option value="{{ $lapor->id }}" {{ request('laporan_id') == $lapor->id ? 'selected' : '' }}>
+                        {{ $lapor->user->nama ?? 'Nama Tidak Ditemukan' }} - NIP: {{ $lapor->user->nip ?? '-' }} ({{ \Carbon\Carbon::parse($lapor->created_at)->format('d M Y') }})
+                    </option>
+                @endforeach
+            </select>
+        </form>
+    </div>
+
     <div class="mt-6 overflow-x-auto rounded-xl border bg-white shadow-sm">
         <table class="min-w-[2400px] text-xs">
             <thead class="bg-gray-100 text-center font-medium">
 
                 <!-- HEADER LEVEL 1 -->
                 <tr class="text-[12px] font-bold leading-tight">
-
                     <th rowspan="3" class="border px-4 py-2">No.</th>
                     <th rowspan="3" class="border px-4 py-2">NIP</th>
                     <th rowspan="3" class="border px-4 py-2">Nama</th>
@@ -39,7 +53,6 @@
 
                 <!-- HEADER LEVEL 2 -->
                 <tr class="text-[11px] font-bold leading-tight">
-                    
                     <!-- Rincian Biaya Sub-Header -->
                     <th rowspan="2" class="border px-4 py-2">Jumlah Dibayarkan</th>
                     <th colspan="8" class="border px-4 py-2">Rincian Biaya (Rp)</th>
@@ -55,18 +68,18 @@
                     <th rowspan="1" class="border px-4 py-2">Uang Harian</th>
                     <th rowspan="1" class="border px-4 py-2">Penginapan</th>
                     <th rowspan="1" class="border px-4 py-2">Uang Representasi</th>
-                    <th rowspan="1" class="border px-4 py-2">Transport</th>
+                    <th rowspan="1" class="border px-4 py-2">Transport</th> <!-- Asumsi kategori Transport masuk sini -->
                     <th rowspan="1" class="border px-4 py-2">Sewa Kendaraan</th>
                     <th rowspan="1" class="border px-4 py-2">Pengeluaran Riil</th>
                     <th rowspan="1" class="border px-4 py-2">SSPB</th>
                 </tr>
 
-                <!-- Level 4 -->
+                <!-- Level 4 (Nomor Kolom) -->
                 <tr class="text-[11px] font-semibold leading-tight">
                     <th class="border px-4 py-1">1</th>
                     <th class="border px-4 py-1">2</th>
                     <th class="border px-4 py-1">3</th>
-                    <th class="border px-4 py-1">0</th>
+                    <th class="border px-4 py-1">0 (Total)</th>
                     <th class="border px-4 py-1">4</th>
                     <th class="border px-4 py-1">5</th>
                     <th class="border px-4 py-1">6</th>
@@ -85,33 +98,74 @@
 
             <tbody class="divide-y divide-gray-200">
 
-                <!-- 1 BARIS DATA CONTOH, ini dibuat dropdown aja sepertinya -->
-                <tr class="hover:bg-gray-50">
-                    <td class="border px-4 py-2">1</td>
-                    <td class="border px-4 py-2">199909092029092009</td>
-                    <td class="border px-4 py-2">Paijo Pegawai</td>
+                @if($selectedLaporan)
+                    <tr class="hover:bg-gray-50 text-center">
+                        <!-- 1. No -->
+                        <td class="border px-4 py-2">1</td>
+                        
+                        <!-- 2. NIP -->
+                        <td class="border px-4 py-2">{{ $selectedLaporan->user->nip ?? '-' }}</td>
+                        
+                        <!-- 3. Nama -->
+                        <td class="border px-4 py-2 text-left">{{ $selectedLaporan->user->nama ?? '-' }}</td>
 
-                    <td class="border px-4 py-2">4.500.000</td>
+                        <!-- 0. Jumlah Dibayarkan (Total) -->
+                        <td class="border px-4 py-2 font-bold bg-blue-50">
+                            {{ number_format($rekapBiaya['Total'], 0, ',', '.') }}
+                        </td>
 
-                    <td class="border px-4 py-2">1.200.000</td>
-                    <td class="border px-4 py-2">900.000</td>
-                    <td class="border px-4 py-2">1.800.000</td>
-                    <td class="border px-4 py-2">300.000</td>
-                    <td class="border px-4 py-2">200.000</td>
-                    <td class="border px-4 py-2">0</td>
-                    <td class="border px-4 py-2">100.000</td>
-                    <td class="border px-4 py-2">0</td>
+                        <!-- 4. Tiket -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Tiket'], 0, ',', '.') }}</td>
+                        
+                        <!-- 5. Uang Harian -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Uang Harian'], 0, ',', '.') }}</td>
+                        
+                        <!-- 6. Penginapan -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Penginapan'], 0, ',', '.') }}</td>
+                        
+                        <!-- 7. Uang Representasi -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Uang Representasi'], 0, ',', '.') }}</td>
+                        
+                        <!-- 8. Transport -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Transport'] ?? 0, 0, ',', '.') }}</td>
+                        
+                        <!-- 9. Sewa Kendaraan -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Sewa Kendaraan'], 0, ',', '.') }}</td>
+                        
+                        <!-- 10. Pengeluaran Riil -->
+                        <td class="border px-4 py-2">{{ number_format($rekapBiaya['Pengeluaran Riil'], 0, ',', '.') }}</td>
+                        
+                        <!-- 11. SSPB -->
+                        <td class="border px-4 py-2 text-red-600">{{ number_format($rekapBiaya['SSPB'], 0, ',', '.') }}</td>
 
-                    <td class="border px-4 py-2">Hotel Surya</td>
-                    <td class="border px-4 py-2">Surabaya</td>
-                    <td class="border px-4 py-2">TK2025A</td>
-                    <td class="border px-4 py-2">Garuda Indonesia</td>
-                </tr>
+                        <!-- Kolom Detail Tambahan (Diambil dari data perjalanan dinas / bukti tiket pertama) -->
+                        <!-- 12. Nama Hotel -->
+                        <td class="border px-4 py-2">-</td> 
+                        
+                        <!-- 13. Kota -->
+                        <td class="border px-4 py-2">{{ $selectedLaporan->perjalanan->tujuan ?? '-' }}</td>
+                        
+                        <!-- 14. Kode Tiket -->
+                        <td class="border px-4 py-2">-</td>
+                        
+                        <!-- 15. Maskapai -->
+                        <td class="border px-4 py-2">-</td>
+
+                         <!-- 16. Geotagging (Status) -->
+                         <td class="border px-4 py-2">
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-[10px]">Terekam</span>
+                         </td>
+                    </tr>
+                @else
+                    <tr>
+                        <td colspan="17" class="text-center py-10 text-gray-500 font-medium">
+                            Silakan pilih pegawai dari dropdown di atas untuk melihat rincian LS Rampung.
+                        </td>
+                    </tr>
+                @endif
 
             </tbody>
         </table>
     </div>
-
-
 </main>
 @endsection
