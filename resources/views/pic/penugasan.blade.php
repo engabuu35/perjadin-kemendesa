@@ -24,7 +24,7 @@
             </form>
 
             <a href="{{ route('pic.penugasan.create') }}"
-               class="px-5 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
+            class="px-5 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
                 + Tambah
             </a>
         </div>
