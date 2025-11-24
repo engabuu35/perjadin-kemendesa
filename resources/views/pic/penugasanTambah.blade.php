@@ -109,31 +109,6 @@
                 <h3 class="text-gray-700 text-xl font-semibold mb-5">Daftar Pegawai</h3>
 
                 <div id="pegawaiList">
-                    {{-- Placeholder card akan digantikan oleh JS jika ada initialPegawai --}}
-                    <div class="pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5 relative" data-index="0">
-                        <div class="flex justify-end">
-                            <button type="button" class="hapus-pegawai px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm shadow-sm flex items-center gap-2">Hapus</button>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
-                            <div class="relative">
-                                <div class="flex items-center gap-3">
-                                    <input type="text" name="pegawai[0][nip]" placeholder="Ketik NIP atau cari..." class="nip w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition" autocomplete="off">
-                                    <span class="status-dot w-3 h-3 rounded-full inline-block" title="Status"></span>
-                                </div>
-
-                                <div class="user-dropdown hidden absolute z-30 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-auto">
-                                    <ul class="user-list divide-y divide-gray-100"></ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
-                            <input type="text" name="pegawai[0][nama]" placeholder="Nama lengkap" class="nama w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition" autocomplete="off">
-                        </div>
-                    </div>
                 </div>
 
                 <button type="button" id="btnTambahPegawai"
@@ -156,288 +131,190 @@
 
 @push('scripts')
 <script>
-    // data dari server
+document.addEventListener('DOMContentLoaded', function () {
     const users = @json($users ?? []);
     const pegawaiStatus = @json($pegawaiStatus ?? []);
-    const initialPegawai = @json($pegawaiList ?? []); // array of {nip,nama} bila edit
+    const initialPegawai = @json($pegawaiList ?? []);
+    const pegawaiListEl = document.getElementById('pegawaiList');
+    const btnTambah = document.getElementById('btnTambahPegawai');
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const pegawaiListEl = document.getElementById('pegawaiList');
-        const btnTambah = document.getElementById('btnTambahPegawai');
+    if (!pegawaiListEl || !btnTambah) {
+        console.error('Elemen pegawaiList atau btnTambahPegawai tidak ditemukan.');
+        return;
+    }
 
-        if (!pegawaiListEl || !btnTambah) {
-            console.error('Elemen pegawaiList atau btnTambahPegawai tidak ditemukan.');
+    let pegawaiCount = 0;
+
+    function statusClass(id) {
+        id = Number(id || 0);
+        if (id === 1) return 'bg-red-500';
+        if (id === 2) return 'bg-yellow-500';
+        if (id === 4) return 'bg-green-500';
+        return 'bg-gray-300';
+    }
+
+    function makeUserListItem(user) {
+        const st = pegawaiStatus[user.nip] ?? null;
+        const dot = statusClass(st);
+
+        const li = document.createElement('li');
+        li.className = 'user-item px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3';
+        li.dataset.nip = user.nip;
+        li.dataset.nama = user.nama;
+        li.innerHTML = `
+            <span class="w-3 h-3 rounded-full inline-block ${dot}"></span>
+            <div class="text-sm">
+                <div class="font-medium text-gray-700">${user.nama}</div>
+                <div class="text-xs text-gray-500">${user.nip}</div>
+            </div>`;
+        return li;
+    }
+
+    function buildDropdownList(ulEl, filter) {
+        ulEl.innerHTML = '';
+        const q = filter.trim().toLowerCase();
+
+        const matched = users.filter(u =>
+            !q ||
+            u.nip.toLowerCase().includes(q) ||
+            u.nama.toLowerCase().includes(q)
+        );
+
+        if (matched.length === 0) {
+            ulEl.innerHTML = `<li class="px-3 py-2 text-gray-500 text-sm">Tidak ada hasil</li>`;
             return;
         }
 
-        // hitung awal berdasarkan cards yang ada (placeholder 1)
-        let pegawaiCount = 0;
+        matched.forEach(u => ulEl.appendChild(makeUserListItem(u)));
+    }
 
-        // Utility: mapping status -> kelas warna dot
-        function statusClass(id) {
-            id = Number(String(id || '').trim() || 0);
-            if (id === 1) return 'bg-red-500';     // menunggu/draft
-            if (id === 2) return 'bg-yellow-500';  // sedang berlangsung
-            if (id === 4) return 'bg-green-500';   // selesai
-            return 'bg-gray-300';
-        }
+    function makePegawaiCard(index) {
+        const div = document.createElement('div');
+        div.className = 'pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5';
+        div.dataset.index = index;
 
-        // buat item dropdown user
-        function makeUserListItem(user) {
-            const statusVal = pegawaiStatus[String(user.nip)] ?? null;
-            const dotClass = statusClass(statusVal);
-            const titleText = (Number(statusVal) === 2) ? 'Sedang Berlangsung' : (Number(statusVal) === 4) ? 'Selesai' : 'Tidak ada';
-            const li = document.createElement('li');
-            li.className = 'user-item px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-3';
-            li.dataset.nip = user.nip;
-            li.dataset.nama = user.nama;
+        div.innerHTML = `
+            <div class="flex justify-end">
+                <button type="button" class="hapus-pegawai px-4 py-2 bg-red-600 text-white rounded-lg">Hapus</button>
+            </div>
 
-            li.innerHTML = `
-                <span class="w-3 h-3 rounded-full inline-block ${dotClass} flex-shrink-0" title="${titleText}"></span>
-                <div class="text-sm">
-                    <div class="font-medium text-gray-700">${user.nama}</div>
-                    <div class="text-xs text-gray-500">${user.nip}</div>
-                </div>
-            `;
-            return li;
-        }
+            <div class="mb-4">
+                <label class="text-sm ml-1 font-medium text-gray-700">NIP</label>
+                <div class="relative">
+                    <div class="flex items-center gap-3">
+                        <input type="text"
+                            name="pegawai[${index}][nip]"
+                            class="nip w-full text-sm px-4 py-3 mt-2 border rounded-lg"
+                            placeholder="Ketik NIP atau Nama..."
+                            autocomplete="off">
+                        <span class="status-dot w-3 h-3 rounded-full bg-gray-300"></span>
+                    </div>
 
-        function buildDropdownList(ulEl, filter) {
-            ulEl.innerHTML = '';
-            const q = (filter || '').trim().toLowerCase();
-            const matched = users.filter(u => {
-                if (!q) return true;
-                return String(u.nip).toLowerCase().includes(q) || String(u.nama).toLowerCase().includes(q);
-            });
-            if (matched.length === 0) {
-                const empty = document.createElement('li');
-                empty.className = 'px-3 py-2 text-sm text-gray-500';
-                empty.textContent = 'Tidak ada hasil';
-                ulEl.appendChild(empty);
-                return;
-            }
-            const frag = document.createDocumentFragment();
-            matched.forEach(u => frag.appendChild(makeUserListItem(u)));
-            ulEl.appendChild(frag);
-        }
-
-        function makePegawaiCard(index) {
-            const div = document.createElement('div');
-            div.className = 'pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5 relative';
-            div.dataset.index = index;
-
-            div.innerHTML = `
-                <div class="flex justify-end">
-                    <button type="button" class="hapus-pegawai px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm shadow-sm">Hapus</button>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">NIP</label>
-                    <div class="relative">
-                        <div class="flex items-center gap-3">
-                            <input type="text" name="pegawai[${index}][nip]" placeholder="Ketik NIP atau cari..." class="nip w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition" autocomplete="off">
-                            <span class="status-dot w-3 h-3 rounded-full inline-block" title="Status"></span>
-                        </div>
-
-                        <div class="user-dropdown hidden absolute z-30 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-auto">
-                            <div class="px-3 py-2">
-                                <input type="text" class="dropdown-search w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none" placeholder="Cari nama atau NIP...">
-                            </div>
-                            <ul class="user-list divide-y divide-gray-100 max-h-48 overflow-auto"></ul>
-                        </div>
+                    <div class="user-dropdown hidden absolute z-30 left-0 right-6 mt-2 
+                                bg-white border rounded-lg shadow-lg">
+                        <ul class="user-list max-h-56 overflow-auto"></ul>
                     </div>
                 </div>
+            </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Nama Lengkap</label>
-                    <input type="text" name="pegawai[${index}][nama]" placeholder="Nama lengkap" class="nama w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition" autocomplete="off">
+            <div class="mb-4">
+                <label class="text-sm ml-1 font-medium text-gray-700">Nama Lengkap</label>
+                <div class="flex items-center gap-3">
+                    <input type="text"
+                        name="pegawai[${index}][nama]"
+                        placeholder="Nama Lengkap Tanpa Gelar"
+                        class="nama w-full text-sm px-4 py-3 mt-2 bg-gray-50 border rounded-lg cursor-not-allowed"
+                        readonly>
+                        <span class="w-3 h-3"></span>
                 </div>
-            `;
-            return div;
-        }
+            </div>
+        `;
 
-        // reindex & update names & dots
-        function reindexPegawai() {
-            const cards = document.querySelectorAll('.pegawai-card');
-            cards.forEach((card, idx) => {
-                card.dataset.index = idx;
-                const nip = card.querySelector('.nip');
-                const nama = card.querySelector('.nama');
-                if (nip) nip.name = `pegawai[${idx}][nip]`;
-                if (nama) nama.name = `pegawai[${idx}][nama]`;
-                updateStatusDot(card);
-            });
-            pegawaiCount = cards.length;
-        }
+        return div;
+    }
 
-        function updateStatusDot(card) {
-            const nipEl = card.querySelector('.nip');
-            const namaEl = card.querySelector('.nama');
-            const dot = card.querySelector('.status-dot');
-            if (!dot) return;
+    function updateStatusDot(card) {
+        const nip = card.querySelector('.nip').value.trim();
+        const dot = card.querySelector('.status-dot');
+        const st = pegawaiStatus[nip] ?? null;
+        dot.className = 'status-dot w-3 h-3 rounded-full ' + statusClass(st);
+    }
 
-            let key = nipEl && nipEl.value ? String(nipEl.value).trim() : null;
+    function initCardDropdown(card) {
+        const nipInput = card.querySelector('.nip');
+        const namaInput = card.querySelector('.nama');
+        const dropdown = card.querySelector('.user-dropdown');
+        const ul = card.querySelector('.user-list');
 
-            if (!key && namaEl && namaEl.value) {
-                const q = String(namaEl.value).trim().toLowerCase();
-                const match = users.find(u => String(u.nama).trim().toLowerCase().includes(q));
-                if (match) key = match.nip;
-            }
+        buildDropdownList(ul, '');
 
-            const st = key && (pegawaiStatus.hasOwnProperty(String(key)) ? pegawaiStatus[String(key)] : null);
-            dot.classList.remove('bg-red-500','bg-yellow-500','bg-green-500','bg-gray-300');
-            dot.classList.add(statusClass(st));
-            if (Number(st) === 2) dot.title = 'Sedang Berlangsung';
-            else if (Number(st) === 4) dot.title = 'Selesai';
-            else dot.title = 'Tidak sedang perjalanan dinas / Tidak tersedia';
-        }
+        nipInput.addEventListener('click', () => {
+            dropdown.classList.remove('hidden');
+            buildDropdownList(ul, nipInput.value);
+        });
 
-        // initialize dropdown behaviors for a card
-        function initCardDropdown(card) {
-            const nipInput = card.querySelector('.nip');
-            const namaInput = card.querySelector('.nama');
-            const dropdown = card.querySelector('.user-dropdown');
-            const search = card.querySelector('.dropdown-search');
-            const ul = card.querySelector('.user-list');
+        nipInput.addEventListener('input', () => {
+            dropdown.classList.remove('hidden');
+            buildDropdownList(ul, nipInput.value);
+        });
 
-            // build initial list
-            buildDropdownList(ul, '');
-
-            // when nip input focus -> open dropdown
-            nipInput.addEventListener('focus', function () {
-                dropdown.classList.remove('hidden');
-                search.value = '';
-                buildDropdownList(ul, nipInput.value || '');
-                setTimeout(()=> search.focus(), 30);
-            });
-
-            // typing in nip filters
-            nipInput.addEventListener('input', function (e) {
-                dropdown.classList.remove('hidden');
-                buildDropdownList(ul, e.target.value || '');
-            });
-
-            // search input filters list
-            search.addEventListener('input', function (e) {
-                buildDropdownList(ul, e.target.value || '');
-            });
-
-            // select user from list
-            ul.addEventListener('click', function (e) {
-                const li = e.target.closest('li.user-item');
-                if (!li) return;
-                const chosenNip = li.dataset.nip;
-                const chosenNama = li.dataset.nama;
-                nipInput.value = chosenNip;
-                namaInput.value = chosenNama;
-
-                // trigger input events so status updates
-                nipInput.dispatchEvent(new Event('input', { bubbles: true }));
-                namaInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-                dropdown.classList.add('hidden');
-                updateStatusDot(card);
-            });
-
-            // nama manual input tries to autofill nip (fuzzy)
-            namaInput.addEventListener('input', function () {
-                const q = namaInput.value.trim().toLowerCase();
-                if (!q) { updateStatusDot(card); return; }
-                const match = users.find(u => String(u.nama).trim().toLowerCase().includes(q));
-                if (match) {
-                    nipInput.value = match.nip;
-                    nipInput.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-                updateStatusDot(card);
-            });
-
-            // update dot on blur after small delay to allow click
-            nipInput.addEventListener('blur', function () {
-                setTimeout(()=> updateStatusDot(card), 150);
-            });
-
-            // init dot
+        ul.addEventListener('click', e => {
+            const li = e.target.closest('.user-item');
+            if (!li) return;
+            nipInput.value = li.dataset.nip;
+            namaInput.value = li.dataset.nama;
+            dropdown.classList.add('hidden');
             updateStatusDot(card);
-        }
-
-        // single global click handler: close any open dropdowns if click outside
-        document.addEventListener('click', function (ev) {
-            document.querySelectorAll('.user-dropdown').forEach(dd => {
-                if (!dd.contains(ev.target) && !dd.closest('.nip')) {
-                    // if clicked outside dropdown and outside associated card input, hide
-                    dd.classList.add('hidden');
-                }
-            });
         });
 
-        // render initialPegawai if provided (edit flow)
-        function renderInitialPegawai() {
-            if (!Array.isArray(initialPegawai) || initialPegawai.length === 0) {
-                // ensure at least one card exists
-                if (pegawaiListEl.querySelectorAll('.pegawai-card').length === 0) {
-                    const c = makePegawaiCard(0);
-                    pegawaiListEl.appendChild(c);
-                    initCardDropdown(c);
-                    pegawaiCount = 1;
-                }
-                return;
+        document.addEventListener('click', e => {
+            if (!card.contains(e.target)) {
+                dropdown.classList.add('hidden');
             }
+        });
+    }
 
-            // clear existing placeholder(s)
-            pegawaiListEl.innerHTML = '';
-            initialPegawai.forEach((p, idx) => {
-                const card = makePegawaiCard(idx);
-                pegawaiListEl.appendChild(card);
+    function renderInitialPegawai() {
+        pegawaiListEl.innerHTML = '';
 
-                // set values
-                const nipEl = card.querySelector('.nip');
-                const namaEl = card.querySelector('.nama');
-                if (nipEl) nipEl.value = p.nip;
-                if (namaEl) namaEl.value = p.nama;
-
-                initCardDropdown(card);
-                updateStatusDot(card);
-            });
-            pegawaiCount = initialPegawai.length;
+        if (!initialPegawai.length) {
+            const c = makePegawaiCard(0);
+            pegawaiListEl.appendChild(c);
+            initCardDropdown(c);
+            pegawaiCount = 1;
+            return;
         }
 
-        // create new card and init
-        btnTambah.addEventListener('click', function () {
-            const card = makePegawaiCard(pegawaiCount);
+        initialPegawai.forEach((p, idx) => {
+            const card = makePegawaiCard(idx);
             pegawaiListEl.appendChild(card);
+
+            card.querySelector('.nip').value = p.nip;
+            card.querySelector('.nama').value = p.nama;
+
             initCardDropdown(card);
-            pegawaiCount++;
-            const nip = card.querySelector('.nip');
-            if (nip) nip.focus();
+            updateStatusDot(card);
         });
 
-        // delegation: handle delete button in cards
-        pegawaiListEl.addEventListener('click', function (e) {
-            const hapus = e.target.closest('.hapus-pegawai');
-            if (hapus) {
-                const card = hapus.closest('.pegawai-card');
-                if (card) {
-                    card.remove();
-                    reindexPegawai();
-                }
-            }
-        });
+        pegawaiCount = initialPegawai.length;
+    }
 
-        // init: render initial pegawai (or placeholder)
-        renderInitialPegawai();
-
-        // also initialize any remaining cards (if placeholder exists)
-        document.querySelectorAll('.pegawai-card').forEach(card => {
-            // avoid double-init: only init if not already initialized (check dropdown-search listener)
-            if (!card.dataset._inited) {
-                initCardDropdown(card);
-                card.dataset._inited = '1';
-            }
-        });
-
-        // final reindex to ensure correct names
-        reindexPegawai();
+    btnTambah.addEventListener('click', () => {
+        const card = makePegawaiCard(pegawaiCount);
+        pegawaiListEl.appendChild(card);
+        initCardDropdown(card);
+        pegawaiCount++;
+        card.querySelector('.nip').focus();
     });
+
+    pegawaiListEl.addEventListener('click', e => {
+        const btn = e.target.closest('.hapus-pegawai');
+        if (!btn) return;
+        btn.closest('.pegawai-card').remove();
+    });
+
+    renderInitialPegawai();
+});
 </script>
 @endpush
 @endsection
