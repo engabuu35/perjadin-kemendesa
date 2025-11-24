@@ -323,15 +323,26 @@
             </li>
 
             <!-- Menu Pelaporan -->
-            <li class="my-2.5">
-                <a href="{{ route('pic.pelaporan') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pic.pelaporan') ? 'active' : '' }}">
+           <li class="my-2.5">
+                <!-- 
+                    UPDATE: 
+                    1. href diarahkan ke route 'pic.pelaporan.index' (Route baru yang kita buat di web.php)
+                    2. class active mengecek apakah route saat ini diawali dengan 'pic.pelaporan.*' 
+                    (biar tetap aktif saat buka detail)
+                -->
+                <a href="{{ route('pic.pelaporan.index') }}" 
+                class="flex items-center py-[15px] px-[26px] text-white no-underline 
+                        transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap 
+                        {{ request()->routeIs('pic.pelaporan.*') ? 'active' : '' }}">
+                    
                     <span class="icon w-6 h-6 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-file"></i>
+                        <!-- Ikon (Gunakan FontAwesome atau SVG) -->
+                        <i class="fa-solid fa-file-invoice-dollar"></i> 
                     </span>
+                    
                     <span class="opacity-0 transition-opacity duration-300">Pelaporan</span>
                 </a>
-            </li>
+            </li>           
 
             <!-- Menu LS Rampung -->
             <li class="my-2.5">

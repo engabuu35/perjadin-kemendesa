@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-// 1. PASTIKAN ANDA MENAMBAHKAN INI
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class StatusPerjadinSeeder extends Seeder
 {
@@ -14,24 +13,41 @@ class StatusPerjadinSeeder extends Seeder
      */
     public function run(): void
     {
-        // 2. Perintah ini akan mengisi tabel 'status_perjadin'
-        // Status ini melacak progres SETIAP PEGAWAI
-        DB::table('statusperjadin')->insert([
+        // Reset table agar tidak duplicate saat seeding ulang
+        // Note: Disable foreign key check biar bisa truncate
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('statusperjadin')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // Daftar Status Gabungan (File Anda + Kebutuhan Sistem)
+        $statuses = [
+            [
+                'nama_status' => 'Draft / Menunggu Persetujuan' 
+                // Status awal saat surat baru dibuat tapi belum di-acc pimpinan.
+            ],
             [
                 'nama_status' => 'Belum Berlangsung' 
-                // Status default saat PIC baru menugaskan pegawai.
+                // Status default saat sudah di-acc tapi tanggal mulai > hari ini.
             ],
             [
                 'nama_status' => 'Sedang Berlangsung' 
-                // Otomatis diubah oleh sistem jika tgl_mulai == hari ini.
+                // Otomatis diubah oleh sistem jika tgl_mulai <= hari ini.
             ],
             [
                 'nama_status' => 'Menunggu Laporan' 
-                // Otomatis diubah jika tgl_selesai < hari ini TAPI laporan_individu masih KOSONG.
+                // (Warning) Otomatis diubah jika tgl_selesai < hari ini TAPI pegawai belum klik selesai.
+            ],
+            [
+                'nama_status' => 'Menunggu Verifikasi Laporan' 
+                // [PENTING] Status setelah pegawai klik "Selesaikan & Kirim". Masuk ke dashboard PIC.
             ],
             [
                 'nama_status' => 'Selesai' 
-                // Selesai normal (otomatis diubah saat pegawai men-submit laporan_individu).
+                // Status akhir setelah diverifikasi oleh PIC/PPK.
+            ],
+            [
+                'nama_status' => 'Ditolak' 
+                // Jika laporan dikembalikan untuk revisi.
             ],
             [
                 'nama_status' => 'Diselesaikan Manual' 
@@ -41,6 +57,8 @@ class StatusPerjadinSeeder extends Seeder
                 'nama_status' => 'Dibatalkan' 
                 // Jika penugasan pegawai dibatalkan.
             ],
-        ]);
+        ];
+
+        DB::table('statusperjadin')->insert($statuses);
     }
 }

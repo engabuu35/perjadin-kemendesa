@@ -10,11 +10,11 @@ use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\PPKController;
-
+use App\Http\Controllers\PelaporanController; // IMPORT INI
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes (Updated)
+| Web Routes (FULL)
 |--------------------------------------------------------------------------
 */
 
@@ -54,31 +54,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat');
 
     // =================================================================
-    // [UPDATE BARU] ROUTE PERJALANAN DINAS & LAPORAN
-    // Menggantikan route lama untuk mendukung fitur Upload Bukti Teman
+    // ROUTE PERJALANAN DINAS & LAPORAN (PEGAWAI)
     // =================================================================
     Route::prefix('perjalanan')->name('perjalanan.')->group(function () {
-        
-        // Halaman Detail (Show)
-        Route::get('/{id}', [PerjadinController::class, 'show'])->name('detail'); // Nama route: perjalanan.detail
-        
-        // 1. Absen Geotagging
+        Route::get('/{id}', [PerjadinController::class, 'show'])->name('detail');
         Route::post('/{id}/hadir', [PerjadinController::class, 'tandaiKehadiran'])->name('hadir');
-
-        // 2. Simpan Uraian (Progress Individu)
-        // INI PENTING: Pengganti storeLaporan yang lama
         Route::post('/{id}/uraian', [PerjadinController::class, 'storeUraian'])->name('storeUraian');
-
-        // 3. Upload Bukti (Fitur Baru: Bisa untuk diri sendiri / orang lain)
         Route::post('/{id}/bukti', [PerjadinController::class, 'storeBukti'])->name('storeBukti');
+        
+        // Route Selesaikan (Finalisasi)
+        Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanPerjadin'])->name('selesaikan');
     });
 
-    // Route Hapus Bukti (Terpisah agar lebih aman/jelas)
     Route::get('/bukti/delete/{id}', [PerjadinController::class, 'deleteBukti'])->name('bukti.delete');
     // =================================================================
 
-
-    // Laporan Keuangan (group)
+    // Laporan Keuangan Lama (Jika masih dipakai)
     Route::prefix('laporan-keuangan')->name('laporan.')->controller(LaporanKeuanganController::class)->group(function () {
         Route::get('/', 'index')->name('index')->middleware('role:PIC,PPK,PIMPINAN'); 
         Route::get('/export-excel', 'generateExcel')->name('export')->middleware('role:PIC,PPK,PIMPINAN'); 
@@ -108,6 +99,9 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 
+    // === ROUTE PELAPORAN KEUANGAN PIC (BARU) ===
+    Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
+    Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
 
     // Pegawai management
     Route::get('/pegawai', fn() => view('pic.managePegawai'))->name('pegawai.index');

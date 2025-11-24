@@ -6,15 +6,59 @@
 
 <div class="ml-[80px] p-6 mt-[90px] max-w-5xl mx-auto">
     
-    <!-- HEADER -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <!-- HEADER & STATUS -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-800">Detail Perjalanan Dinas</h1>
             <p class="text-gray-500 mt-1">Surat Tugas: <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span></p>
-            <p class="text-gray-500 text-sm">Tujuan: {{ $perjalanan->tujuan }}</p>
+            
+            <!-- BADGE STATUS -->
+            <div class="mt-2">
+                Status: 
+                @if($isLocked)
+                    <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold border border-gray-300">
+                        🔒 {{ $statusText }}
+                    </span>
+                @else
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
+                        ✏️ Sedang Berlangsung
+                    </span>
+                @endif
+            </div>
         </div>
-        <a href="{{ url()->previous() }}" class="bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition shadow-sm font-medium">← Kembali</a>
+        
+        <div class="flex gap-2">
+            <a href="{{ url()->previous() }}" class="bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition shadow-sm font-medium">← Kembali</a>
+            
+            <!-- TOMBOL SELESAIKAN (Hanya Muncul Jika Belum Dikunci) -->
+            @if(!$isLocked)
+            <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan laporan ini? \n\nPERHATIAN: Setelah diselesaikan, data akan dikirim ke PIC dan TIDAK BISA DIEDIT LAGI oleh Anda maupun anggota tim lain.')">
+                @csrf
+                <button type="submit" class="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 transition shadow-md font-bold flex items-center gap-2">
+                    ✅ Selesaikan & Kirim Laporan
+                </button>
+            </form>
+            @endif
+        </div>
     </div>
+
+    <!-- ALERT JIKA TERKUNCI -->
+    @if($isLocked)
+    <div class="bg-gray-50 border-l-4 border-gray-400 p-4 mb-8 rounded-r shadow-sm">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-gray-700">
+                    Laporan ini berstatus <strong>{{ $statusText }}</strong>. Anda hanya dapat melihat data (Read-Only) karena laporan sudah diselesaikan atau tanggal belum dimulai.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @if(session('success'))
         <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6">{{ session('success') }}</div>
@@ -25,20 +69,23 @@
 
     <div class="flex flex-col gap-8">
         
-        <!-- BAGIAN 1: GEOTAGGING (Sama seperti sebelumnya) -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <!-- BAGIAN 1: GEOTAGGING -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isLocked ? 'opacity-75 pointer-events-none' : '' }}">
             <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">📍 Geotagging Harian</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2">
                     <div id="map" class="w-full h-64 bg-gray-100 rounded-xl mb-4 z-0 border border-gray-200"></div>
-                    <button type="button" id="geotag-btn"
-                            data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}"
-                            {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }}
-                            class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition">
-                        @if($sudahAbsenHariIni) ✓ Lokasi Tercatat @else 🎯 Tandai Lokasi Saya @endif
-                    </button>
-                    @if(!$isTodayInPeriod)
-                        <p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>
+                    
+                    @if(!$isLocked)
+                        <button type="button" id="geotag-btn"
+                                data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}"
+                                {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }}
+                                class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition">
+                            @if($sudahAbsenHariIni) ✓ Lokasi Tercatat @else 🎯 Tandai Lokasi Saya @endif
+                        </button>
+                        @if(!$isTodayInPeriod)
+                            <p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>
+                        @endif
                     @endif
                 </div>
                 <div class="lg:col-span-1 bg-gray-50 rounded-xl p-4 h-64 overflow-y-auto">
@@ -58,25 +105,24 @@
             </div>
         </div>
 
-        <!-- BAGIAN 2: URAIAN KEGIATAN (Sama seperti sebelumnya) -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <!-- BAGIAN 2: URAIAN KEGIATAN -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isLocked ? 'opacity-75' : '' }}">
             <h2 class="text-xl font-bold text-gray-800 mb-4">📝 Uraian Kegiatan</h2>
             <form action="{{ route('perjalanan.storeUraian', $perjalanan->id) }}" method="POST">
                 @csrf
-                <textarea name="uraian" rows="4" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 bg-gray-50" placeholder="Progress pekerjaan..." {{ ($laporanSaya && $laporanSaya->is_final) ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
+                <textarea name="uraian" rows="4" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 bg-gray-50" placeholder="Progress pekerjaan..." {{ $isLocked ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
+                
+                @if(!$isLocked)
                 <div class="flex justify-end gap-3 mt-4">
-                    @if(!($laporanSaya && $laporanSaya->is_final))
-                        <button type="submit" name="action_type" value="draft" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm">Simpan Draft</button>
-                        <button type="submit" name="action_type" value="finish" onclick="return confirm('Yakin final?')" class="bg-green-600 text-white px-5 py-2 rounded-lg text-sm">Simpan Final</button>
-                    @else
-                        <span class="text-green-600 font-bold bg-green-50 px-4 py-2 rounded-lg">✓ Final</span>
-                    @endif
+                    <button type="submit" name="action_type" value="draft" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm">Simpan Draft</button>
+                    <button type="submit" name="action_type" value="finish" onclick="return confirm('Yakin final?')" class="bg-green-600 text-white px-5 py-2 rounded-lg text-sm">Simpan Final</button>
                 </div>
+                @endif
             </form>
         </div>
 
-        <!-- BAGIAN 3: BUKTI KEUANGAN (DIPERBAIKI JADI TABEL) -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <!-- BAGIAN 3: BUKTI KEUANGAN -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isLocked ? 'opacity-75' : '' }}">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-gray-800">📂 Rincian Biaya & Bukti</h2>
                 <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Satu pintu untuk semua anggota</span>
@@ -88,9 +134,9 @@
                     <!-- Header Kartu -->
                     <div class="bg-gray-50 px-6 py-4 flex justify-between items-center border-b border-gray-200">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">{{ substr($peserta->nama, 0, 2) }}</div>
+                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">{{ substr($peserta->name, 0, 2) }}</div>
                             <div>
-                                <h3 class="font-bold text-gray-800 text-sm">{{ $peserta->nama }}</h3>
+                                <h3 class="font-bold text-gray-800 text-sm">{{ $peserta->name }}</h3>
                                 <p class="text-xs text-gray-500 font-mono">{{ $peserta->nip }} | {{ $peserta->role_perjadin }}</p>
                             </div>
                         </div>
@@ -101,7 +147,7 @@
                     </div>
 
                     <div class="p-6">
-                        <!-- TABEL RINCIAN (PENGGANTI KOTAK-KOTAK SEBELUMNYA) -->
+                        <!-- TABEL RINCIAN -->
                         @if($peserta->laporan && $peserta->laporan->bukti->count() > 0)
                         <div class="overflow-x-auto mb-6">
                             <table class="w-full text-sm text-left text-gray-500">
@@ -120,15 +166,17 @@
                                         <td class="px-4 py-2">Rp {{ number_format($file->nominal, 0, ',', '.') }}</td>
                                         <td class="px-4 py-2">
                                             @if($file->path_file)
-                                                <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
-                                                    📄 Lihat File
-                                                </a>
+                                                <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">📄 Lihat File</a>
                                             @else
                                                 <span class="text-gray-400 italic text-xs">Tidak ada file</span>
                                             @endif
                                         </td>
                                         <td class="px-4 py-2 text-right">
-                                            <a href="{{ route('bukti.delete', $file->id) }}" onclick="return confirm('Hapus item ini?')" class="text-red-500 hover:text-red-700 font-bold px-2">×</a>
+                                            @if(!$isLocked)
+                                                <a href="{{ route('bukti.delete', $file->id) }}" onclick="return confirm('Hapus item ini?')" class="text-red-500 hover:text-red-700 font-bold px-2">×</a>
+                                            @else
+                                                <span class="text-gray-300">🔒</span>
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach
@@ -139,7 +187,8 @@
                             <p class="text-center text-gray-400 text-sm italic mb-6">Belum ada rincian biaya yang dimasukkan.</p>
                         @endif
 
-                        <!-- FORM TAMBAH (ADD ROW) -->
+                        <!-- FORM TAMBAH (HANYA JIKA BELUM LOCKED) -->
+                        @if(!$isLocked)
                         <form action="{{ route('perjalanan.storeBukti', $perjalanan->id) }}" method="POST" enctype="multipart/form-data" class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col md:flex-row gap-3 items-end">
                             @csrf
                             <input type="hidden" name="target_nip" value="{{ $peserta->nip }}">
@@ -169,10 +218,9 @@
                                 <input type="file" name="bukti" class="w-full text-xs text-gray-500 bg-white border border-gray-300 rounded-lg file:py-2 file:px-4 file:bg-blue-600 file:text-white file:border-0 hover:file:bg-blue-700">
                             </div>
 
-                            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-sm whitespace-nowrap">
-                                + Tambah
-                            </button>
+                            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-sm whitespace-nowrap">+ Tambah</button>
                         </form>
+                        @endif
                     </div>
                 </div>
                 @endforeach

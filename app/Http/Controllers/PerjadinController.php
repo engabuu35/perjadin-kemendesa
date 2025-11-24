@@ -15,78 +15,83 @@ use Carbon\CarbonPeriod;
 
 class PerjadinController extends Controller
 {
+    // --- HALAMAN UTAMA (INDEX) ---
+    public function index(Request $request)
+    {
+        $q = $request->input('q');
+        $query = PerjalananDinas::query();
+
+        if ($q) {
+            $query->where(function($sub) use ($q) {
+                $sub->where('nomor_surat', 'like', "%{$q}%")
+                    ->orWhere('tujuan', 'like', "%{$q}%");
+            });
+        }
+
+        $penugasans = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+        return view('pic.penugasan', compact('penugasans', 'q'));
+    }
+
+    // --- HALAMAN DETAIL (SHOW) ---
     public function show($id)
     {
         $userNip = Auth::user()->nip;
         $perjalanan = PerjalananDinas::find($id);
 
-        if (!$perjalanan) {
-            abort(404, 'Perjalanan dinas tidak ditemukan');
-        }
+        if (!$perjalanan) abort(404);
 
-        // 1. DATA GEOTAGGING
+        // 1. CEK STATUS KUNCI (READ ONLY)
+        // Cari ID status "Sedang Berlangsung". Selain status ini, anggap terkunci.
+        $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
+        // Jika status bukan "Sedang Berlangsung", maka locked = true
+        $isLocked = ($perjalanan->id_status != $statusBerlangsung);
+
+        // Pesan Status Text
+        $statusText = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
+
+        // 2. LOGIKA GEOTAGGING
         $period = CarbonPeriod::create($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         $geotagHistory = [];
         $hariKe = 1;
-        
-        $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)
-            ->where('id_user', $userNip)
-            ->whereDate('created_at', Carbon::today())
-            ->exists();
+        $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)->where('id_user', $userNip)->whereDate('created_at', Carbon::today())->exists();
 
         foreach ($period as $date) {
-            $tag = Geotagging::where('id_perjadin', $id)
-                ->where('id_user', $userNip)
-                ->whereDate('created_at', $date)
-                ->first();
-
+            $tag = Geotagging::where('id_perjadin', $id)->where('id_user', $userNip)->whereDate('created_at', $date)->first();
             $geotagHistory[] = [
                 'hari_ke' => $hariKe++,
                 'tanggal' => $date->format('d M Y'),
                 'lokasi'  => $tag ? "Lat: {$tag->latitude}, Long: {$tag->longitude}" : '-',
-                'lat_raw' => $tag ? $tag->latitude : null,
-                'long_raw' => $tag ? $tag->longitude : null,
                 'waktu'   => $tag ? Carbon::parse($tag->created_at)->format('H:i') : '-',
                 'status'  => $tag ? 'Sudah' : 'Belum'
             ];
         }
 
-        // 2. DATA LAPORAN SAYA
-        $laporanSaya = LaporanPerjadin::firstOrNew([
-            'id_perjadin' => $id,
-            'id_user' => $userNip
-        ]);
+        // 3. DATA LAPORAN SAYA
+        $laporanSaya = LaporanPerjadin::firstOrNew(['id_perjadin' => $id, 'id_user' => $userNip]);
 
-        // 3. DATA SEMUA PESERTA (JOIN Tabel Users)
+        // 4. DATA SEMUA PESERTA
         $allPeserta = DB::table('pegawaiperjadin')
             ->join('users', 'users.nip', '=', 'pegawaiperjadin.id_user')
             ->where('pegawaiperjadin.id_perjadin', $id)
-            // Pastikan nama kolom sesuai database kamu (users.nama atau a)
-            ->select('users.nip', 'users.nama', 'pegawaiperjadin.role_perjadin', 'pegawaiperjadin.is_lead')
+            ->select('users.nip', 'users.nama as name', 'pegawaiperjadin.role_perjadin', 'pegawaiperjadin.is_lead')
             ->orderBy('pegawaiperjadin.is_lead', 'desc')
             ->get();
 
-        // Inject Data Laporan ke setiap peserta
         foreach($allPeserta as $peserta) {
-            $laporan = LaporanPerjadin::with('bukti')
-                        ->where('id_perjadin', $id)
-                        ->where('id_user', $peserta->nip)
-                        ->first();
-            
+            $laporan = LaporanPerjadin::with('bukti')->where('id_perjadin', $id)->where('id_user', $peserta->nip)->first();
             $peserta->laporan = $laporan;
             $peserta->total_biaya = $laporan ? $laporan->bukti->sum('nominal') : 0;
         }
 
-        // 4. VALIDASI TANGGAL
+        // 5. Validasi Tanggal
         $today = Carbon::today();
-        $startDate = Carbon::parse($perjalanan->tgl_mulai);
-        $endDate = Carbon::parse($perjalanan->tgl_selesai);
-        $isTodayInPeriod = $today->between($startDate, $endDate);
+        $isTodayInPeriod = $today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         
+        // Status message buat UI
         $statusMessage = '';
         if (!$isTodayInPeriod) {
-            if ($today->lt($startDate)) $statusMessage = 'Belum dimulai.';
-            elseif ($today->gt($endDate)) $statusMessage = 'Sudah selesai.';
+            if ($today->lt($perjalanan->tgl_mulai)) $statusMessage = 'Belum dimulai.';
+            elseif ($today->gt($perjalanan->tgl_selesai)) $statusMessage = 'Sudah selesai.';
         }
 
         return view('pages.detailperjadin', [
@@ -96,93 +101,115 @@ class PerjadinController extends Controller
             'laporanSaya' => $laporanSaya, 
             'allPeserta' => $allPeserta,
             'isTodayInPeriod' => $isTodayInPeriod,
+            'isLocked' => $isLocked, 
+            'statusText' => $statusText,
             'statusMessage' => $statusMessage
         ]);
     }
 
-    // --- PERBAIKAN FITUR UPLOAD BUKTI ---
-    public function storeBukti(Request $request, $id)
+    // --- FITUR BARU: FINALISASI PERJALANAN ---
+    public function selesaikanPerjadin(Request $request, $id)
     {
-        // 1. Validasi
-        $request->validate([
-            'target_nip' => 'required|exists:users,nip',
-            'kategori' => 'required|string',
-            'nominal' => 'required|numeric|min:0', // Pastikan input nominal angka
-            'bukti' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // TIDAK WAJIB (nullable), max 5MB
+        $idMenungguVerif = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
+
+        $update = PerjalananDinas::where('id', $id)->update([
+            'id_status' => $idMenungguVerif
         ]);
 
-        // 2. Cari/Buat Laporan Induk
-        $laporan = LaporanPerjadin::firstOrCreate(
-            ['id_perjadin' => $id, 'id_user' => $request->target_nip],
-            ['uraian' => null, 'is_final' => false] 
-        );
+        if($update) {
+            return back()->with('success', 'Laporan berhasil dikirim! Status perjalanan kini Menunggu Verifikasi.');
+        }
+        return back()->with('error', 'Gagal mengupdate status.');
+    }
 
+    // --- SIMPAN BUKTI ---
+    public function storeBukti(Request $request, $id) {
+        // Cek Kunci
+        $perjalanan = PerjalananDinas::find($id);
+        $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
+        if($perjalanan->id_status != $statusBerlangsung) return back()->with('error', 'Perjalanan sudah dikunci/selesai.');
+        
+        $request->validate([
+            'target_nip' => 'required', 'kategori' => 'required', 'nominal' => 'required|min:0', 'bukti' => 'nullable|max:5120'
+        ]);
+
+        $laporan = LaporanPerjadin::firstOrCreate(['id_perjadin' => $id, 'id_user' => $request->target_nip]);
+        
         $path = null;
         $filename = null;
-
-        // 3. Cek apakah ada file yang diupload?
         if ($request->hasFile('bukti')) {
             $file = $request->file('bukti');
             $filename = time() . '_' . $request->target_nip . '_' . $file->getClientOriginalName();
-            // Simpan ke folder 'public/bukti_perjadin'
             $path = $file->storeAs('bukti_perjadin', $filename, 'public');
         }
 
-        // 4. Simpan ke Database (Walaupun file null, tetap simpan nominal & kategori)
         BuktiLaporan::create([
-            'id_laporan' => $laporan->id,
-            'nama_file' => $filename, // Bisa null
-            'path_file' => $path,     // Bisa null
-            'kategori' => $request->kategori,
-            'nominal' => $request->nominal
+            'id_laporan' => $laporan->id, 'nama_file' => $filename, 'path_file' => $path, 
+            'kategori' => $request->kategori, 'nominal' => $request->nominal
         ]);
-
-        return back()->with('success', 'Data biaya berhasil ditambahkan!');
+        return back()->with('success', 'Data biaya berhasil ditambahkan.');
     }
 
-    public function storeUraian(Request $request, $id)
-    {
-        $userNip = Auth::user()->nip;
-        $laporan = LaporanPerjadin::firstOrNew(['id_perjadin' => $id, 'id_user' => $userNip]);
+    // --- SIMPAN URAIAN ---
+    public function storeUraian(Request $request, $id) {
+        // Cek Kunci
+        $perjalanan = PerjalananDinas::find($id);
+        $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
+        if($perjalanan->id_status != $statusBerlangsung) return back()->with('error', 'Perjalanan sudah dikunci/selesai.');
+
+        $laporan = LaporanPerjadin::firstOrNew(['id_perjadin' => $id, 'id_user' => Auth::user()->nip]);
         $laporan->uraian = $request->uraian;
         
+        // Logika draft/final individu (opsional)
         if ($request->action_type == 'finish') {
-            if (empty($request->uraian) || strlen($request->uraian) < 20) {
-                return back()->with('error', 'Uraian harus diisi lengkap sebelum selesai.');
-            }
-            $laporan->is_final = true;
-        } else {
-             if(!$laporan->is_final) {
-                $laporan->is_final = false;
-             }
+             if (empty($request->uraian) || strlen($request->uraian) < 20) return back()->with('error', 'Uraian terlalu pendek.');
+             $laporan->is_final = true;
         }
         $laporan->save();
-        $msg = ($request->action_type == 'finish') ? 'Laporan selesai!' : 'Draft tersimpan.';
-        return back()->with('success', $msg);
+        return back()->with('success', 'Uraian berhasil disimpan.');
     }
     
+    // --- HAPUS BUKTI ---
     public function deleteBukti($idBukti) {
-        $bukti = BuktiLaporan::find($idBukti);
-        if($bukti) {
-            // Hapus file fisik jika ada
-            if($bukti->path_file && Storage::disk('public')->exists($bukti->path_file)) {
-                Storage::disk('public')->delete($bukti->path_file);
-            }
-            $bukti->delete();
-            return back()->with('success', 'Item dihapus');
-        }
-        return back()->with('error', 'Item tidak ditemukan');
-    }
+       $bukti = BuktiLaporan::find($idBukti);
+       if(!$bukti) return back();
 
-    public function tandaiKehadiran(Request $request, $id)
-    {
-        $userNip = Auth::user()->nip;
-        // ... (Kode sama seperti sebelumnya, validasi tanggal dll)
-        // Saya singkat agar tidak kepanjangan, pakai logic validasi tanggal yang sudah kamu punya sebelumnya
-        $geotag = Geotagging::create([
-            'id_perjadin' => $id, 'id_user' => $userNip,
+       // Cek Kunci sebelum hapus
+       $laporan = LaporanPerjadin::find($bukti->id_laporan);
+       $perjalanan = PerjalananDinas::find($laporan->id_perjadin);
+       $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
+       if($perjalanan->id_status != $statusBerlangsung) return back()->with('error', 'Tidak bisa menghapus data yang sudah dikunci.');
+
+       if($bukti->path_file && Storage::disk('public')->exists($bukti->path_file)) {
+            Storage::disk('public')->delete($bukti->path_file);
+       }
+       $bukti->delete();
+       return back()->with('success', 'Bukti dihapus.');
+    }
+    
+    // --- GEOTAGGING ---
+    public function tandaiKehadiran(Request $request, $id) {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'latitude' => 'required', 'longitude' => 'required', 'id_tipe' => 'required'
+        ]);
+        if ($validator->fails()) return response()->json(['status' => 'error', 'message' => 'Data invalid'], 422);
+
+        // Cek Tanggal
+        $perjalanan = PerjalananDinas::find($id);
+        $today = Carbon::today();
+        if (!$today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai)) {
+            return response()->json(['status' => 'error', 'message' => 'Di luar jadwal dinas.'], 403);
+        }
+
+        // Cek Duplikat Harian
+        if (Geotagging::where('id_perjadin', $id)->where('id_user', Auth::user()->nip)->whereDate('created_at', $today)->exists()) {
+            return response()->json(['status' => 'error', 'message' => 'Sudah absen hari ini.'], 400);
+        }
+
+        Geotagging::create([
+            'id_perjadin' => $id, 'id_user' => Auth::user()->nip,
             'id_tipe' => $request->id_tipe, 'latitude' => $request->latitude, 'longitude' => $request->longitude,
         ]);
-        return response()->json(['status' => 'success', 'message' => "Hadir!"]);
+        return response()->json(['status'=>'success', 'message' => 'Hadir!']);
     }
 }
