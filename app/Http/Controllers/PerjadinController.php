@@ -213,24 +213,4 @@ class PerjadinController extends Controller
         return response()->json(['status'=>'success', 'message' => 'Hadir!']);
     }
 
-    public function index(Request $request)
-    {
-        // search
-        $q = $request->q;
-
-        $query = PerjalananDinas::query();
-
-        if ($q) {
-            $query->where('nomor_surat', 'like', "%$q%")
-                ->orWhere('tujuan', 'like', "%$q%");
-        }
-
-        // pagination
-        $penugasans = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        return view('pic.penugasan', [
-            'penugasans' => $penugasans,
-            'q' => $q
-        ]);
-    }
 }
