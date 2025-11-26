@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
 
 // PIMPINAN
 Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat');
     Route::get('/monitoring', [PimpinanController::class, 'index'])->name('monitoring');
     Route::get('/detail/{id}', [PimpinanController::class, 'detail'])->name('detail');
 });

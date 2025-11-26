@@ -9,50 +9,74 @@ use Carbon\Carbon;
 class RiwayatController extends Controller
 {
     /**
-     * Menampilkan halaman riwayat perjalanan dinas
+     * Menampilkan halaman riwayat perjalanan dinas.
+     * Jika user adalah PIMPINAN -> diarahkan ke halaman ALL USERS.
      */
     public function index(Request $request)
     {
-        // Ambil parameter pencarian jika ada
+        // Ambil data user login
+        $user = auth()->user();
+
+        // Ambil role berdasarkan NIP (karena users PK = nip)
+        $role = DB::table('penugasanperan')
+            ->join('roles', 'penugasanperan.role_id', '=', 'roles.id')
+            ->where('penugasanperan.user_id', $user->nip) // USER_ID = NIP
+            ->value('roles.kode'); // hasil: PIMPINAN, PIC, PPK, PEGAWAI
+
+        // Jika role PIMPINAN -> tampilkan halaman seluruh user
+        if ($role !== null && strtoupper($role) === 'PIMPINAN') {
+            return $this->allUsers($request);
+        }
+
+        // ============================================================
+        //          RIWAYAT UNTUK ROLE BIASA (PIC, PPK, PEGAWAI)
+        // ============================================================
+
         $search = $request->input('search');
-        
-        // Query untuk mengambil data perjalanan dinas yang sudah selesai (id_status = 4)
-        // dalam 1 tahun terakhir
+
         $query = DB::table('perjalanandinas')
-            ->where('id_status', 4) // Status Selesai
+            ->where('id_status', 4) // selesai
             ->where('created_at', '>=', Carbon::now()->subYear()); // 1 tahun terakhir
-        
-        // Jika ada pencarian, filter berdasarkan nomor surat atau tujuan
+
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nomor_surat', 'LIKE', "%{$search}%")
                   ->orWhere('tujuan', 'LIKE', "%{$search}%");
             });
         }
-        
-        // Urutkan dari yang terbaru
+
         $riwayat_list = $query->orderBy('created_at', 'desc')->get();
-        
-        // Kirim data ke view pages.riwayat
+
         return view('pages.riwayat', compact('riwayat_list'));
     }
-    
+
     /**
-     * Menampilkan detail perjalanan dinas
+     * Halaman riwayat ALL USERS khusus PIMPINAN.
+     */
+    private function allUsers(Request $request)
+    {
+        $users = DB::table('users')
+            ->select('nip', 'nama', 'email', 'no_telp', 'created_at')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('pimpinan.riwayatAllUsers', compact('users'));
+    }
+
+    /**
+     * Menampilkan detail perjalanan dinas.
      */
     public function show($id)
     {
-        // Ambil data perjalanan dinas berdasarkan ID
         $perjalanan = DB::table('perjalanandinas')
             ->where('id', $id)
             ->first();
-        
-        // Jika data tidak ditemukan
+
         if (!$perjalanan) {
-            return redirect()->route('riwayat.index')
+            return redirect()->route('riwayat')
                 ->with('error', 'Data perjalanan dinas tidak ditemukan.');
         }
-        
+
         return view('pages.detail', compact('perjalanan'));
     }
 }
