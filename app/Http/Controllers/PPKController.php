@@ -99,8 +99,8 @@ class PPKController extends Controller
                 'info' => $info // Masukkan info teks ke array data
             ];
         }
-
-        return view('ppk.verifikasi.detail', compact('perjalanan', 'rekapData', 'statusText', 'isSelesai', 'totalSeluruhnya', 'laporanKeuangan'));
+        return view('ppk.verifikasi.detail', compact('perjalanan','rekapData','statusText','isSelesai','totalSeluruhnya','laporanKeuangan'
+        ));    
     }
 
     public function storeVerifikasi(Request $request, $id)
@@ -133,5 +133,64 @@ class PPKController extends Controller
         $perjalanan->update(['id_status' => $idSelesai]);
 
         return redirect()->route('ppk.verifikasi.index')->with('success', 'Verifikasi Berhasil! Data SP2D telah disimpan.');
+    }
+
+    public function tabelRekap(Request $request)
+    {
+        // Filter opsional dari form (kalau nanti mau kamu tambahkan di view)
+        $tahun = $request->input('tahun');
+        $bulan = $request->input('bulan');
+
+        $query = DB::table('laporankeuangan')
+            ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
+            ->join('pegawaiperjadin', 'pegawaiperjadin.id_perjadin', '=', 'perjalanandinas.id')
+            ->join('users', 'pegawaiperjadin.id_user', '=', 'users.nip')
+            ->leftJoin('pangkatgolongan', 'users.pangkat_gol_id', '=', 'pangkatgolongan.id')
+            ->leftJoin('unitkerja', 'users.id_uke', '=', 'unitkerja.id')
+            ->leftJoin('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
+            ->select(
+                'laporankeuangan.id as id_laporan',
+                'laporankeuangan.nomor_spm',
+                'laporankeuangan.tanggal_spm',
+                'laporankeuangan.nomor_sp2d',
+                'laporankeuangan.tanggal_sp2d',
+                'laporankeuangan.biaya_rampung',
+
+                'perjalanandinas.id as id_perjadin',
+                'perjalanandinas.tujuan',
+                'perjalanandinas.tgl_mulai',
+                'perjalanandinas.tgl_selesai',
+
+                'users.nama as nama_pegawai',
+                'users.nip',
+                'pangkatgolongan.nama_pangkat as pangkat_golongan',
+                'unitkerja.nama_uke as unit_kerja',
+                'statuslaporan.nama_status as status_laporan'
+            )
+            // HANYA yang sudah selesai dibayar (id_status = 6 di dump-mu)
+            ->where('laporankeuangan.id_status', 6);  // 'Selesai Dibayar'
+
+        if ($tahun) {
+            $query->whereYear('perjalanandinas.tgl_mulai', $tahun);
+        }
+
+        if ($bulan) {
+            $query->whereMonth('perjalanandinas.tgl_mulai', $bulan);
+        }
+
+        $rekap = $query
+            ->orderBy('perjalanandinas.tgl_mulai')
+            ->orderBy('users.nama')
+            ->get();
+
+        // Total anggaran (biaya rampung) sesuai semua baris yang tampil
+        $totalDibayarkan = $rekap->sum('biaya_rampung');
+
+        return view('ppk.tabelRekap', [
+            'rekap'            => $rekap,
+            'totalDibayarkan'  => $totalDibayarkan,
+            'filterTahun'      => $tahun,
+            'filterBulan'      => $bulan,
+        ]);
     }
 }
