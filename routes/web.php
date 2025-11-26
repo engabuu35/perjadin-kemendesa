@@ -100,9 +100,15 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 
-    // === ROUTE PELAPORAN KEUANGAN PIC (BARU) ===
+    // PELAPORAN KEUANGAN PIC (MANUAL)
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
     Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
+
+    // [ROUTE BARU] Aksi Simpan & Hapus Bukti oleh PIC
+    Route::post('/pelaporan-keuangan/{id}/store', [PelaporanController::class, 'storeBukti'])->name('pelaporan.storeBukti');
+    Route::get('/pelaporan-keuangan/delete/{id}', [PelaporanController::class, 'deleteBukti'])->name('pelaporan.deleteBukti');
+
+    Route::post('/pelaporan-keuangan/{id}/submit', [PelaporanController::class, 'submitToPPK'])->name('pelaporan.submit');
 
     // Pegawai management
     Route::get('/pegawai', fn() => view('pic.managePegawai'))->name('pegawai.index');
@@ -117,3 +123,5 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');
 });
+
+
