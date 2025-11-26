@@ -1,4 +1,4 @@
-@extends('layouts.appPIC')
+@extends('layouts.appPPK')
 
 @section('title', 'Detail Verifikasi PPK')
 

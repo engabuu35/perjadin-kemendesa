@@ -1,4 +1,4 @@
-@extends('layouts.appPIC') 
+@extends('layouts.appPPK') 
 {{-- Kita pakai layout PIC saja karena strukturnya mirip (Sidebar PPK) --}}
 
 @section('title', 'Verifikasi PPK')
