@@ -112,7 +112,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
 
 // PPK
 Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(function () {
-    Route::get('/pelaporan', fn() => view('ppk.pelaporan'))->name('pelaporan');
+    Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');
 });

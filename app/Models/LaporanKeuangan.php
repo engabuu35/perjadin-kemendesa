@@ -55,12 +55,8 @@ class LaporanKeuangan extends Model
         return $this->belongsTo(PerjalananDinas::class, 'id_perjadin', 'id');
     }
 
-    /**
-     * Get the status of the report.
-     */
     public function status()
     {
-        // Asumsi ada model StatusLaporan
         return $this->belongsTo(StatusLaporan::class, 'id_status', 'id');
     }
 

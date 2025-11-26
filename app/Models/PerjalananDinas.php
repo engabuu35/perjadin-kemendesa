@@ -24,8 +24,7 @@ class PerjalananDinas extends Model
         'tujuan',
         'tgl_mulai',
         'tgl_selesai',
-        // pastikan ini sesuai kolom di DB: 'hasil_perjadin' atau 'uraian'
-        'hasil_perjadin',
+        'uraian',
     ];
 
     protected $casts = [
