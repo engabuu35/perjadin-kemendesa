@@ -119,6 +119,12 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
 
 // PPK
 Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(function () {
+
+    // VERIFIKASI & INPUT SPM/SP2D
+    Route::get('/verifikasi', [PPKController::class, 'index'])->name('verifikasi.index');
+    Route::get('/verifikasi/{id}', [PPKController::class, 'show'])->name('verifikasi.detail');
+    Route::post('/verifikasi/{id}/store', [PPKController::class, 'storeVerifikasi'])->name('verifikasi.store');
+    
     Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');

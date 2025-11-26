@@ -12,170 +12,145 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
 {
     public function run(): void
     {
-        // -----------------------------
-        // 1. Ambil ID status perjadin dari kolom NAMA_STATUS
-        // -----------------------------
-        // statusperjadin: id, nama_status
-        // Isi default:
-        // 1 Belum Berlangsung
-        // 2 Sedang Berlangsung
-        // 3 Menunggu Laporan
-        // 4 Selesai
-        // 5 Diselesaikan Manual
-        // 6 Dibatalkan
+        // 1. Ambil ID Status Penting
         $statusMap = DB::table('statusperjadin')->pluck('id', 'nama_status');
-        // $statusMap['Belum Berlangsung'], dll.
+        
+        $idBelum       = $statusMap['Belum Berlangsung'] ?? 1;
+        $idSedang      = $statusMap['Sedang Berlangsung'] ?? 2;
+        $idTungguVerif = $statusMap['Menunggu Verifikasi Laporan'] ?? 3; 
+        $idTungguValid = $statusMap['Menunggu Validasi PPK'] ?? 4;       
+        $idSelesai     = $statusMap['Selesai'] ?? 5;                     
 
-        // -----------------------------
-        // 2. Buat 50 PEGAWAI lewat factory
-        // -----------------------------
-        $pegawai = User::factory()
-            ->pegawai()     // state di UserFactory
-            ->count(50)
-            ->create();
+        // 2. Buat 50 Pegawai Dummy
+        $pegawai = User::factory()->pegawai()->count(50)->create();
+        $chunks = $pegawai->chunk(10); 
 
-        $today  = Carbon::today();
-        $chunks = $pegawai->chunk(10); // 5 kelompok @10 orang
+        $today = Carbon::today();
 
-        // ---------------
-        // Kelompok 1: perjadin "Belum Berlangsung" (akan datang)
-        // ---------------
+        // --- KELOMPOK 1 & 2: BELUM & SEDANG (Tanpa Keuangan) ---
         if (isset($chunks[0])) {
-            foreach ($chunks[0] as $user) {
-                $mulai = $today->copy()->addDays(rand(3, 10));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(2, 5),
-                    statusId: $statusMap['Belum Berlangsung'] ?? null,
-                    laporanLengkap: false,
-                    catatan: 'Perjadin akan datang (Belum Berlangsung)'
-                );
-            }
+            foreach ($chunks[0] as $user) $this->createPerjadinForPegawai($user, $today->copy()->addDays(5), 3, $idBelum, false);
         }
-
-        // ---------------
-        // Kelompok 2: "Sedang Berlangsung"
-        // ---------------
         if (isset($chunks[1])) {
-            foreach ($chunks[1] as $user) {
-                $mulai = $today->copy()->subDays(rand(0, 1)); // kemarin / hari ini
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(3, 5),
-                    statusId: $statusMap['Sedang Berlangsung'] ?? null,
-                    laporanLengkap: false,
-                    catatan: 'Perjadin sedang berlangsung'
-                );
-            }
+            foreach ($chunks[1] as $user) $this->createPerjadinForPegawai($user, $today->copy()->subDays(1), 3, $idSedang, false);
         }
 
-        // ---------------
-        // Kelompok 3: "Selesai" + laporan lengkap
-        // ---------------
+        // --- KELOMPOK 3: MEJA PIC (Menunggu Verifikasi - Keuangan Kosong/Partial) ---
         if (isset($chunks[2])) {
             foreach ($chunks[2] as $user) {
-                $mulai = $today->copy()->subDays(rand(7, 20));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(2, 5),
-                    statusId: $statusMap['Selesai'] ?? null,
-                    laporanLengkap: true,
-                    catatan: 'Perjadin selesai, laporan lengkap'
-                );
+                // Kita buat partial (seolah PIC baru isi sebagian)
+                $this->createPerjadinForPegawai($user, $today->copy()->subDays(5), 3, $idTungguVerif, true, true, 'partial'); 
             }
         }
 
-        // ---------------
-        // Kelompok 4: "Menunggu Laporan" (perjadin berakhir, laporan belum lengkap)
-        // ---------------
+        // --- KELOMPOK 4: MEJA PPK (Menunggu Validasi - Keuangan LENGKAP) ---
         if (isset($chunks[3])) {
             foreach ($chunks[3] as $user) {
-                $mulai = $today->copy()->subDays(rand(3, 10));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(1, 3),
-                    statusId: $statusMap['Menunggu Laporan'] ?? null,
-                    laporanLengkap: false,
-                    catatan: 'Perjadin selesai, tapi laporan belum lengkap'
-                );
+                $this->createPerjadinForPegawai($user, $today->copy()->subDays(10), 4, $idTungguValid, true, true, 'full');
             }
         }
 
-        // ---------------
-        // Kelompok 5: anggap "Diselesaikan Manual" (contoh kondisi perlu tindakan / khusus)
-        // ---------------
+        // --- KELOMPOK 5: SELESAI (Arsip - Keuangan LENGKAP) ---
         if (isset($chunks[4])) {
             foreach ($chunks[4] as $user) {
-                $mulai = $today->copy()->subDays(rand(5, 15));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(2, 4),
-                    statusId: $statusMap['Diselesaikan Manual'] 
-                        ?? ($statusMap['Menunggu Laporan'] ?? null),
-                    laporanLengkap: false,
-                    catatan: 'Perjadin diselesaikan manual / butuh perhatian khusus'
-                );
+                $this->createPerjadinForPegawai($user, $today->copy()->subDays(20), 5, $idSelesai, true, true, 'full');
             }
         }
     }
 
-    /**
-     * Helper untuk membuat satu perjalanan dinas + record di pegawaiperjadin.
-     * Menggunakan DB::table agar tidak bergantung pada model lain.
-     */
     protected function createPerjadinForPegawai(
         User $user,
         Carbon $mulai,
-        int $durasiHari,
-        ?int $statusId,
-        bool $laporanLengkap,
-        string $catatan
+        int $durasi,
+        int $statusId,
+        bool $isPegawaiSelesai = false,
+        bool $withFinancialData = false,
+        string $financialMode = 'full' // 'partial' atau 'full'
     ): void {
-        $akhir = $mulai->copy()->addDays($durasiHari);
+        $akhir = $mulai->copy()->addDays($durasi);
 
-        // 1) Insert ke perjalanandinas
-        // HAPUS kolom 'hasil_perjadin' dari insert
+        // 1. Insert Surat Tugas
         $perjadinId = DB::table('perjalanandinas')->insertGetId([
             'id_pembuat'    => $user->nip,
-            'id_status'     => $statusId ?? 1, // mis. default "Belum Berlangsung"
-            'approved_by'   => null,
-            'approved_at'   => null,
-            'nomor_surat'   => 'ST-' . Str::upper(Str::random(6)),
-            'tanggal_surat' => $mulai->copy()->subDays(3)->toDateString(),
-            'tujuan'        => 'Kota ' . Str::title(Str::random(5)),
-            'tgl_mulai'     => $mulai->toDateString(),
-            'tgl_selesai'   => $akhir->toDateString(),
-            // 'hasil_perjadin' => ...   // ← BARIS INI DIHAPUS
+            'id_status'     => $statusId,
+            'approved_by'   => '198001012010011001',
+            'approved_at'   => $mulai->copy()->subDays(5),
+            'nomor_surat'   => 'ST-DUMMY-' . Str::upper(Str::random(5)),
+            'tanggal_surat' => $mulai->copy()->subDays(7),
+            'tujuan'        => 'Kota ' . Str::title(Str::random(6)),
+            'tgl_mulai'     => $mulai,
+            'tgl_selesai'   => $akhir,
+            'uraian'        => $isPegawaiSelesai ? 'Kegiatan telah selesai dilaksanakan.' : null,
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);
 
-        // 2) Laporan individu per pegawai pada tabel pegawaiperjadin
-        $laporanIndividu = null;
-        if ($laporanLengkap) {
-            // minimal 100 karakter (supaya logika "Selesai" bisa terpicu)
-            $laporanIndividu = str_repeat(
-                'Laporan individu pegawai ini memenuhi syarat minimal 100 karakter. ',
-                3
-            );
-        } else {
-            // sengaja pendek / tidak lengkap
-            $laporanIndividu = 'Laporan singkat, belum lengkap. ' . $catatan;
-        }
-
+        // 2. Insert Pegawai
         DB::table('pegawaiperjadin')->insert([
-            'id_perjadin'      => $perjadinId,
-            'id_user'          => $user->nip,
-            'role_perjadin'    => 'Anggota',
-            'is_lead'          => 0,
-            'laporan_individu' => $laporanIndividu,
+            'id_perjadin'   => $perjadinId,
+            'id_user'       => $user->nip,
+            'role_perjadin' => 'Anggota',
+            'is_lead'       => 0,
+            'is_finished'   => $isPegawaiSelesai ? 1 : 0,
         ]);
-    
 
+        // 3. Insert Keuangan (JIKA DIMINTA)
+        if ($withFinancialData) {
+            
+            $laporanId = DB::table('laporan_perjadin')->insertGetId([
+                'id_perjadin' => $perjadinId,
+                'id_user'     => $user->nip,
+                'uraian'      => 'Laporan keuangan dummy.',
+                'is_final'    => 1,
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+
+            // --- DATA WAJIB (SELALU ADA) ---
+            
+            // A. Tiket
+            DB::table('bukti_laporan')->insert([
+                'id_laporan' => $laporanId, 'kategori' => 'Tiket', 'nominal' => rand(1000000, 3000000), 'keterangan' => null, 'created_at' => now()
+            ]);
+            DB::table('bukti_laporan')->insert([
+                'id_laporan' => $laporanId, 'kategori' => 'Maskapai', 'nominal' => 0, 'keterangan' => 'Garuda Indonesia', 'created_at' => now()
+            ]);
+            DB::table('bukti_laporan')->insert([
+                'id_laporan' => $laporanId, 'kategori' => 'Kode Tiket', 'nominal' => 0, 'keterangan' => 'GA-' . rand(100, 999), 'created_at' => now()
+            ]);
+
+            // B. Uang Harian
+            DB::table('bukti_laporan')->insert([
+                'id_laporan' => $laporanId, 'kategori' => 'Uang Harian', 'nominal' => 450000 * $durasi, 'keterangan' => null, 'created_at' => now()
+            ]);
+
+            // --- DATA TAMBAHAN (HANYA JIKA MODE FULL) ---
+            if ($financialMode === 'full') {
+                // C. Penginapan
+                DB::table('bukti_laporan')->insert([
+                    'id_laporan' => $laporanId, 'kategori' => 'Penginapan', 'nominal' => rand(1500000, 4000000), 'keterangan' => null, 'created_at' => now()
+                ]);
+                DB::table('bukti_laporan')->insert([
+                    'id_laporan' => $laporanId, 'kategori' => 'Nama Penginapan', 'nominal' => 0, 'keterangan' => 'Hotel Bintang ' . rand(3,5), 'created_at' => now()
+                ]);
+                DB::table('bukti_laporan')->insert([
+                    'id_laporan' => $laporanId, 'kategori' => 'Kota', 'nominal' => 0, 'keterangan' => 'Jakarta', 'created_at' => now()
+                ]);
+
+                // D. Transport Lokal (Random muncul)
+                if (rand(0, 1)) {
+                    DB::table('bukti_laporan')->insert([
+                        'id_laporan' => $laporanId, 'kategori' => 'Transport', 'nominal' => rand(100000, 500000), 'keterangan' => 'Taksi Bandara', 'created_at' => now()
+                    ]);
+                }
+
+                // E. Uang Representasi (Random muncul untuk pejabat)
+                if (rand(0, 1)) {
+                    DB::table('bukti_laporan')->insert([
+                        'id_laporan' => $laporanId, 'kategori' => 'Uang Representasi', 'nominal' => 150000 * $durasi, 'keterangan' => null, 'created_at' => now()
+                    ]);
+                }
+            }
+        }
     }
 }
