@@ -10,11 +10,11 @@ use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\PPKController;
-
+use App\Http\Controllers\PelaporanController; // IMPORT INI
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes (Cleaned & Unified Beranda)
+| Web Routes (FULL)
 |--------------------------------------------------------------------------
 */
 
@@ -42,9 +42,8 @@ Route::post('/confirm-password', [AuthController::class,'confirm'])->middleware(
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-    // Common dashboard (opsional)
+    // Common dashboard
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
-
     Route::get('/beranda', [BerandaController::class, 'index'])->middleware('auth')->name('pages.beranda');
 
     // Profile & Bantuan
@@ -54,45 +53,57 @@ Route::middleware('auth')->group(function () {
     // Riwayat 
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat');
 
-    // Perjalanan (Perjadin)
-    Route::get('/perjalanan/{id}', [PerjadinController::class, 'show'])->name('perjalanan.detail');
-    Route::post('/perjalanan/laporan/{id}', [PerjadinController::class, 'storeLaporan'])->name('perjalanan.storeLaporan');
-    Route::post('/perjalanan/hadir/{id}', [PerjadinController::class, 'tandaiKehadiran'])->name('perjalanan.hadir');
-
-    // Laporan Keuangan (group)
-    Route::prefix('laporan-keuangan')->name('laporan.')->controller(LaporanKeuanganController::class)->group(function () {
-        Route::get('/', 'index')->name('index')->middleware('role:PIC,PPK,PIMPINAN'); // daftar laporan
-        Route::get('/export-excel', 'generateExcel')->name('export')->middleware('role:PIC,PPK,PIMPINAN'); // export
-        Route::get('/{id}', 'show')->name('show'); // detail
-        Route::get('/{id}/edit', 'edit')->name('edit')->middleware('role:PIC,PPK'); // edit form
-        Route::put('/{id}', 'update')->name('update')->middleware('role:PIC,PPK'); // update
-        Route::post('/{id}/verify', 'verify')->name('verify')->middleware('role:PPK'); // verifikasi oleh PPK
+    // =================================================================
+    // ROUTE PERJALANAN DINAS & LAPORAN (PEGAWAI)
+    // =================================================================
+    Route::prefix('perjalanan')->name('perjalanan.')->group(function () {
+        Route::get('/{id}', [PerjadinController::class, 'show'])->name('detail');
+        Route::post('/{id}/hadir', [PerjadinController::class, 'tandaiKehadiran'])->name('hadir');
+        Route::post('/{id}/uraian', [PerjadinController::class, 'storeUraian'])->name('storeUraian');
+        Route::post('/{id}/bukti', [PerjadinController::class, 'storeBukti'])->name('storeBukti');
+        
+        // Route Selesaikan (Finalisasi)
+        Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanPerjadin'])->name('selesaikan');
     });
 
-    // Tambahan contoh route yang sering dipakai (uji coba)
+    Route::get('/bukti/delete/{id}', [PerjadinController::class, 'deleteBukti'])->name('bukti.delete');
+    // =================================================================
+
+    // Laporan Keuangan Lama (Jika masih dipakai)
+    Route::prefix('laporan-keuangan')->name('laporan.')->controller(LaporanKeuanganController::class)->group(function () {
+        Route::get('/', 'index')->name('index')->middleware('role:PIC,PPK,PIMPINAN'); 
+        Route::get('/export-excel', 'generateExcel')->name('export')->middleware('role:PIC,PPK,PIMPINAN'); 
+        Route::get('/{id}', 'show')->name('show'); 
+        Route::get('/{id}/edit', 'edit')->name('edit')->middleware('role:PIC,PPK'); 
+        Route::put('/{id}', 'update')->name('update')->middleware('role:PIC,PPK'); 
+        Route::post('/{id}/verify', 'verify')->name('verify')->middleware('role:PPK'); 
+    });
+
     Route::view('/nyoba', 'nyoba')->name('nyoba');
 });
 
 
 // PIMPINAN
 Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
-    // Beranda dihapus dari sini — global
-    // Riwayat dihapus dari sini — global
     Route::get('/monitoring', [PimpinanController::class, 'index'])->name('monitoring');
     Route::get('/detail/{id}', [PimpinanController::class, 'detail'])->name('detail');
 });
 
 // PIC (Person In Charge)
 Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(function () {
-    // Beranda dihapus dari sini — global
-    // Riwayat dihapus dari sini — global
-    Route::get('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan');
+    Route::get('/manajemen-perjadin', [\App\Http\Controllers\PerjadinController::class, 'index'])->name('penugasan');
+    Route::get('/penugasan-perjadin/create', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan.create');
     Route::post('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'store'])->name('penugasan.store');
+    Route::get('/penugasan-perjadin/{id}/edit', [\App\Http\Controllers\PerjadinTambahController::class, 'edit'])->name('penugasan.edit');
+    Route::patch('/penugasan-perjadin/{id}', [\App\Http\Controllers\PerjadinTambahController::class, 'update'])->name('penugasan.update');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 
+    // === ROUTE PELAPORAN KEUANGAN PIC (BARU) ===
+    Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
+    Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
 
-    // Pegawai management (list, tambah, edit, detail)
+    // Pegawai management
     Route::get('/pegawai', fn() => view('pic.managePegawai'))->name('pegawai.index');
     Route::get('/pegawai/tambah', fn() => view('pic.tambahPegawai'))->name('pegawai.create');
     Route::get('/pegawai/{id}/edit', fn() => view('pic.editPegawai'))->name('pegawai.edit');
@@ -101,15 +112,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
 
 // PPK
 Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(function () {
-    // Beranda dihapus dari sini — global
-    // Riwayat dihapus dari sini — global
-    Route::get('/pelaporan', fn() => view('ppk.pelaporan'))->name('pelaporan');
+    Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');
 });
-
-// PEGAWAI
-// Route::middleware(['auth','role:PEGAWAI'])->prefix('pegawai')->name('pegawai.')->group(function () {
-//     // Beranda dihapus dari sini — global
-//     // Riwayat dihapus dari sini — global
-// });

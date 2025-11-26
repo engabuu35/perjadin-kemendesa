@@ -296,7 +296,7 @@
     <!-- Sidebar -->
     <aside class="sidebar bg-sidebar fixed left-0 top-[90px] w-[80px] h-[calc(100vh-80px)]
                 transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
-                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-hidden">
+                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-visible">
 
         <!-- Menu List -->
         <ul class="sidebar-menu list-none py-5">
@@ -338,11 +338,33 @@
         <div class="user-profile absolute bottom-0 left-0 right-0 px-[15px] pt-5 pb-0 -mb-8
                     border-t border-white/20 flex flex-col items-center transition-all duration-300">
             
-            <!-- Avatar -->
-            <div class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center 
-                        justify-center mb-2.5 text-2xl text-white">
-                <i class="fas fa-user"></i>
-            </div>
+         <!-- Avatar -->
+        <a id="avatarBtn" 
+        href="{{ route('profile') }}"
+        class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center mb-2.5 text-2xl text-white cursor-pointer transition-all duration-300">
+            <i class="fas fa-user"></i>
+        </a>
+
+        <!-- Popup Menu -->
+        <div id="profilePopup"
+            class="absolute bottom-[185px] left-[110%] -translate-x-1/2 bg-white text-gray-800 
+                    rounded-xl shadow-lg py-2 w-[160px] opacity-0 invisible 
+                    transition-all duration-300 z-[9999]">
+
+            <!-- Profil Saya -->
+            <a href="{{ route('profile') }}"
+            class="block px-4 py-2 text-sm hover:bg-gray-100 rounded-lg">
+            <i class="fas fa-user"></i>
+                Profil Saya
+            </a>
+
+            <!-- Logout -->
+            <button id="popupLogout"
+                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
             
             <!-- User Name -->
             <div class="name text-white text-sm font-bold mb-[5px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
@@ -392,12 +414,14 @@
         const cancelLogout = document.getElementById('cancelLogout');
         const confirmLogout = document.getElementById('confirmLogout');
 
+        if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             e.preventDefault(); // sangat penting supaya form gak submit langsung
             logoutModal.classList.remove('opacity-0', 'invisible');
             logoutModal.classList.add('opacity-100', 'visible');
         });
+        }
 
         // Tutup modal saat klik Batal
         cancelLogout.addEventListener('click', (e) => {
@@ -498,6 +522,45 @@
                 }
             }
         }
+            const sidebarEl = document.querySelector('.sidebar');
+            const avatarBtn = document.getElementById('avatarBtn');
+            const profilePopup = document.getElementById('profilePopup');
+            const popupLogout = document.getElementById('popupLogout');
+
+            //profil pop up
+            profilePopup.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Klik avatar
+            avatarBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const sidebarExpanded =
+                    sidebarEl.classList.contains('active') ||
+                    sidebarEl.offsetWidth > 80;
+
+                if (!sidebarExpanded) {
+                    e.preventDefault();
+                    profilePopup.classList.remove('opacity-0', 'invisible');
+                    profilePopup.classList.add('opacity-100', 'visible');
+                }
+            });
+
+
+            // klik Logout dari popup
+            popupLogout.addEventListener('click', function (e) {
+                e.stopPropagation();
+                logoutModal.classList.remove('opacity-0', 'invisible');
+                logoutModal.classList.add('opacity-100', 'visible');
+            });
+
+            // Klik di luar popup → tutup
+            document.addEventListener('click', function (e) {
+                if (!profilePopup.contains(e.target) && !avatarBtn.contains(e.target)) {
+                    profilePopup.classList.add('opacity-0', 'invisible');
+                    profilePopup.classList.remove('opacity-100', 'visible');
+                }
+            });    
     </script>
 </body>
 </html>

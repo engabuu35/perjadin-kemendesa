@@ -1,155 +1,118 @@
 @extends('layouts.appPPK')
 
-{{-- 
-  Data dummy untuk daftar perjalanan.
-  Nantinya, ini akan Anda kirim dari Controller.
---}}
 @section('content')
 @php
-    $perjalanan_list = [
-        (object)[
-            'id' => 2,
-            'nomor_surat' => '489/PRC.03.01/2024',
-            'lokasi' => 'Ogan Komering Ilir',
-            'tanggal' => '30 Desember 2024 - 1 Januari 2025',
-            'status' => 'On Progress',
-            'status_color' => 'yellow',
-            'catatan' => 'Surat Tugas Belum Lengkap'
-        ]
-    ];
+    /**
+     * Helper mapping kelas badge berdasarkan warna logis.
+     * Bisa disesuaikan kembali kalau Anda punya kolom warna di DB.
+     */
+    if (! function_exists('statusBgClass')) {
+        function statusBgClass($color) {
+            return match($color) {
+                'red' => 'bg-red-100 text-red-800 border-red-200',
+                'green' => 'bg-green-100 text-green-800 border-green-200',
+                'yellow' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                'orange' => 'bg-orange-100 text-orange-800 border-orange-200',
+                default => 'bg-gray-100 text-gray-800 border-gray-200',
+            };
+        }
+    }
 @endphp
 
-{{-- 
-  Konten <main>
-  class="ml-[80px]" PENTING untuk memberi ruang bagi sidebar.
-  Ini juga mengikuti pola 'detailperjadin.blade.php'
---}}
-<main class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8">
-    
-    <!-- Judul -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-            <h2 class="text-gray-700 text-4xl font-bold pb-3 relative">
+            <h2 class="text-gray-700 text-3xl font-bold pb-2 relative">
                 Pelaporan Pegawai
-                <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+                <span class="absolute bottom-0 left-0 w-32 h-1 bg-blue-500 rounded"></span>
             </h2>
-            <p class="text-gray-700 text-xl mt-4">Pelaporan Keuangan Pegawai yang Telah Melakukan Perjalanan Dinas</p>
+            <p class="text-gray-500 mt-2">Daftar pelaporan perjalanan dinas — tampilan tile yang terhubung ke database.</p>
         </div>
     </div>
 
-    <!-- Daftar Kartu Perjalanan -->
-    <div class="space-y-6">
-
-        @forelse ($perjalanan_list as $perjalanan)
-            
-            {{-- Logika Warna Badge --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @forelse($perjalanans as $perjalanan)
             @php
-                $badge_class = 'bg-gray-500'; 
-                $bg_catatan = 'bg-gray-50';
-                $text_catatan = 'text-gray-700';
+                // Ambil label status dari relasi laporanKeuangan -> status (statuslaporan)
+                $lap = $perjalanan->laporanKeuangan ?? null;
+                $status_label = $lap && $lap->status ? $lap->status->nama_status : 'Belum Lapor';
 
-                if ($perjalanan->status_color == 'red') {
-                    $badge_class = 'bg-red-500';
-                    $bg_catatan = 'bg-red-50';
-                    $text_catatan = 'text-red-700';
-                } elseif ($perjalanan->status_color == 'yellow') {
-                    $badge_class = 'bg-yellow-500';
-                    $bg_catatan = 'bg-yellow-50';
-                    $text_catatan = 'text-yellow-700';
-                } elseif ($perjalanan->status_color == 'green') {
-                    $badge_class = 'bg-green-600';
-                    $bg_catatan = 'bg-green-50';
-                    $text_catatan = 'text-green-700';
-                } elseif ($perjalanan->status_color == 'blue') {
-                    $badge_class = 'bg-blue-500';
-                    $bg_catatan = 'bg-blue-50';
-                    $text_catatan = 'text-blue-700';
+                // Pilih warna sederhana berdasarkan label (ubah sesuai kebutuhan)
+                $lower = strtolower($status_label);
+                if (str_contains($lower, 'selesai') || str_contains($lower, 'terverifikasi') || str_contains($lower, 'lunas')) {
+                    $status_color = 'green';
+                } elseif (str_contains($lower, 'menunggu') || str_contains($lower, 'pending') || str_contains($lower, 'on progress')) {
+                    $status_color = 'orange';
+                } elseif (str_contains($lower, 'ditolak') || str_contains($lower, 'rejected') || str_contains($lower, 'batal')) {
+                    $status_color = 'red';
+                } else {
+                    $status_color = 'gray';
                 }
+
+                $badge_classes = statusBgClass($status_color);
+
+                // Field uraian/hasil: fallback karena model/DB sedikit berbeda penamaan
+                $uraian = $perjalanan->uraian ?? $perjalanan->hasil_perjadin ?? null;
+
+                // Tanggal: tampil apa adanya (sesuai permintaan)
+                $tanggal_display = $perjalanan->tanggal_surat
+                                    ?? ($perjalanan->tgl_mulai && $perjalanan->tgl_selesai ? ($perjalanan->tgl_mulai . ' - ' . $perjalanan->tgl_selesai) : ($perjalanan->tgl_mulai ?? $perjalanan->tgl_selesai ?? ''));
             @endphp
 
-            <!-- Kartu Perjalanan -->
-            <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
-                
-                <!-- Bagian Atas Kartu (Info Utama) -->
-                <div class="border-l-[6px] border-blue-500 p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                        
-                        <!-- Info Kiri -->
-                        <div class="flex-1 space-y-3 min-w-0">
-                            <h3 class="text-blue-800 font-bold text-xl tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-200 pb-2 truncate">
-                                {{ $perjalanan->nomor_surat }}
-                            </h3>
-                            
-                            <div class="space-y-2">
-                                <p class="flex items-start gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
-                                    <i class="fa-solid fa-location-dot w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
-                                    <span class="font-medium break-words">{{ $perjalanan->lokasi }}</span>
-                                </p>
-                                <p class="flex items-start gap-3 text-gray-600 text-sm group-hover:translate-x-1 transition-transform duration-300 delay-100">
-                                    <i class="fa-regular fa-calendar w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
-                                    <span class="break-words">{{ $perjalanan->tanggal }}</span>
-                                </p>
-                            </div>
-                        </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition overflow-hidden flex flex-col">
+                <div class="p-6 flex-1">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full border {{ $badge_classes }}">
+                            {{ $perjalanan->nomor_surat }}
+                        </span>
 
-                        <!-- Info Kanan (Status & Link) -->
-                        <div class="flex flex-col items-center sm:items-center gap-3 sm:min-w-[150px]">
-                            
-                            <!-- Badge Status -->
-                            <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-2 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
-                                @if($perjalanan->status_color == 'red')
-                                    <i class="fa-solid fa-circle-exclamation text-xs"></i>
-                                @elseif($perjalanan->status_color == 'yellow')
-                                    <i class="fa-solid fa-spinner text-xs animate-pulse"></i>
-                                @elseif($perjalanan->status_color == 'green')
-                                    <i class="fa-solid fa-circle-check text-xs"></i>
-                                @else
-                                    <i class="fa-solid fa-circle text-xs animate-pulse"></i>
-                                @endif
-                                {{ $perjalanan->status }}
-                            </span>
-                            
-                            <!-- Link Detail -->
-                            <a href="{{ route('perjalanan.detail', $perjalanan->id) }}" 
-                               class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold transition-all duration-200 flex items-center gap-2 group/link px-2 py-1 rounded hover:bg-blue-50">
-                                <span>Lihat Detail</span>
-                                <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
-                            </a>
-                        </div>
+                        <span class="text-sm font-semibold {{ $status_color == 'green' ? 'text-green-600' : ($status_color == 'red' ? 'text-red-600' : ($status_color == 'orange' ? 'text-orange-600' : 'text-gray-600')) }}">
+                            {{ $status_label }}
+                        </span>
                     </div>
-                </div>
 
-                <!-- Banner Catatan (Bagian Bawah) -->
-                <div class="{{ $bg_catatan }} px-6 py-3 border-t border-gray-100">
-                    <p class="{{ $text_catatan }} text-sm font-medium flex items-center gap-2">
-                        @if($perjalanan->status_color == 'red')
-                            <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                        @elseif($perjalanan->status_color == 'yellow')
-                             <i class="fa-solid fa-spinner fa-spin text-lg"></i>
-                        @elseif($perjalanan->status_color == 'green')
-                            <i class="fa-solid fa-circle-check text-lg"></i>
-                        @else
-                            <i class="fa-solid fa-info-circle text-lg"></i>
-                        @endif
-                        <span>{{ $perjalanan->catatan }}</span>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
+                        {{ $perjalanan->tujuan ?? $perjalanan->lokasi ?? '-' }}
+                    </h3>
+
+                    <p class="flex items-center gap-2 text-gray-700 text-base mb-2">
+                        <i class="fa-solid fa-calendar-days w-4 text-center text-gray-400"></i>
+                        <span>
+                            {{ $perjalanan->tgl_mulai ? \Carbon\Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') : '-' }}
+                            @if($perjalanan->tgl_mulai && $perjalanan->tgl_selesai)
+                                - {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}
+                            @elseif($perjalanan->tgl_selesai)
+                                {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}
+                            @endif
+                        </span>
                     </p>
+
+                    @if($lap && !is_null($lap->biaya_rampung))
+                        <div class="text-sm text-gray-700 mb-2">
+                            Biaya rampung: Rp {{ number_format($lap->biaya_rampung, 0, ',', '.') }}
+                        </div>
+                    @endif
                 </div>
 
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                    <a href="{{ route('ppk.detailPelaporan', $perjalanan->id) }}"
+                       class="block w-full text-center bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-2 rounded-lg transition">
+                        Lihat Detail
+                    </a>
+                </div>
             </div>
-            <!-- Akhir Kartu Perjalanan -->
-
         @empty
-            <!-- Tampilan Jika Tidak Ada Data -->
-            <div class="bg-white rounded-2xl shadow-sm p-10 text-center border border-gray-100">
-                <div class="mb-4">
-                    <i class="fa-solid fa-suitcase-rolling text-6xl text-gray-200"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-600">Belum ada Perjalanan Dinas</h3>
-                <p class="text-gray-500 mt-2">Saat ini Anda tidak memiliki jadwal perjalanan dinas aktif.</p>
+            <div class="col-span-full text-center py-12">
+                <p class="text-gray-400 text-lg">Belum ada laporan yang masuk.</p>
             </div>
         @endforelse
-    
     </div>
-            
+
+    {{-- Pagination (pastikan controller mengirim paginate) --}}
+    @if(isset($perjalanans) && method_exists($perjalanans, 'links'))
+        <div class="mt-6">
+            {{ $perjalanans->links() }}
+        </div>
+    @endif
 </main>
 @endsection

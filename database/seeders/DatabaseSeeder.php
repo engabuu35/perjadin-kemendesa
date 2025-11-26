@@ -53,5 +53,9 @@ class DatabaseSeeder extends Seeder
         // $this->call([
         //     PenugasanPeranSeeder::class,
         // ]);
+        $this->call([
+            LaporanKeuanganSeeder::class,
+        ]);
+
     }
 }

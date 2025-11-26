@@ -4,208 +4,254 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-<div class="ml-[80px] p-6 mt-[90px]">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
+<div class="ml-[80px] p-6 mt-[90px] max-w-5xl mx-auto">
+    
+    <!-- HEADER & STATUS -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Detail Perjalanan Dinas</h1>
-            <p class="text-gray-500 text-sm">Pantau lokasi harian dan laporkan kegiatan Anda.</p>
+            <h1 class="text-3xl font-bold text-gray-800">Detail Perjalanan Dinas</h1>
+            <p class="text-gray-500 mt-1">Surat Tugas: <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span></p>
+            
+            <!-- BADGE STATUS -->
+            <div class="mt-2">
+                Status: 
+                @if($isLocked)
+                    <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold border border-gray-300">
+                        🔒 {{ $statusText }}
+                    </span>
+                @else
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
+                        ✏️ Sedang Berlangsung
+                    </span>
+                @endif
+            </div>
         </div>
-        <a href="{{ url()->previous() }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Kembali</a>
+        
+        <div class="flex gap-2">
+            <a href="{{ url()->previous() }}" class="bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition shadow-sm font-medium">← Kembali</a>
+            
+            <!-- TOMBOL SELESAIKAN (Hanya Muncul Jika Belum Dikunci) -->
+            @if(!$isLocked)
+            <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan laporan ini? \n\nPERHATIAN: Setelah diselesaikan, data akan dikirim ke PIC dan TIDAK BISA DIEDIT LAGI oleh Anda maupun anggota tim lain.')">
+                @csrf
+                <button type="submit" class="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 transition shadow-md font-bold flex items-center gap-2">
+                    ✅ Selesaikan & Kirim Laporan
+                </button>
+            </form>
+            @endif
+        </div>
     </div>
 
+    <!-- ALERT JIKA TERKUNCI -->
+    @if($isLocked)
+    <div class="bg-gray-50 border-l-4 border-gray-400 p-4 mb-8 rounded-r shadow-sm">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-gray-700">
+                    Laporan ini berstatus <strong>{{ $statusText }}</strong>. Anda hanya dapat melihat data (Read-Only) karena laporan sudah diselesaikan atau tanggal belum dimulai.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @if(session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6">{{ session('success') }}</div>
+        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6">{{ session('success') }}</div>
     @endif
     @if(session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">{{ session('error') }}</div>
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">{{ session('error') }}</div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- KOLOM KIRI -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Peta & Geotagging -->
-            <div class="bg-white p-6 rounded-2xl shadow-md">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Geotagging Harian</h2>
-                <div id="map" class="w-full h-64 bg-gray-100 rounded-lg mb-4 z-0"></div>
-                
-                <div class="flex flex-col items-center">
-                    <p id="geotag-status" class="text-sm text-gray-600 mb-3 font-medium">
-                        {{-- LOGIKA PESAN STATUS --}}
-                        @if(!$isTodayInPeriod)
-                            <span class="text-red-500">⛔ {{ $statusMessage }} (Tombol Nonaktif)</span>
-                        @elseif($sudahAbsenHariIni)
-                            <span class="text-green-600">✅ Anda sudah menandai lokasi untuk hari ini.</span>
-                        @else
-                            Silakan tandai lokasi Anda hari ini.
-                        @endif
-                    </p>
+    <div class="flex flex-col gap-8">
+        
+        <!-- BAGIAN 1: GEOTAGGING -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isLocked ? 'opacity-75 pointer-events-none' : '' }}">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">📍 Geotagging Harian</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div id="map" class="w-full h-64 bg-gray-100 rounded-xl mb-4 z-0 border border-gray-200"></div>
                     
-                    {{-- LOGIKA DISABLE TOMBOL --}}
-                    <button type="button" id="geotag-btn"
-                            data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}"
-                            {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }}
-                            class="{{ (!$isTodayInPeriod || $sudahAbsenHariIni) 
-                                ? 'bg-gray-400 cursor-not-allowed' 
-                                : 'bg-blue-600 hover:bg-blue-700 hover:-translate-y-0.5' 
-                            }} text-white font-bold py-3 px-8 rounded-lg shadow-md transition transform">
-                        
+                    @if(!$isLocked)
+                        <button type="button" id="geotag-btn"
+                                data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}"
+                                {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }}
+                                class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition">
+                            @if($sudahAbsenHariIni) ✓ Lokasi Tercatat @else 🎯 Tandai Lokasi Saya @endif
+                        </button>
                         @if(!$isTodayInPeriod)
-                            🚫 Di Luar Jadwal
-                        @elseif($sudahAbsenHariIni)
-                            ✓ Sudah Absen
-                        @else
-                            📍 Tandai Lokasi (Check-In)
+                            <p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>
                         @endif
-                    </button>
+                    @endif
                 </div>
-            </div>
-
-            <!-- Tabel -->
-            <div class="bg-white p-6 rounded-2xl shadow-md">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Riwayat Perjalanan</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hari Ke</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Koordinat</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($geotagHistory as $history)
-                            <tr class="{{ $history['status'] == 'Sudah' ? 'bg-blue-50' : '' }}">
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $history['hari_ke'] }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $history['tanggal'] }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $history['lokasi'] }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $history['waktu'] }}</td>
-                                <td class="px-4 py-3 text-sm">
-                                    @if($history['status'] == 'Sudah')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>
-                                    @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Pending</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="lg:col-span-1 bg-gray-50 rounded-xl p-4 h-64 overflow-y-auto">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3">Riwayat Absensi</h3>
+                    <div class="space-y-3">
+                        @foreach($geotagHistory as $h)
+                        <div class="flex items-start gap-3 p-2 rounded-lg {{ $h['status'] == 'Sudah' ? 'bg-white border border-gray-200' : 'opacity-50' }}">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $h['status'] == 'Sudah' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500' }}">H{{ $h['hari_ke'] }}</div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-800">{{ $h['tanggal'] }}</p>
+                                <p class="text-[10px] text-gray-500">{{ $h['waktu'] }} | {{ $h['lokasi'] }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- KOLOM KANAN (Laporan) -->
-        <div class="lg:col-span-1">
-            <div class="bg-white p-6 rounded-2xl shadow-md sticky top-24">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Laporan Kegiatan</h2>
-                <form action="{{ route('perjalanan.storeLaporan', $perjalanan->id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Uraian Kegiatan</label>
-                        <textarea name="uraian" rows="6" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Tuliskan progress..." {{ ($laporan && $laporan->is_final) ? 'disabled' : '' }}>{{ old('uraian', $laporan->uraian ?? '') }}</textarea>
+        <!-- BAGIAN 2: URAIAN KEGIATAN -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isLocked ? 'opacity-75' : '' }}">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">📝 Uraian Kegiatan</h2>
+            <form action="{{ route('perjalanan.storeUraian', $perjalanan->id) }}" method="POST">
+                @csrf
+                <textarea name="uraian" rows="4" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 bg-gray-50" placeholder="Progress pekerjaan..." {{ $isLocked ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
+                
+                @if(!$isLocked)
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="submit" name="action_type" value="draft" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg text-sm">Simpan Draft</button>
+                    <button type="submit" name="action_type" value="finish" onclick="return confirm('Yakin final?')" class="bg-green-600 text-white px-5 py-2 rounded-lg text-sm">Simpan Final</button>
+                </div>
+                @endif
+            </form>
+        </div>
+
+        <!-- BAGIAN 3: BUKTI KEUANGAN -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isLocked ? 'opacity-75' : '' }}">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">📂 Rincian Biaya & Bukti</h2>
+                <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Satu pintu untuk semua anggota</span>
+            </div>
+
+            <div class="space-y-8">
+                @foreach($allPeserta as $peserta)
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <!-- Header Kartu -->
+                    <div class="bg-gray-50 px-6 py-4 flex justify-between items-center border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">{{ substr($peserta->name, 0, 2) }}</div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-sm">{{ $peserta->name }}</h3>
+                                <p class="text-xs text-gray-500 font-mono">{{ $peserta->nip }} | {{ $peserta->role_perjadin }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-400 uppercase">Total Reimburse</p>
+                            <p class="font-bold text-blue-600 text-lg">Rp {{ number_format($peserta->total_biaya, 0, ',', '.') }}</p>
+                        </div>
                     </div>
 
-                    @if($laporan && $laporan->bukti->count() > 0)
-                    <div class="mb-4">
-                        <p class="text-sm font-medium text-gray-700 mb-2">Bukti Tersimpan:</p>
-                        <ul class="space-y-2">
-                            @foreach($laporan->bukti as $file)
-                            <li class="flex items-center justify-between bg-gray-50 p-2 rounded text-xs">
-                                <div class="flex flex-col">
-                                    <span class="font-semibold text-gray-600">{{ $file->kategori }}</span>
-                                    
-                                    {{-- [TAMBAHAN] Tampilkan Nominal jika ada di database --}}
-                                    @if($file->nominal)
-                                        <span class="text-gray-500 font-medium">Rp {{ number_format($file->nominal, 0, ',', '.') }}</span>
-                                    @endif
+                    <div class="p-6">
+                        <!-- TABEL RINCIAN -->
+                        @if($peserta->laporan && $peserta->laporan->bukti->count() > 0)
+                        <div class="overflow-x-auto mb-6">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-2">Kategori</th>
+                                        <th class="px-4 py-2">Nominal (Rp)</th>
+                                        <th class="px-4 py-2">File Bukti</th>
+                                        <th class="px-4 py-2 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($peserta->laporan->bukti as $file)
+                                    <tr class="bg-white border-b hover:bg-gray-50">
+                                        <td class="px-4 py-2 font-medium text-gray-900">{{ $file->kategori }}</td>
+                                        <td class="px-4 py-2">Rp {{ number_format($file->nominal, 0, ',', '.') }}</td>
+                                        <td class="px-4 py-2">
+                                            @if($file->path_file)
+                                                <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">📄 Lihat File</a>
+                                            @else
+                                                <span class="text-gray-400 italic text-xs">Tidak ada file</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2 text-right">
+                                            @if(!$isLocked)
+                                                <a href="{{ route('bukti.delete', $file->id) }}" onclick="return confirm('Hapus item ini?')" class="text-red-500 hover:text-red-700 font-bold px-2">×</a>
+                                            @else
+                                                <span class="text-gray-300">🔒</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @else
+                            <p class="text-center text-gray-400 text-sm italic mb-6">Belum ada rincian biaya yang dimasukkan.</p>
+                        @endif
 
-                                    <a href="{{ asset('storage/'.$file->path_file) }}" target="_blank" class="text-blue-600 truncate max-w-[150px]">{{ $file->nama_file }}</a>
-                                </div>
-                                @if(!$laporan->is_final)
-                                    <a href="{{ route('bukti.delete', $file->id) }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Hapus file ini?')">x</a>
-                                @endif
-                            </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    @endif
+                        <!-- FORM TAMBAH (HANYA JIKA BELUM LOCKED) -->
+                        @if(!$isLocked)
+                        <form action="{{ route('perjalanan.storeBukti', $perjalanan->id) }}" method="POST" enctype="multipart/form-data" class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col md:flex-row gap-3 items-end">
+                            @csrf
+                            <input type="hidden" name="target_nip" value="{{ $peserta->nip }}">
 
-                    @if(!$laporan || !$laporan->is_final)
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Bukti Baru</label>
-                        <div id="upload-container" class="space-y-3">
-                            <div class="flex gap-2">
-                                <!-- [PERUBAHAN 1] Layout 3 Kolom (Kategori - Nominal - File) -->
-                                
-                                <!-- 1. Kategori (Lebar w-1/3) -->
-                                <select name="kategori[]" class="w-1/3 text-xs border-gray-300 rounded" required>
-                                    <option value="" disabled selected>Pilih Kategori</option>
+                            <div class="w-full md:w-1/4">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Kategori</label>
+                                <select name="kategori" class="w-full text-xs border-gray-300 rounded-lg py-2" required>
+                                    <option value="" disabled selected>- Pilih -</option>
                                     <option value="Tiket">Tiket</option>
-                                    <option value="Uang Harian">Uang Harian</option>
                                     <option value="Penginapan">Penginapan</option>
-                                    <option value="Uang Representasi">Uang Representasi</option>
+                                    <option value="Transport">Transport</option>
                                     <option value="Sewa Kendaraan">Sewa Kendaraan</option>
+                                    <option value="Uang Harian">Uang Harian</option>
+                                    <option value="Uang Representasi">Uang Representasi</option>
                                     <option value="Pengeluaran Riil">Pengeluaran Riil</option>
                                     <option value="SSPB">SSPB</option>
                                 </select>
-
-                                <!-- 2. [TAMBAHAN] Input Nominal Rupiah (Lebar w-1/3) -->
-                                <input type="number" name="nominal[]" class="w-1/3 text-xs border-gray-300 rounded" placeholder="Rp Biaya" required>
-
-                                <!-- 3. Input File (Lebar w-1/3) -->
-                                <input type="file" name="bukti[]" class="w-1/3 text-xs text-gray-500" required>
-                                
-                                <!-- [AKHIR PERUBAHAN 1] -->
                             </div>
-                        </div>
-                        <button type="button" id="add-upload" class="mt-2 text-xs text-blue-600 font-semibold hover:underline">+ Tambah File Lain</button>
-                    </div>
-                    @endif
+                            
+                            <div class="w-full md:w-1/4">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Nominal (Rp)</label>
+                                <input type="number" name="nominal" placeholder="0" class="w-full text-xs border-gray-300 rounded-lg py-2" required>
+                            </div>
 
-                    <div class="flex flex-col gap-3 mt-6">
-                        @if($laporan && $laporan->is_final)
-                            <div class="bg-green-100 text-center p-3 rounded-lg text-green-800 font-bold">✓ Laporan Selesai</div>
-                        @else
-                            <button type="submit" name="action_type" value="draft" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">💾 Simpan Progress</button>
-                            @if($isLastDayPassed)
-                                <button type="submit" name="action_type" value="finish" onclick="return confirm('Selesaikan laporan?')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition shadow-md">🚀 Selesaikan & Kirim</button>
-                            @else
-                                <p class="text-xs text-center text-gray-400 mt-2">Tombol "Selesai" aktif pada {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}.</p>
-                            @endif
+                            <div class="w-full md:w-1/3">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">File Bukti (Opsional)</label>
+                                <input type="file" name="bukti" class="w-full text-xs text-gray-500 bg-white border border-gray-300 rounded-lg file:py-2 file:px-4 file:bg-blue-600 file:text-white file:border-0 hover:file:bg-blue-700">
+                            </div>
+
+                            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-sm whitespace-nowrap">+ Tambah</button>
+                        </form>
                         @endif
                     </div>
-                </form>
+                </div>
+                @endforeach
             </div>
         </div>
+
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Logic Peta
     const map = L.map('map').setView([-2.548926, 118.0148634], 5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     const historyData = @json($geotagHistory);
     historyData.forEach(point => {
         if(point.lat_raw && point.long_raw) {
-             L.marker([point.lat_raw, point.long_raw])
-              .addTo(map)
-              .bindPopup(`<b>Hari ke-${point.hari_ke}</b><br>${point.tanggal}<br>${point.waktu}`);
-             map.setView([point.lat_raw, point.long_raw], 10);
+             L.marker([point.lat_raw, point.long_raw]).addTo(map)
+              .bindPopup(`<b>H${point.hari_ke}: ${point.tanggal}</b><br>${point.waktu}`);
         }
     });
 
+    // Geotag Button
     const geotagBtn = document.getElementById('geotag-btn');
-    const statusEl = document.getElementById('geotag-status');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     if (geotagBtn && !geotagBtn.disabled) {
         geotagBtn.addEventListener('click', function() {
-            statusEl.textContent = 'Mendeteksi lokasi...';
+            geotagBtn.innerHTML = 'Sedang mendeteksi...';
             navigator.geolocation.getCurrentPosition(pos => {
                 const { latitude, longitude } = pos.coords;
                 fetch(geotagBtn.dataset.url, {
@@ -215,48 +261,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if(data.status === 'success') {
-                        alert(data.message);
-                        location.reload(); 
-                    } else {
-                        alert(data.message);
-                    }
-                });
+                    alert(data.message);
+                    location.reload(); 
+                })
+                .catch(err => alert('Error: ' + err));
             }, err => {
-                alert('Gagal lokasi: ' + err.message);
+                alert('Gagal mendapatkan lokasi. Pastikan GPS aktif.');
+                geotagBtn.innerHTML = '🎯 Tandai Lokasi Saya';
             });
-        });
-    }
-
-    const addUploadBtn = document.getElementById('add-upload');
-    const uploadContainer = document.getElementById('upload-container');
-    if(addUploadBtn) {
-        addUploadBtn.addEventListener('click', () => {
-            const div = document.createElement('div');
-            div.className = 'flex gap-2';
-            
-            // [PERUBAHAN 2] Script Javascript
-            // Menambahkan input 'nominal' pada baris baru agar user bisa input biaya untuk file tambahan
-            div.innerHTML = `
-                <select name="kategori[]" class="w-1/3 text-xs border-gray-300 rounded" required>
-                    <option value="" disabled selected>Pilih Kategori</option>
-                    <option value="Tiket">Tiket</option>
-                    <option value="Uang Harian">Uang Harian</option>
-                    <option value="Penginapan">Penginapan</option>
-                    <option value="Uang Representasi">Uang Representasi</option>
-                    <option value="Sewa Kendaraan">Sewa Kendaraan</option>
-                    <option value="Pengeluaran Riil">Pengeluaran Riil</option>
-                    <option value="SSPB">SSPB</option>
-                </select>
-
-                <!-- Input Nominal -->
-                <input type="number" name="nominal[]" class="w-1/3 text-xs border-gray-300 rounded" placeholder="Rp Biaya" required>
-
-                <input type="file" name="bukti[]" class="w-1/3 text-xs text-gray-500" required>
-            `;
-            // [AKHIR PERUBAHAN 2]
-
-            uploadContainer.appendChild(div);
         });
     }
 });
