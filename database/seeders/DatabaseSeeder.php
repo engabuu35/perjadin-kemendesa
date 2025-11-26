@@ -57,5 +57,9 @@ class DatabaseSeeder extends Seeder
             LaporanKeuanganSeeder::class,
         ]);
 
+        $this->call([
+        DummyPegawaiWithPerjadinSeeder::class,
+        ]);
+
     }
 }
