@@ -10,123 +10,180 @@ use App\Models\User;
 
 class DummyPegawaiWithPerjadinSeeder extends Seeder
 {
+    /**
+     * ID status laporan keuangan (draft & selesai) untuk tabel laporankeuangan
+     */
+    protected ?int $statusLaporanDraftId   = null;
+    protected ?int $statusLaporanSelesaiId = null;
+
+    /**
+     * NIP salah satu user PPK (untuk verified_by di laporan keuangan)
+     */
+    protected ?string $ppkNip = null;
+
     public function run(): void
     {
-        // -----------------------------
-        // 1. Ambil ID status perjadin dari kolom NAMA_STATUS
-        // -----------------------------
+        // ================================
+        // 1. Mapping status perjadin
+        // ================================
         // statusperjadin: id, nama_status
-        // Isi default:
-        // 1 Belum Berlangsung
-        // 2 Sedang Berlangsung
-        // 3 Menunggu Laporan
-        // 4 Selesai
-        // 5 Diselesaikan Manual
-        // 6 Dibatalkan
         $statusMap = DB::table('statusperjadin')->pluck('id', 'nama_status');
-        // $statusMap['Belum Berlangsung'], dll.
+        // contoh: $statusMap['Belum Berlangsung'], ['Sedang Berlangsung'], dst.
 
-        // -----------------------------
-        // 2. Buat 50 PEGAWAI lewat factory
-        // -----------------------------
+        // ================================
+        // 2. Mapping status laporan keuangan
+        // ================================
+        $statusLaporan = DB::table('statuslaporan')->pluck('id', 'nama_status');
+
+        // Cari status draft / belum selesai (fallback ke baris pertama kalau nama tidak ada)
+        $this->statusLaporanDraftId =
+            $statusLaporan['Draft']
+            ?? $statusLaporan['Belum Diverifikasi']
+            ?? $statusLaporan['Menunggu Verifikasi']
+            ?? ($statusLaporan->first() ?: null);
+
+        // Cari status selesai dibayar (fallback ke baris terakhir kalau nama tidak ada)
+        $this->statusLaporanSelesaiId =
+            $statusLaporan['Selesai Dibayar']
+            ?? $statusLaporan['Selesai']
+            ?? $statusLaporan['Rampung']
+            ?? ($statusLaporan->last() ?: null);
+
+        // ================================
+        // 3. Ambil salah satu NIP PPK (untuk verified_by)
+        // ================================
+        $this->ppkNip = DB::table('penugasanperan')
+            ->join('roles', 'penugasanperan.role_id', '=', 'roles.id')
+            ->where('roles.kode', 'PPK')
+            ->value('user_id'); // isi user_id di sini = users.nip
+
+        // ================================
+        // 4. Generate 50 pegawai (role PEGAWAI) via factory
+        // ================================
         $pegawai = User::factory()
-            ->pegawai()     // state di UserFactory
+            ->pegawai() // state di UserFactory yang menambahkan role 'PEGAWAI'
             ->count(50)
             ->create();
 
-        $today  = Carbon::today();
-        $chunks = $pegawai->chunk(10); // 5 kelompok @10 orang
+        $tahun        = Carbon::now()->year;
+        $currentMonth = Carbon::now()->month;
 
-        // ---------------
-        // Kelompok 1: perjadin "Belum Berlangsung" (akan datang)
-        // ---------------
-        if (isset($chunks[0])) {
-            foreach ($chunks[0] as $user) {
-                $mulai = $today->copy()->addDays(rand(3, 10));
+        // ================================
+        // 5. Generate perjalanan dinas & laporan keuangan per bulan
+        // ================================
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
+
+            // 4 pegawai random per bulan (boleh sama di bulan lain)
+            $sample = $pegawai->random(min(4, $pegawai->count()));
+
+            foreach ($sample as $index => $user) {
+
+                // tanggal mulai default (nanti bisa dioverride untuk bulan sekarang)
+                $mulai = Carbon::create($tahun, $bulan, rand(1, 20));
+
+                $statusId             = null;
+                $laporanLengkap       = false;
+                $catatan              = 'Perjadin dummy';
+                $buatLapKeuangan      = false;
+                $laporanKeuSelesai    = false;
+
+                if ($bulan > $currentMonth) {
+                    // ===============================
+                    // BULAN DI DEPAN (MASA DEPAN)
+                    // ===============================
+                    $statusId       = $statusMap['Belum Berlangsung'] ?? null;
+                    $laporanLengkap = false;
+                    $catatan        = 'Perjadin akan datang (Belum Berlangsung)';
+                    $buatLapKeuangan   = false; // belum ada realisasi
+                    $laporanKeuSelesai = false;
+
+                } elseif ($bulan < $currentMonth) {
+                    // ===============================
+                    // BULAN YANG SUDAH LEWAT
+                    // ===============================
+                    $rand = rand(1, 3);
+
+                    if ($rand === 1) {
+                        // Selesai, laporan lengkap + keuangan selesai
+                        $statusId          = $statusMap['Selesai'] ?? null;
+                        $laporanLengkap    = true;
+                        $catatan           = 'Perjadin selesai di bulan lalu, laporan lengkap';
+                        $buatLapKeuangan   = true;
+                        $laporanKeuSelesai = true;
+                    } elseif ($rand === 2) {
+                        // Selesai, tapi menunggu laporan pegawai
+                        $statusId          = $statusMap['Menunggu Laporan'] ?? null;
+                        $laporanLengkap    = false;
+                        $catatan           = 'Perjadin selesai, laporan pegawai belum lengkap';
+                        $buatLapKeuangan   = true;  // bisa jadi draft keuangan sudah dibuat
+                        $laporanKeuSelesai = false; // belum rampung
+                    } else {
+                        // Diselesaikan manual / kondisi khusus
+                        $statusId          = $statusMap['Diselesaikan Manual']
+                            ?? ($statusMap['Menunggu Laporan'] ?? null);
+                        $laporanLengkap    = false;
+                        $catatan           = 'Perjadin diselesaikan manual / khusus';
+                        $buatLapKeuangan   = true;
+                        $laporanKeuSelesai = true; // anggap sudah dibayar
+                    }
+
+                } else {
+                    // ===============================
+                    // BULAN SEKARANG
+                    // ===============================
+                    if ($index < 2) {
+                        // 2 perjalanan: Sedang Berlangsung
+                        $statusId          = $statusMap['Sedang Berlangsung'] ?? null;
+                        $laporanLengkap    = false;
+                        $mulai             = Carbon::now()->copy()->subDays(rand(0, 2));
+                        $catatan           = 'Perjadin sedang berlangsung di bulan ini';
+                        $buatLapKeuangan   = false;
+                        $laporanKeuSelesai = false;
+                    } elseif ($index == 2) {
+                        // 1 perjalanan: Selesai + Laporan & Keuangan rampung (DIPASTIKAN ADA)
+                        $statusId          = $statusMap['Selesai'] ?? null;
+                        $laporanLengkap    = true;
+                        $mulai             = Carbon::now()->copy()->subDays(rand(3, 20)); // masih di bulan ini
+                        $catatan           = 'Perjadin selesai di bulan ini, laporan lengkap & sudah dibayar';
+                        $buatLapKeuangan   = true;
+                        $laporanKeuSelesai = true;   // ini yang bikin biaya_rampung terisi
+                    } else {
+                        // sisanya boleh random antara selesai & menunggu laporan
+                        $rand = rand(1, 2);
+                        if ($rand === 1) {
+                            $statusId          = $statusMap['Selesai'] ?? null;
+                            $laporanLengkap    = true;
+                            $catatan           = 'Perjadin selesai di bulan ini, laporan lengkap';
+                            $buatLapKeuangan   = true;
+                            $laporanKeuSelesai = true;
+                        } else {
+                            $statusId          = $statusMap['Menunggu Laporan'] ?? null;
+                            $laporanLengkap    = false;
+                            $catatan           = 'Perjadin selesai di bulan ini, laporan belum lengkap';
+                            $buatLapKeuangan   = true;
+                            $laporanKeuSelesai = false;
+                        }
+                    }
+                }
+
+
+                // Buat perjadin + pegawaiperjadin + (opsional) laporan keuangan
                 $this->createPerjadinForPegawai(
                     user: $user,
                     mulai: $mulai,
                     durasiHari: rand(2, 5),
-                    statusId: $statusMap['Belum Berlangsung'] ?? null,
-                    laporanLengkap: false,
-                    catatan: 'Perjadin akan datang (Belum Berlangsung)'
-                );
-            }
-        }
-
-        // ---------------
-        // Kelompok 2: "Sedang Berlangsung"
-        // ---------------
-        if (isset($chunks[1])) {
-            foreach ($chunks[1] as $user) {
-                $mulai = $today->copy()->subDays(rand(0, 1)); // kemarin / hari ini
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(3, 5),
-                    statusId: $statusMap['Sedang Berlangsung'] ?? null,
-                    laporanLengkap: false,
-                    catatan: 'Perjadin sedang berlangsung'
-                );
-            }
-        }
-
-        // ---------------
-        // Kelompok 3: "Selesai" + laporan lengkap
-        // ---------------
-        if (isset($chunks[2])) {
-            foreach ($chunks[2] as $user) {
-                $mulai = $today->copy()->subDays(rand(7, 20));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(2, 5),
-                    statusId: $statusMap['Selesai'] ?? null,
-                    laporanLengkap: true,
-                    catatan: 'Perjadin selesai, laporan lengkap'
-                );
-            }
-        }
-
-        // ---------------
-        // Kelompok 4: "Menunggu Laporan" (perjadin berakhir, laporan belum lengkap)
-        // ---------------
-        if (isset($chunks[3])) {
-            foreach ($chunks[3] as $user) {
-                $mulai = $today->copy()->subDays(rand(3, 10));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(1, 3),
-                    statusId: $statusMap['Menunggu Laporan'] ?? null,
-                    laporanLengkap: false,
-                    catatan: 'Perjadin selesai, tapi laporan belum lengkap'
-                );
-            }
-        }
-
-        // ---------------
-        // Kelompok 5: anggap "Diselesaikan Manual" (contoh kondisi perlu tindakan / khusus)
-        // ---------------
-        if (isset($chunks[4])) {
-            foreach ($chunks[4] as $user) {
-                $mulai = $today->copy()->subDays(rand(5, 15));
-                $this->createPerjadinForPegawai(
-                    user: $user,
-                    mulai: $mulai,
-                    durasiHari: rand(2, 4),
-                    statusId: $statusMap['Diselesaikan Manual'] 
-                        ?? ($statusMap['Menunggu Laporan'] ?? null),
-                    laporanLengkap: false,
-                    catatan: 'Perjadin diselesaikan manual / butuh perhatian khusus'
+                    statusId: $statusId,
+                    laporanLengkap: $laporanLengkap,
+                    catatan: $catatan,
+                    buatLaporanKeuangan: $buatLapKeuangan,
+                    laporanKeuanganSelesai: $laporanKeuSelesai
                 );
             }
         }
     }
 
     /**
-     * Helper untuk membuat satu perjalanan dinas + record di pegawaiperjadin.
-     * Menggunakan DB::table agar tidak bergantung pada model lain.
+     * Helper: buat 1 perjalanan dinas + relasi pegawai + optional laporan keuangan
      */
     protected function createPerjadinForPegawai(
         User $user,
@@ -134,15 +191,16 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
         int $durasiHari,
         ?int $statusId,
         bool $laporanLengkap,
-        string $catatan
+        string $catatan,
+        bool $buatLaporanKeuangan,
+        bool $laporanKeuanganSelesai
     ): void {
         $akhir = $mulai->copy()->addDays($durasiHari);
 
-        // 1) Insert ke perjalanandinas
-        // HAPUS kolom 'hasil_perjadin' dari insert
+        // 1) Insert ke tabel perjalanandinas
         $perjadinId = DB::table('perjalanandinas')->insertGetId([
             'id_pembuat'    => $user->nip,
-            'id_status'     => $statusId ?? 1, // mis. default "Belum Berlangsung"
+            'id_status'     => $statusId ?? 1, // fallback: Belum Berlangsung
             'approved_by'   => null,
             'approved_at'   => null,
             'nomor_surat'   => 'ST-' . Str::upper(Str::random(6)),
@@ -150,23 +208,17 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
             'tujuan'        => 'Kota ' . Str::title(Str::random(5)),
             'tgl_mulai'     => $mulai->toDateString(),
             'tgl_selesai'   => $akhir->toDateString(),
-            // 'hasil_perjadin' => ...   // ← BARIS INI DIHAPUS
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);
 
-        // 2) Laporan individu per pegawai pada tabel pegawaiperjadin
-        $laporanIndividu = null;
-        if ($laporanLengkap) {
-            // minimal 100 karakter (supaya logika "Selesai" bisa terpicu)
-            $laporanIndividu = str_repeat(
+        // 2) Insert ke tabel pegawaiperjadin (laporan individu pegawai)
+        $laporanIndividu = $laporanLengkap
+            ? str_repeat(
                 'Laporan individu pegawai ini memenuhi syarat minimal 100 karakter. ',
                 3
-            );
-        } else {
-            // sengaja pendek / tidak lengkap
-            $laporanIndividu = 'Laporan singkat, belum lengkap. ' . $catatan;
-        }
+              )
+            : 'Laporan singkat, belum lengkap. ' . $catatan;
 
         DB::table('pegawaiperjadin')->insert([
             'id_perjadin'      => $perjadinId,
@@ -175,7 +227,41 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
             'is_lead'          => 0,
             'laporan_individu' => $laporanIndividu,
         ]);
-    
 
+        // 3) OPTIONAL: Insert ke tabel laporankeuangan
+        if (
+            $buatLaporanKeuangan &&
+            $this->statusLaporanDraftId &&
+            $this->statusLaporanSelesaiId
+        ) {
+            $statusLaporanId = $laporanKeuanganSelesai
+                ? $this->statusLaporanSelesaiId
+                : $this->statusLaporanDraftId;
+
+            $biayaRampung = $laporanKeuanganSelesai
+                ? rand(1_000_000, 15_000_000)  // 1–15 juta
+                : null;
+
+            $verifiedBy  = $laporanKeuanganSelesai ? $this->ppkNip : null;
+            $verifiedAt  = $laporanKeuanganSelesai ? $akhir->copy()->addDays(7) : null;
+            $nomorSpm    = $laporanKeuanganSelesai ? 'SPM-' . Str::upper(Str::random(5)) : null;
+            $tanggalSpm  = $laporanKeuanganSelesai ? $akhir->copy()->addDays(5)->toDateString() : null;
+            $nomorSp2d   = $laporanKeuanganSelesai ? 'SP2D-' . Str::upper(Str::random(5)) : null;
+            $tanggalSp2d = $laporanKeuanganSelesai ? $akhir->copy()->addDays(6)->toDateString() : null;
+
+            DB::table('laporankeuangan')->insert([
+                'id_perjadin'   => $perjadinId,
+                'id_status'     => $statusLaporanId,
+                'verified_by'   => $verifiedBy,
+                'verified_at'   => $verifiedAt,
+                'nomor_spm'     => $nomorSpm,
+                'tanggal_spm'   => $tanggalSpm,
+                'nomor_sp2d'    => $nomorSp2d,
+                'tanggal_sp2d'  => $tanggalSp2d,
+                'biaya_rampung' => $biayaRampung,
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+        }
     }
 }
