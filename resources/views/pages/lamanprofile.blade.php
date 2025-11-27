@@ -3,16 +3,12 @@
 @section('title', 'Profile')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<main class="max-w-6xl mx-auto px-5 py-8 min-h-screen">
     <!-- Back Button -->
-    <div class="flex justify-end mb-8">
-        <a href="{{ url()->previous() }}" class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
-            <i class="fas fa-arrow-left text-lg"></i>
-        </a>
-    </div>
+    <x-back-button />
 
     <!-- Page Title -->
-    <h1 class="text-5xl font-bold text-gray-800 mb-10">Profile</h1>
+    <x-page-title title="Edit Profil" />
 
     <!-- Profile Card -->
     <div class="bg-white rounded-3xl shadow-2xl p-10 mb-10">
