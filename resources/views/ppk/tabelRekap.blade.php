@@ -1,159 +1,145 @@
 @extends('layouts.appPPK')
 
-@section('title', 'Beranda PPK')
+@section('title', 'Tabel Rekap Keuangan Perjalanan Dinas')
 
 @section('content')
-<main class="item-center max-w-7xl min-h-screen mx-auto px-5 py-8 ">
-
+<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
+    {{-- HEADER HALAMAN --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-            <h2 class="text-gray-700 text-2xl font-bold pb-3 relative">
-                Tabel Rekap Keuangan
-                <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
-            </h2>
-            <p class="text-gray-500 text-sm">
-                Tabel Lengkap Pelaporan Keuangan Pegawai yang Telah Melakukan Perjalanan Dinas
+            <h1 class="text-gray-700 text-3xl font-bold pb-2 relative">
+                Tabel Rekap Keuangan Perjalanan Dinas
+                <span class="absolute bottom-0 left-0 w-32 h-1 bg-blue-500 rounded"></span>
+            </h1>
+            <p class="text-gray-500 mt-2">
+                Rekap perjalanan dinas yang sudah memiliki laporan keuangan (SPM/SP2D) dan biaya rampung.
             </p>
         </div>
     </div>
 
-    <div class="mt-6 overflow-x-auto rounded-xl border bg-white shadow-sm">
-        <table class="min-w-[2400px] text-xs">
-            <thead class="bg-gray-100 text-center font-medium">
+    {{-- (OPSIONAL) FILTER TAHUN / BULAN --}}
+    {{--
+    <form method="GET" class="mb-4 flex flex-wrap gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Tahun</label>
+            <input type="number" name="tahun"
+                   value="{{ $filterTahun }}"
+                   class="mt-1 border rounded px-2 py-1 w-32">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Bulan</label>
+            <input type="number" name="bulan" min="1" max="12"
+                   value="{{ $filterBulan }}"
+                   class="mt-1 border rounded px-2 py-1 w-24">
+        </div>
+        <div class="flex items-end">
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold">
+                Terapkan Filter
+            </button>
+        </div>
+    </form>
+    --}}
 
-                <!-- HEADER LEVEL 1 -->
-                <tr class="text-[12px] font-bold leading-tight">
+    {{-- KARTU TABEL + TOMBOL EXPORT --}}
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-4 sm:p-6">
+        {{-- WRAPPER TABEL SCROLLABLE --}}
+        <div class="max-h-[70vh] overflow-auto rounded-lg border border-gray-100">
+            <div class="min-w-[1200px]">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-100 text-xs uppercase">
+                        <tr>
+                            <th class="px-4 py-2 border text-center">No</th>
+                            <th class="px-4 py-2 border text-left">Nama Pegawai</th>
+                            <th class="px-4 py-2 border text-left">NIP</th>
+                            <th class="px-4 py-2 border text-left">Pangkat/Gol</th>
+                            <th class="px-4 py-2 border text-left">Unit Kerja</th>
+                            <th class="px-4 py-2 border text-left">Dalam Rangka / Tujuan</th>
+                            <th class="px-4 py-2 border text-left whitespace-nowrap">Tgl Berangkat</th>
+                            <th class="px-4 py-2 border text-left whitespace-nowrap">Tgl Kembali</th>
+                            <th class="px-4 py-2 border text-center whitespace-nowrap">Lama (hari)</th>
+                            <th class="px-4 py-2 border text-right whitespace-nowrap">Jumlah Dibayarkan (Rp)</th>
+                            <th class="px-4 py-2 border text-left whitespace-nowrap">No SPM</th>
+                            <th class="px-4 py-2 border text-left whitespace-nowrap">Tgl SPM</th>
+                            <th class="px-4 py-2 border text-left whitespace-nowrap">No SP2D</th>
+                            <th class="px-4 py-2 border text-left whitespace-nowrap">Tgl SP2D</th>
+                        </tr>
+                    </thead>
 
-                    <th rowspan="3" class="border px-4 py-2">No.</th>
-                    <th rowspan="3" class="border px-4 py-2">Nama UKE-1</th>
-                    <th rowspan="3" class="border px-4 py-2">Nama UKE-2</th>
-                    <th rowspan="3" class="border px-4 py-2">No SPM</th>
-                    <th rowspan="3" class="border px-4 py-2">No SP2D</th>
-                    <th rowspan="3" class="border px-4 py-2">Jumlah SP2D (Rp)</th>
+                    <tbody>
+                        @forelse ($rekap as $row)
+                            @php
+                                $mulai   = $row->tgl_mulai ? \Carbon\Carbon::parse($row->tgl_mulai) : null;
+                                $selesai = $row->tgl_selesai ? \Carbon\Carbon::parse($row->tgl_selesai) : null;
+                                $lama    = ($mulai && $selesai) ? $mulai->diffInDays($selesai) + 1 : null;
+                            @endphp
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-2 border text-center">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-2 border">{{ $row->nama_pegawai }}</td>
+                                <td class="px-4 py-2 border whitespace-nowrap">{{ $row->nip }}</td>
+                                <td class="px-4 py-2 border">{{ $row->pangkat_golongan ?? '-' }}</td>
+                                <td class="px-4 py-2 border">{{ $row->unit_kerja ?? '-' }}</td>
+                                <td class="px-4 py-2 border">{{ $row->tujuan }}</td>
+                                <td class="px-4 py-2 border whitespace-nowrap">
+                                    {{ $mulai ? $mulai->format('d-m-Y') : '-' }}
+                                </td>
+                                <td class="px-4 py-2 border whitespace-nowrap">
+                                    {{ $selesai ? $selesai->format('d-m-Y') : '-' }}
+                                </td>
+                                <td class="px-4 py-2 border text-center">
+                                    {{ $lama ?? '-' }}
+                                </td>
+                                <td class="px-4 py-2 border text-right">
+                                    {{ $row->biaya_rampung ? number_format($row->biaya_rampung, 0, ',', '.') : '-' }}
+                                </td>
+                                <td class="px-4 py-2 border whitespace-nowrap">
+                                    {{ $row->nomor_spm ?? '-' }}
+                                </td>
+                                <td class="px-4 py-2 border whitespace-nowrap">
+                                    {{ $row->tanggal_spm ? \Carbon\Carbon::parse($row->tanggal_spm)->format('d-m-Y') : '-' }}
+                                </td>
+                                <td class="px-4 py-2 border whitespace-nowrap">
+                                    {{ $row->nomor_sp2d ?? '-' }}
+                                </td>
+                                <td class="px-4 py-2 border whitespace-nowrap">
+                                    {{ $row->tanggal_sp2d ? \Carbon\Carbon::parse($row->tanggal_sp2d)->format('d-m-Y') : '-' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="14" class="px-4 py-6 border text-center text-gray-400">
+                                    Belum ada data LS rampung / selesai dibayar untuk ditampilkan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
 
-                    <!-- Surat Perjalanan Dinas -->
-                    <th colspan="9" class="border px-4 py-2">Surat Perjalanan Dinas</th>
+                    @if($rekap->count() > 0)
+                        <tfoot class="bg-gray-50 font-semibold">
+                            <tr>
+                                <td colspan="9" class="px-4 py-2 border text-right">
+                                    TOTAL DIBAYARKAN
+                                </td>
+                                <td class="px-4 py-2 border text-right">
+                                    {{ number_format($totalDibayarkan, 0, ',', '.') }}
+                                </td>
+                                <td colspan="4" class="px-4 py-2 border"></td>
+                            </tr>
+                        </tfoot>
+                    @endif
+                </table>
+            </div>
+        </div>
 
-                    <!-- Rincian Peembayaran -->
-                    <th colspan="9" class="border px-4 py-2">Rincian Pembayaran</th>
-
-                    <!-- Penginapan & Pesawat -->
-                    <th colspan="2" class="border px-4 py-2">Penginapan</th>
-                    <th colspan="2" class="border px-4 py-2">Pesawat</th>
-                    <th rowspan="3" class="border px-4 py-2">Geotagging</th>
-                </tr>
-
-                <!-- HEADER LEVEL 2 -->
-                <tr class="text-[11px] font-bold leading-tight">
-
-                    <!-- Surat Perjalanan Dinas Sub-Header -->
-                    <th rowspan="2" class="border px-4 py-2">Nama Lengkap</th>
-                    <th rowspan="2" class="border px-4 py-2">NIP</th>
-                    <th rowspan="2"class="border px-4 py-2">Pangkat Golongan</th>
-                    <th rowspan="2" class="border px-4 py-2">Dalam Rangka</th>
-                    <th rowspan="2" class="border px-4 py-2">Daerah Asal</th>
-                    <th rowspan="2" class="border px-4 py-2">Daerah Tujuan</th>
-                    <th colspan="2" class="border px-4 py-2">Tanggal SPD</th>
-                    <th rowspan="2" class="border px-4 py-2">Lama Hari</th>
-                    
-                    <!-- Rincian Biaya Sub-Header -->
-                    <th rowspan="2" class="border px-4 py-2">Jumlah Dibayarkan</th>
-                    <th colspan="8" class="border px-4 py-2">Rincian Biaya (Rp)</th>
-                    <th rowspan="2" class="border px-4 py-2">Nama Hotel</th>
-                    <th rowspan="2" class="border px-4 py-2">Kota</th>
-                    <th rowspan="2" class="border px-4 py-2">Kode Tiket</th>
-                    <th rowspan="2" class="border px-4 py-2">Maskapai</th>
-                </tr> 
-                
-                <!-- HEADER LEVEL 3 -->   
-                <tr class="text-[11px] font-semibold leading-tight">
-                    <th rowspan="1" class="border px-4 py-2">Berangkat</th>
-                    <th rowspan="1" class="border px-4 py-2">Kembali</th>
-                    <th rowspan="1" class="border px-4 py-2">Tiket</th>
-                    <th rowspan="1" class="border px-4 py-2">Uang Harian</th>
-                    <th rowspan="1" class="border px-4 py-2">Penginapan</th>
-                    <th rowspan="1" class="border px-4 py-2">Representasi</th>
-                    <th rowspan="1" class="border px-4 py-2">Transport</th>
-                    <th rowspan="1" class="border px-4 py-2">Sewa Kendaraan</th>
-                    <th rowspan="1" class="border px-4 py-2">Pengeluaran Riil</th>
-                    <th rowspan="1" class="border px-4 py-2">SSPB</th>
-                </tr>
-
-                <!-- Level 4 -->
-                <tr class="text-[11px] font-semibold leading-tight">
-                    <th class="border px-4 py-1">1</th>
-                    <th class="border px-4 py-1">2</th>
-                    <th class="border px-4 py-1">3</th>
-                    <th class="border px-4 py-1">0</th>
-                    <th class="border px-4 py-1">4</th>
-                    <th class="border px-4 py-1">5</th>
-                    <th class="border px-4 py-1">6</th>
-                    <th class="border px-4 py-1">7</th>
-                    <th class="border px-4 py-1">8</th>
-                    <th class="border px-4 py-1">9</th>
-                    <th class="border px-4 py-1">10</th>
-                    <th class="border px-4 py-1">11</th>
-                    <th class="border px-4 py-1">12</th>
-                    <th class="border px-4 py-1">13</th>
-                    <th class="border px-4 py-1">14</th>
-                    <th class="border px-4 py-1">15</th>
-                    <th class="border px-4 py-1">16</th>
-                    <th class="border px-4 py-1">17</th>
-                    <th class="border px-4 py-1">18</th>
-                    <th class="border px-4 py-1">19</th>
-                    <th class="border px-4 py-1">20</th>
-                    <th class="border px-4 py-1">21</th>
-                    <th class="border px-4 py-1">22</th>
-                    <th class="border px-4 py-1">23</th>
-                    <th class="border px-4 py-1">24</th>
-                    <th class="border px-4 py-1">25</th>
-                    <th class="border px-4 py-1">26</th>
-                    <th class="border px-4 py-1">27</th>
-                    <th class="border px-4 py-1">28</th>
-                    </th>
-            </thead>
-
-            <tbody class="divide-y divide-gray-200">
-
-                <!-- 1 BARIS DATA CONTOH -->
-                <tr class="hover:bg-gray-50">
-                    <td class="border px-4 py-2">1</td>
-                    <td class="border px-4 py-2">Sekretariat</td>
-                    <td class="border px-4 py-2">Subbag Keuangan</td>
-                    <td class="border px-4 py-2 whitespace-nowrap">SPM-001</td>
-                    <td class="border px-4 py-2 whitespace-nowrap">SP2D-987</td>
-                    <td class="border px-4 py-2">5.000.000</td>
-
-                    <td class="border px-4 py-2">Budi Santoso</td>
-                    <td class="border px-4 py-2">1987654321001</td>
-                    <td class="border px-4 py-2">III/b</td>
-                    <td class="border px-4 py-2">Rapat Koordinasi</td>
-                    <td class="border px-4 py-2">Jakarta</td>
-                    <td class="border px-4 py-2">Surabaya</td>
-                    <td class="border px-4 py-2 whitespace-nowrap">2025-01-10</td>
-                    <td class="border px-4 py-2 whitespace-nowrap">2025-01-12</td>
-                    <td class="border px-4 py-2">3</td>
-                    <td class="border px-4 py-2">4.500.000</td>
-
-                    <td class="border px-4 py-2">1.200.000</td>
-                    <td class="border px-4 py-2">900.000</td>
-                    <td class="border px-4 py-2">1.800.000</td>
-                    <td class="border px-4 py-2">300.000</td>
-                    <td class="border px-4 py-2">200.000</td>
-                    <td class="border px-4 py-2">0</td>
-                    <td class="border px-4 py-2">100.000</td>
-                    <td class="border px-4 py-2">0</td>
-
-                    <td class="border px-4 py-2">Hotel Surya</td>
-                    <td class="border px-4 py-2">Surabaya</td>
-                    <td class="border px-4 py-2">TK2025A</td>
-                    <td class="border px-4 py-2">Garuda Indonesia</td>
-                </tr>
-
-            </tbody>
-        </table>
+        {{-- BARIS BAWAH: TOMBOL EXPORT KANAN BAWAH --}}
+        <div class="mt-4 flex justify-end">
+            <a href="{{ route('ppk.tabelrekap.export', ['tahun' => $filterTahun ?? null, 'bulan' => $filterBulan ?? null]) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700
+                      text-white text-sm font-semibold rounded-lg shadow-sm transition">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Export Excel</span>
+            </a>
+        </div>
     </div>
-
-
 </main>
 @endsection

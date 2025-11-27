@@ -2,38 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PangkatGolongan extends Model
 {
-    use HasFactory;
-
-    /**
-     * Nama tabel yang digunakan oleh model.
-     * Sesuai migrasi: 'pangkatgolongan'
-     */
+    // Nama tabel sesuai migrasimu
     protected $table = 'pangkatgolongan';
 
-    /**
-     * Menunjukkan bahwa model ini TIDAK menggunakan timestamps (created_at, updated_at).
-     * Sesuai migrasi: '2025_11_08_073101_create_pangkatgolongan_table.php'
-     */
+    // Primary key di tabel adalah integer id
+    protected $primaryKey = 'id';
+
+    // Jika kamu tidak memakai timestamps pada tabel
     public $timestamps = false;
 
-    /**
-     * Atribut yang dapat diisi secara massal (mass assignable).
-     */
-    protected $fillable = [
-        'kode_golongan',
-        'nama_pangkat',
-    ];
+    // Fillable jika perlu
+    protected $fillable = ['kode_golongan', 'nama_pangkat'];
 
-    /**
-     * Mendefinisikan relasi one-to-many ke User.
-     * Satu Pangkat/Golongan bisa dimiliki oleh banyak User.
-     * Ini adalah kebalikan dari relasi di User.php
-     */
+    // Jika ingin relasi ke Users (one-to-many)
     public function users()
     {
         return $this->hasMany(User::class, 'pangkat_gol_id', 'id');

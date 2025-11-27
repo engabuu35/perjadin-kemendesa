@@ -16,7 +16,8 @@ class BuktiLaporan extends Model
         'nama_file',
         'path_file',
         'kategori',
-        'nominal', // <--- TAMBAHKAN INI AGAR BISA DISIMPAN
+        'nominal',
+        'keterangan' // <--- KITA PAKAI INI LAGI
     ];
 
     public function laporan()

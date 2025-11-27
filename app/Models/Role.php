@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Role extends Model
 {
     protected $table = 'roles';
-    public $timestamps = false; // dump-mu tidak punya timestamps
+    public $timestamps = false;
     protected $fillable = ['kode','nama'];
 
     /**

@@ -6,33 +6,32 @@ use Illuminate\Http\Request;
 use App\Models\Geotagging; 
 use App\Models\PerjalananDinas;
 use App\Models\LaporanPerjadin; 
-use App\Models\BuktiLaporan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
 class PerjadinController extends Controller
-{
-    // --- HALAMAN UTAMA (INDEX) ---
+{   
     public function index(Request $request)
     {
-        $q = $request->input('q');
+        $q = $request->query('q');
+
         $query = PerjalananDinas::query();
 
         if ($q) {
-            $query->where(function($sub) use ($q) {
-                $sub->where('nomor_surat', 'like', "%{$q}%")
-                    ->orWhere('tujuan', 'like', "%{$q}%");
-            });
+            $query->where('nomor_surat', 'like', "%$q%")
+                ->orWhere('tujuan', 'like', "%$q%");
         }
 
-        $penugasans = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
-        return view('pic.penugasan', compact('penugasans', 'q'));
+        $penugasans = $query->orderBy('tgl_mulai', 'desc')->paginate(10);
+
+        return view('pic.penugasan', [
+            'penugasans' => $penugasans,
+            'q' => $q
+        ]);
     }
 
-    // --- HALAMAN DETAIL (SHOW) ---
     public function show($id)
     {
         $userNip = Auth::user()->nip;
@@ -40,23 +39,49 @@ class PerjadinController extends Controller
 
         if (!$perjalanan) abort(404);
 
-        // 1. CEK STATUS KUNCI (READ ONLY)
-        // Cari ID status "Sedang Berlangsung". Selain status ini, anggap terkunci.
-        $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
-        // Jika status bukan "Sedang Berlangsung", maka locked = true
-        $isLocked = ($perjalanan->id_status != $statusBerlangsung);
+        // 1. CEK STATUS SAYA
+        $dataSaya = DB::table('pegawaiperjadin')
+            ->where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->first();
 
-        // Pesan Status Text
-        $statusText = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
+        if (!$dataSaya) abort(403, 'Akses ditolak.');
 
-        // 2. LOGIKA GEOTAGGING
+        $today = Carbon::today();
+        $mulai = Carbon::parse($perjalanan->tgl_mulai);
+        $selesai = Carbon::parse($perjalanan->tgl_selesai);
+
+        if ($today->lt($mulai)) {
+            $statusPegawai = 'Akan Datang';
+            $statusBadgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
+        } elseif ($today->between($mulai, $selesai)) {
+            $statusPegawai = 'Sedang Berlangsung';
+            $statusBadgeClass = 'bg-orange-100 text-orange-700 border-orange-200';
+        } else {
+            $statusPegawai = 'Selesai';
+            $statusBadgeClass = 'bg-green-100 text-green-700 border-green-200';
+        }
+
+        $isMyTaskFinished = $dataSaya->is_finished == 1;
+
+        // 2. DATA GEOTAGGING
         $period = CarbonPeriod::create($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         $geotagHistory = [];
         $hariKe = 1;
-        $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)->where('id_user', $userNip)->whereDate('created_at', Carbon::today())->exists();
+        
+        // Cek Absen HARI INI
+        $today = Carbon::today();
+        $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->whereDate('created_at', $today)
+            ->exists();
 
         foreach ($period as $date) {
-            $tag = Geotagging::where('id_perjadin', $id)->where('id_user', $userNip)->whereDate('created_at', $date)->first();
+            $tag = Geotagging::where('id_perjadin', $id)
+                ->where('id_user', $userNip)
+                ->whereDate('created_at', $date)
+                ->first();
+
             $geotagHistory[] = [
                 'hari_ke' => $hariKe++,
                 'tanggal' => $date->format('d M Y'),
@@ -66,151 +91,113 @@ class PerjadinController extends Controller
             ];
         }
 
-        // 3. DATA LAPORAN SAYA
+        // 3. URAIAN
         $laporanSaya = LaporanPerjadin::firstOrNew(['id_perjadin' => $id, 'id_user' => $userNip]);
 
-        // 4. DATA SEMUA PESERTA
-        $allPeserta = DB::table('pegawaiperjadin')
-            ->join('users', 'users.nip', '=', 'pegawaiperjadin.id_user')
-            ->where('pegawaiperjadin.id_perjadin', $id)
-            ->select('users.nip', 'users.nama as name', 'pegawaiperjadin.role_perjadin', 'pegawaiperjadin.is_lead')
-            ->orderBy('pegawaiperjadin.is_lead', 'desc')
-            ->get();
-
-        foreach($allPeserta as $peserta) {
-            $laporan = LaporanPerjadin::with('bukti')->where('id_perjadin', $id)->where('id_user', $peserta->nip)->first();
-            $peserta->laporan = $laporan;
-            $peserta->total_biaya = $laporan ? $laporan->bukti->sum('nominal') : 0;
-        }
-
-        // 5. Validasi Tanggal
-        $today = Carbon::today();
+        // 4. VALIDASI TANGGAL & ABSEN UNTUK TOMBOL SELESAI
         $isTodayInPeriod = $today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         
-        // Status message buat UI
+        // [LOGIKA BARU]
+        // Cek apakah hari ini adalah HARI TERAKHIR?
+        $isLastDay = $today->isSameDay($perjalanan->tgl_selesai);
+        
+        // Syarat tombol aktif:
+        // 1. Hari ini adalah hari terakhir
+        // 2. Sudah absen di hari terakhir ini
+        $canFinish = $isLastDay && $sudahAbsenHariIni;
+
+        // Pesan Error untuk tombol
+        $finishMessage = '';
+        if (!$isLastDay) {
+            $finishMessage = 'Tombol penyelesaian hanya aktif pada tanggal selesai tugas (' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . ').';
+        } elseif (!$sudahAbsenHariIni) {
+            $finishMessage = 'Anda belum melakukan Geotagging hari ini. Harap tandai lokasi terlebih dahulu.';
+        }
+
         $statusMessage = '';
         if (!$isTodayInPeriod) {
             if ($today->lt($perjalanan->tgl_mulai)) $statusMessage = 'Belum dimulai.';
-            elseif ($today->gt($perjalanan->tgl_selesai)) $statusMessage = 'Sudah selesai.';
+            elseif ($today->gt($perjalanan->tgl_selesai)) $statusMessage = 'Masa tugas lewat.';
         }
 
         return view('pages.detailperjadin', [
             'perjalanan' => $perjalanan,
             'geotagHistory' => $geotagHistory,
             'sudahAbsenHariIni' => $sudahAbsenHariIni,
-            'laporanSaya' => $laporanSaya, 
-            'allPeserta' => $allPeserta,
+            'laporanSaya' => $laporanSaya,
             'isTodayInPeriod' => $isTodayInPeriod,
-            'isLocked' => $isLocked, 
-            'statusText' => $statusText,
-            'statusMessage' => $statusMessage
+            'statusMessage' => $statusMessage,
+            'isMyTaskFinished' => $isMyTaskFinished,
+            // Variable Baru
+            'canFinish' => $canFinish,
+            'finishMessage' => $finishMessage,
+            'statusPegawai'    => $statusPegawai,
+            'statusBadgeClass' => $statusBadgeClass,
         ]);
     }
 
-    // --- FITUR BARU: FINALISASI PERJALANAN ---
-    public function selesaikanPerjadin(Request $request, $id)
+    public function selesaikanTugasSaya(Request $request, $id)
     {
-        $idMenungguVerif = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
-
-        $update = PerjalananDinas::where('id', $id)->update([
-            'id_status' => $idMenungguVerif
-        ]);
-
-        if($update) {
-            return back()->with('success', 'Laporan berhasil dikirim! Status perjalanan kini Menunggu Verifikasi.');
-        }
-        return back()->with('error', 'Gagal mengupdate status.');
-    }
-
-    // --- SIMPAN BUKTI ---
-    public function storeBukti(Request $request, $id) {
-        // Cek Kunci
+        $userNip = Auth::user()->nip;
         $perjalanan = PerjalananDinas::find($id);
-        $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
-        if($perjalanan->id_status != $statusBerlangsung) return back()->with('error', 'Perjalanan sudah dikunci/selesai.');
-        
-        $request->validate([
-            'target_nip' => 'required', 'kategori' => 'required', 'nominal' => 'required|min:0', 'bukti' => 'nullable|max:5120'
-        ]);
+        $today = Carbon::today();
 
-        $laporan = LaporanPerjadin::firstOrCreate(['id_perjadin' => $id, 'id_user' => $request->target_nip]);
+        // VALIDASI BACKEND (Security)
+        if (!$today->isSameDay($perjalanan->tgl_selesai)) {
+            return back()->with('error', 'Gagal! Anda hanya bisa menyelesaikan tugas pada tanggal selesai jadwal.');
+        }
         
-        $path = null;
-        $filename = null;
-        if ($request->hasFile('bukti')) {
-            $file = $request->file('bukti');
-            $filename = time() . '_' . $request->target_nip . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('bukti_perjadin', $filename, 'public');
+        $sudahAbsen = Geotagging::where('id_perjadin', $id)->where('id_user', $userNip)->whereDate('created_at', $today)->exists();
+        if (!$sudahAbsen) {
+            return back()->with('error', 'Gagal! Anda belum melakukan Geotagging hari ini.');
         }
 
-        BuktiLaporan::create([
-            'id_laporan' => $laporan->id, 'nama_file' => $filename, 'path_file' => $path, 
-            'kategori' => $request->kategori, 'nominal' => $request->nominal
-        ]);
-        return back()->with('success', 'Data biaya berhasil ditambahkan.');
+        // 1. Update Status Individu
+        DB::table('pegawaiperjadin')
+            ->where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->update(['is_finished' => 1]);
+
+        // 2. Cek Semua Selesai?
+        $totalPegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->count();
+        $totalSelesai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('is_finished', 1)->count();
+
+        if ($totalPegawai == $totalSelesai) {
+            $idMenungguVerif = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
+            PerjalananDinas::where('id', $id)->update(['id_status' => $idMenungguVerif]);
+            return back()->with('success', 'Tugas selesai! Status perjalanan kini diteruskan ke PIC.');
+        }
+
+        return back()->with('success', 'Tugas Anda berhasil diselesaikan.');
     }
 
-    // --- SIMPAN URAIAN ---
     public function storeUraian(Request $request, $id) {
-        // Cek Kunci
-        $perjalanan = PerjalananDinas::find($id);
-        $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
-        if($perjalanan->id_status != $statusBerlangsung) return back()->with('error', 'Perjalanan sudah dikunci/selesai.');
+        $cek = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('id_user', Auth::user()->nip)->first();
+        if($cek->is_finished) return back()->with('error', 'Sudah selesai, tidak bisa edit.');
 
         $laporan = LaporanPerjadin::firstOrNew(['id_perjadin' => $id, 'id_user' => Auth::user()->nip]);
         $laporan->uraian = $request->uraian;
-        
-        // Logika draft/final individu (opsional)
-        if ($request->action_type == 'finish') {
-             if (empty($request->uraian) || strlen($request->uraian) < 20) return back()->with('error', 'Uraian terlalu pendek.');
-             $laporan->is_final = true;
-        }
         $laporan->save();
-        return back()->with('success', 'Uraian berhasil disimpan.');
+        return back()->with('success', 'Uraian disimpan.');
     }
     
-    // --- HAPUS BUKTI ---
-    public function deleteBukti($idBukti) {
-       $bukti = BuktiLaporan::find($idBukti);
-       if(!$bukti) return back();
-
-       // Cek Kunci sebelum hapus
-       $laporan = LaporanPerjadin::find($bukti->id_laporan);
-       $perjalanan = PerjalananDinas::find($laporan->id_perjadin);
-       $statusBerlangsung = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
-       if($perjalanan->id_status != $statusBerlangsung) return back()->with('error', 'Tidak bisa menghapus data yang sudah dikunci.');
-
-       if($bukti->path_file && Storage::disk('public')->exists($bukti->path_file)) {
-            Storage::disk('public')->delete($bukti->path_file);
-       }
-       $bukti->delete();
-       return back()->with('success', 'Bukti dihapus.');
-    }
-    
-    // --- GEOTAGGING ---
     public function tandaiKehadiran(Request $request, $id) {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'latitude' => 'required', 'longitude' => 'required', 'id_tipe' => 'required'
-        ]);
-        if ($validator->fails()) return response()->json(['status' => 'error', 'message' => 'Data invalid'], 422);
-
-        // Cek Tanggal
+        $request->validate(['latitude'=>'required','longitude'=>'required','id_tipe'=>'required']);
+        
         $perjalanan = PerjalananDinas::find($id);
         $today = Carbon::today();
+        
         if (!$today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai)) {
-            return response()->json(['status' => 'error', 'message' => 'Di luar jadwal dinas.'], 403);
+            return response()->json(['status'=>'error', 'message'=>'Di luar jadwal.'], 403);
         }
-
-        // Cek Duplikat Harian
         if (Geotagging::where('id_perjadin', $id)->where('id_user', Auth::user()->nip)->whereDate('created_at', $today)->exists()) {
-            return response()->json(['status' => 'error', 'message' => 'Sudah absen hari ini.'], 400);
+            return response()->json(['status'=>'error', 'message'=>'Sudah absen.'], 400);
         }
 
         Geotagging::create([
             'id_perjadin' => $id, 'id_user' => Auth::user()->nip,
-            'id_tipe' => $request->id_tipe, 'latitude' => $request->latitude, 'longitude' => $request->longitude,
+            'id_tipe' => $request->id_tipe, 'latitude' => $request->latitude, 'longitude' => $request->longitude
         ]);
-        return response()->json(['status'=>'success', 'message' => 'Hadir!']);
+        return response()->json(['status'=>'success', 'message'=>'Hadir!']);
     }
-
 }
