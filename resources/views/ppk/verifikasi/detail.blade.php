@@ -121,75 +121,70 @@
         </div>
     </div>
 
-    <!-- 2. FORM VERIFIKASI (INPUT SPM SP2D) -->
+    !-- FORM VERIFIKASI -->
     <div class="bg-white rounded-xl shadow-lg border border-yellow-200 p-8 max-w-4xl mx-auto">
         <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
             <span class="bg-yellow-100 text-yellow-700 p-2 rounded">💳</span>
-            Verifikasi & Pembayaran (Diisi Oleh PPK)
+            Verifikasi & Keputusan PPK
         </h3>
 
-        @if($isSelesai)
-            <!-- READ ONLY JIKA SELESAI -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-gray-50 p-4 rounded-lg border">
-                    <span class="text-xs font-bold text-gray-400 uppercase">Nomor SPM</span>
-                    <p class="text-lg font-mono font-bold text-gray-800">{{ $laporanKeuangan->nomor_spm ?? '-' }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Tanggal: {{ $laporanKeuangan->tanggal_spm ?? '-' }}</p>
+        <!-- FORM SETUJUI -->
+        <form action="{{ route('ppk.verifikasi.approve', $perjalanan->id) }}" method="POST" id="form-approve">
+            @csrf
+            <input type="hidden" name="total_biaya_rampung" value="{{ $totalSeluruhnya }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- Input SPM & SP2D (Sama seperti sebelumnya) -->
+                <div class="space-y-4">
+                    <h4 class="font-bold text-gray-600 border-b pb-2">Data SPM</h4>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor SPM</label>
+                        <input type="text" name="nomor_spm" class="w-full border-gray-300 rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal SPM</label>
+                        <input type="date" name="tanggal_spm" class="w-full border-gray-300 rounded-lg" required>
+                    </div>
                 </div>
-                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <span class="text-xs font-bold text-green-600 uppercase">Nomor SP2D</span>
-                    <p class="text-lg font-mono font-bold text-green-800">{{ $laporanKeuangan->nomor_sp2d ?? '-' }}</p>
-                    <p class="text-xs text-green-600 mt-1">Tanggal: {{ $laporanKeuangan->tanggal_sp2d ?? '-' }}</p>
+                <div class="space-y-4">
+                    <h4 class="font-bold text-gray-600 border-b pb-2">Data SP2D</h4>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor SP2D</label>
+                        <input type="text" name="nomor_sp2d" class="w-full border-gray-300 rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal SP2D</label>
+                        <input type="date" name="tanggal_sp2d" class="w-full border-gray-300 rounded-lg" required>
+                    </div>
                 </div>
             </div>
-            <div class="mt-6 text-center">
-                <span class="inline-block bg-green-600 text-white px-6 py-2 rounded-full font-bold text-sm shadow-sm">
-                    ✅ Laporan Selesai & Terbayar
-                </span>
-            </div>
-        @else
-            <!-- FORM INPUT -->
-            <form action="{{ route('ppk.verifikasi.store', $perjalanan->id) }}" method="POST">
+        </form>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex justify-between pt-6 border-t gap-4">
+            <!-- TOMBOL TOLAK (Buka Modal/Accordion) -->
+            <button type="button" onclick="document.getElementById('reject-section').classList.toggle('hidden')" class="bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-red-200 transition">
+                ❌ Tolak / Revisi
+            </button>
+
+            <!-- TOMBOL SETUJUI (Submit Form Approve) -->
+            <button type="button" onclick="if(confirm('Setujui pembayaran ini?')) document.getElementById('form-approve').submit()" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-check-double"></i>
+                Setujui & Selesaikan
+            </button>
+        </div>
+
+        <!-- FORM TOLAK (Hidden by default) -->
+        <div id="reject-section" class="hidden mt-6 p-4 bg-red-50 rounded-xl border border-red-200">
+            <form action="{{ route('ppk.verifikasi.reject', $perjalanan->id) }}" method="POST">
                 @csrf
-                <input type="hidden" name="total_biaya_rampung" value="{{ $totalSeluruhnya }}">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <!-- Input SPM -->
-                    <div class="space-y-4">
-                        <h4 class="font-bold text-gray-600 border-b pb-2">Data SPM</h4>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor SPM</label>
-                            <input type="text" name="nomor_spm" class="w-full border-gray-300 rounded-lg focus:ring-yellow-500" placeholder="Contoh: 00123/SPM/2025" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal SPM</label>
-                            <input type="date" name="tanggal_spm" class="w-full border-gray-300 rounded-lg focus:ring-yellow-500" required>
-                        </div>
-                    </div>
-
-                    <!-- Input SP2D -->
-                    <div class="space-y-4">
-                        <h4 class="font-bold text-gray-600 border-b pb-2">Data SP2D</h4>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nomor SP2D</label>
-                            <input type="text" name="nomor_sp2d" class="w-full border-gray-300 rounded-lg focus:ring-yellow-500" placeholder="Contoh: 112233/SP2D/2025" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal SP2D</label>
-                            <input type="date" name="tanggal_sp2d" class="w-full border-gray-300 rounded-lg focus:ring-yellow-500" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-center pt-4 border-t">
-                    <button type="submit" onclick="return confirm('Yakin data sudah benar?')" class="bg-yellow-600 text-white px-10 py-3 rounded-xl font-bold text-lg hover:bg-yellow-700 shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                        <i class="fa-solid fa-check-double"></i>
-                        Verifikasi & Simpan
-                    </button>
+                <label class="block text-sm font-bold text-red-700 mb-2">Alasan Penolakan / Catatan Revisi:</label>
+                <textarea name="alasan_penolakan" rows="3" class="w-full border-red-300 rounded-lg focus:ring-red-500 mb-3" placeholder="Contoh: Nominal Tiket Pesawat Ketua tidak sesuai bukti..." required></textarea>
+                <div class="text-right">
+                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700">Kirim Revisi ke PIC</button>
                 </div>
             </form>
-        @endif
-    </div>
-
+        </div>
+    </div>          
 </main>
 @endsection

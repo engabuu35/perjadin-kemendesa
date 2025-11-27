@@ -7,11 +7,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DummyPegawaiWithPerjadinSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. JALANKAN SEEDER STATUS TERLEBIH DAHULU (WAJIB)
+        // Ini memastikan ID status 1-6 tersedia sebelum dipakai
+        $this->call([
+            StatusPerjadinSeeder::class,
+            StatusLaporanSeeder::class,
+        ]);
+
         // Biar semua insert rapi dalam 1 transaksi
         DB::transaction(function () {
 
@@ -19,104 +27,86 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
             $today = Carbon::today();
 
             // -------------------------------------------------
-            // 1. Ambil referensi (unit kerja, pangkat, role, status)
+            // 2. Ambil referensi ID (Jangan Hardcode Angka)
             // -------------------------------------------------
             $unitIds    = DB::table('unitkerja')->pluck('id')->all();
             $pangkatIds = DB::table('pangkatgolongan')->pluck('id')->all();
 
             if (empty($unitIds) || empty($pangkatIds)) {
-                throw new \RuntimeException('unitkerja / pangkatgolongan belum terisi, jalankan seeder utamanya dulu.');
+                // Fallback jika unit kerja kosong (untuk safety dev)
+                $unitIds = [DB::table('unitkerja')->insertGetId(['nama_unit' => 'Dummy Unit', 'kode_uke' => 'DUMMY'])];
+                $pangkatIds = [DB::table('pangkatgolongan')->insertGetId(['nama_pangkat' => 'Dummy Pangkat', 'kode_golongan' => 'IV/a'])];
             }
 
-            $roleIds = DB::table('roles')->pluck('id', 'kode');            // 'PEGAWAI' => 2, dst
+            $roleIds = DB::table('roles')->pluck('id', 'kode'); 
+            
+            // Ambil ID Status secara dinamis (Lebih aman daripada '?? 6')
             $statusPerjadin = DB::table('statusperjadin')->pluck('id', 'nama_status');
             $statusLaporan  = DB::table('statuslaporan')->pluck('id', 'nama_status');
 
-            $idStatusSedang    = $statusPerjadin['Sedang Berlangsung']        ?? 3;
-            $idStatusSelesai   = $statusPerjadin['Selesai']                    ?? 7;
-            $idStatusBelum     = $statusPerjadin['Belum Berlangsung']         ?? 2;
-            $idStatusMenungguL = $statusPerjadin['Menunggu Laporan']          ?? 4;
-            $idStatusMenungguP = $statusPerjadin['Menunggu Validasi PPK']     ?? 6;
+            $idStatusSedang    = $statusPerjadin['Sedang Berlangsung']    ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Sedang Berlangsung']);
+            $idStatusSelesai   = $statusPerjadin['Selesai']               ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Selesai']);
+            $idStatusBelum     = $statusPerjadin['Belum Berlangsung']     ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Belum Berlangsung']);
+            $idStatusMenungguP = $statusPerjadin['Menunggu Validasi PPK'] ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Menunggu Validasi PPK']);
 
-            $idStatusLapSelesai = $statusLaporan['Selesai Dibayar'] ?? 6;
+            // FIX UTAMA: Pastikan ID ini ada untuk 'laporankeuangan'
+            $idStatusLapSelesai = $statusLaporan['Selesai Dibayar'] 
+                                ?? DB::table('statuslaporan')->where('nama_status', 'Selesai Dibayar')->value('id')
+                                ?? DB::table('statuslaporan')->insertGetId(['nama_status' => 'Selesai Dibayar']);
 
-            // Cari salah satu PPK (kalau ada) untuk kolom verified_by
+            // Cari salah satu PPK
             $ppkNip = null;
             if (isset($roleIds['PPK'])) {
-                $ppkNip = DB::table('penugasanperan')
-                    ->where('role_id', $roleIds['PPK'])
-                    ->value('user_id');
+                $ppkNip = DB::table('penugasanperan')->where('role_id', $roleIds['PPK'])->value('user_id');
             }
+            // Fallback PPK jika null
+            if (!$ppkNip) $ppkNip = '198001012010011001'; 
 
             // -------------------------------------------------
-            // 2. Buat 50 pegawai dummy + role PEGAWAI
+            // 3. Buat 50 Pegawai Dummy
             // -------------------------------------------------
-            $pegawai = []; // [ [nip, nama], ... ]
+            // Menggunakan Factory User untuk mempersingkat kode
+            $pegawaiList = User::factory()->count(50)->create([
+                'password_hash' => Hash::make('password'),
+                'is_aktif' => 1
+            ]);
 
-            for ($i = 1; $i <= 50; $i++) {
-                // Generate NIP unik
-                do {
-                    $nip = (string) rand(1980000000000000, 1999999999999999);
-                } while (DB::table('users')->where('nip', $nip)->exists());
-
-                $nama  = "Pegawai Dummy {$i}";
-                $email = "pegawai{$i}@dummy.test";
-
-                DB::table('users')->insert([
-                    'id_uke'         => $unitIds[array_rand($unitIds)],
-                    'pangkat_gol_id' => $pangkatIds[array_rand($pangkatIds)],
-                    'nip'           => $nip,
-                    'nama'          => $nama,
-                    'email'         => $email,
-                    'no_telp'       => '08' . rand(1000000000, 9999999999),
-                    'password_hash' => Hash::make('password'), // password = 'password'
-                    'is_aktif'      => 1,
-                    'created_at'    => $now,
-                    'updated_at'    => $now,
-                ]);
-
-                // role PEGAWAI
-                if (isset($roleIds['PEGAWAI'])) {
-                    DB::table('penugasanperan')->insert([
-                        'user_id' => $nip,
-                        'role_id' => $roleIds['PEGAWAI'],
-                    ]);
+            // Assign role PEGAWAI
+            if (isset($roleIds['PEGAWAI'])) {
+                $roleData = [];
+                foreach ($pegawaiList as $p) {
+                    $roleData[] = ['user_id' => $p->nip, 'role_id' => $roleIds['PEGAWAI']];
                 }
-
-                $pegawai[] = ['nip' => $nip, 'nama' => $nama];
+                DB::table('penugasanperan')->insertOrIgnore($roleData);
             }
 
             // -------------------------------------------------
-            // 3. Buat Perjalanan Dinas untuk tiap pegawai
-            //    - minimal 1 perjadin PASTI "Sedang Berlangsung" hari ini
-            //    - sisanya acak: sudah selesai / belum mulai / sedang berjalan
+            // 4. Buat Perjalanan Dinas
             // -------------------------------------------------
-            $perjadinMeta = []; // simpan info utk dipakai di langkah 4
+            $perjadinMeta = []; 
 
-            foreach ($pegawai as $index => $pgw) {
-                $nip  = $pgw['nip'];
-                $nama = $pgw['nama'];
+            foreach ($pegawaiList as $index => $user) {
+                $nip  = $user->nip;
+                $nama = $user->nama;
 
+                // Skenario 1: Pasti Sedang Berlangsung (Index 0)
                 if ($index === 0) {
-                    // Skenario khusus: PASTI sedang berlangsung hari ini
-                    $mulai   = $today->copy()->subDay();   // kemarin
-                    $selesai = $today->copy()->addDay();   // besok
+                    $mulai   = $today->copy()->subDay();
+                    $selesai = $today->copy()->addDay();
                     $status  = $idStatusSedang;
                 } else {
-                    // Skenario umum: tanggal random ± beberapa bulan dari sekarang
-                    $monthOffset = rand(-5, 1); // 5 bulan lalu s/d 1 bulan depan
+                    // Skenario Random
+                    $monthOffset = rand(-2, 1);
                     $start       = $today->copy()->addMonths($monthOffset)->day(rand(1, 25));
-                    $duration    = rand(2, 5);
+                    $duration    = rand(2, 4);
                     $end         = $start->copy()->addDays($duration);
 
                     if ($end->lt($today)) {
-                        // sudah lewat -> sebagian selesai, sebagian menunggu validasi
+                        // Sudah lewat -> Random antara Selesai atau Menunggu Validasi
                         $status = rand(0, 1) ? $idStatusSelesai : $idStatusMenungguP;
                     } elseif ($start->gt($today)) {
-                        // belum mulai
                         $status = $idStatusBelum;
                     } else {
-                        // sedang berlangsung
                         $status = $idStatusSedang;
                     }
 
@@ -124,118 +114,91 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                     $selesai = $end;
                 }
 
-                $nomorSurat = 'ST-' . Str::upper(Str::random(6));
-                $tujuan     = 'Kota ' . Str::upper(Str::random(5));
-
                 $perjadinId = DB::table('perjalanandinas')->insertGetId([
                     'id_pembuat'    => $nip,
                     'id_status'     => $status,
-                    'approved_by'   => null,
-                    'approved_at'   => null,
-                    'nomor_surat'   => $nomorSurat,
-                    'tanggal_surat' => $mulai->copy()->subDays(3)->toDateString(),
-                    'tujuan'        => $tujuan,
-                    'tgl_mulai'     => $mulai->toDateString(),
-                    'tgl_selesai'   => $selesai->toDateString(),
+                    'approved_by'   => $ppkNip,
+                    'approved_at'   => $mulai->copy()->subDays(5),
+                    'nomor_surat'   => 'ST-' . Str::upper(Str::random(6)),
+                    'tanggal_surat' => $mulai->copy()->subDays(3),
+                    'tujuan'        => 'Kota ' . Str::upper(Str::random(5)),
+                    'tgl_mulai'     => $mulai,
+                    'tgl_selesai'   => $selesai,
                     'uraian'        => "Perjalanan dinas dummy untuk {$nama}",
-                    'surat_tugas'   => null,
-                    'id_atasan'     => null,
-                    'tgl_acc'       => null,
-                    'pdf_keuangan'  => null,
                     'created_at'    => $now,
                     'updated_at'    => $now,
                 ]);
 
-                // relasi pegawai-perjadin (pegawai ini sebagai lead)
                 DB::table('pegawaiperjadin')->insert([
-                    'id_perjadin'      => $perjadinId,
-                    'id_user'          => $nip,
-                    'role_perjadin'    => 'Anggota',
-                    'is_finished'      => 0,
-                    'is_lead'          => 1,
-                    'laporan_individu' => null,
+                    'id_perjadin'   => $perjadinId,
+                    'id_user'       => $nip,
+                    'role_perjadin' => 'Anggota',
+                    'is_finished'   => ($status == $idStatusSelesai || $status == $idStatusMenungguP) ? 1 : 0,
+                    'is_lead'       => 1,
                 ]);
 
                 $perjadinMeta[] = [
-                    'id'         => $perjadinId,
-                    'nip'        => $nip,
-                    'mulai'      => $mulai,
-                    'selesai'    => $selesai,
-                    'status_pj'  => $status,
+                    'id'        => $perjadinId,
+                    'nip'       => $nip,
+                    'selesai'   => $selesai,
+                    'status_pj' => $status,
                 ];
             }
 
             // -------------------------------------------------
-            // 4. Buat laporan_perjadin, bukti_laporan, dan laporankeuangan
-            //    - hanya untuk perjadin yang SUDAH selesai (tgl_selesai <= today)
+            // 5. Buat Laporan & Keuangan (Hanya yg sudah lewat)
             // -------------------------------------------------
             foreach ($perjadinMeta as $meta) {
                 $perjadinId = $meta['id'];
                 $nip        = $meta['nip'];
-                $mulai      = $meta['mulai'];
                 $selesai    = $meta['selesai'];
 
-                // Hanya buat laporan & keuangan utk yang sudah selesai (tgl_selesai <= hari ini)
-                if ($selesai->gt($today)) {
-                    continue;
-                }
+                if ($selesai->gt($today)) continue;
 
-                // --- laporan_perjadin (header laporan per pegawai) ---
+                // Laporan Pegawai
                 $laporanId = DB::table('laporan_perjadin')->insertGetId([
                     'id_perjadin' => $perjadinId,
                     'id_user'     => $nip,
-                    'uraian'      => 'Laporan dummy perjalanan dinas.',
+                    'uraian'      => 'Laporan dummy lengkap.',
                     'is_final'    => 1,
                     'created_at'  => $now,
                     'updated_at'  => $now,
                 ]);
 
-                // --- bukti_laporan (rinciannya) ---
-                $buktiList = [
-                    [
-                        'kategori'   => 'Tiket',
-                        'nominal'    => rand(300_000, 1_500_000),
-                        'keterangan' => 'Tiket transportasi',
-                    ],
-                    [
-                        'kategori'   => 'Uang Harian',
-                        'nominal'    => rand(500_000, 2_500_000),
-                        'keterangan' => 'Uang harian perjalanan',
-                    ],
-                    [
-                        'kategori'   => 'Penginapan',
-                        'nominal'    => rand(500_000, 3_000_000),
-                        'keterangan' => 'Biaya penginapan',
-                    ],
+                // Bukti Dummy
+                $buktiData = [
+                    ['kategori' => 'Tiket', 'nominal' => 1500000, 'keterangan' => 'Garuda GA-123'],
+                    ['kategori' => 'Uang Harian', 'nominal' => 1200000, 'keterangan' => '3 Hari'],
+                    ['kategori' => 'Penginapan', 'nominal' => 2000000, 'keterangan' => 'Hotel Grand'],
                 ];
-
-                $total = 0;
-                foreach ($buktiList as $b) {
-                    $total += $b['nominal'];
-
+                
+                $totalBiaya = 0;
+                foreach ($buktiData as $b) {
+                    $totalBiaya += $b['nominal'];
                     DB::table('bukti_laporan')->insert([
                         'id_laporan' => $laporanId,
-                        'nama_file'  => null,
-                        'path_file'  => null,
                         'kategori'   => $b['kategori'],
                         'nominal'    => $b['nominal'],
                         'keterangan' => $b['keterangan'],
+                        'nama_file'  => null,
+                        'path_file'  => null,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ]);
                 }
 
-                // --- laporankeuangan (dipakai PPK untuk tabel rekap) ---
+                // Laporan Keuangan (Tabel Rekap PPK)
+                // INSERT INI YANG TADI ERROR, SEKARANG SUDAH AMAN KARENA ID PASTI ADA
                 DB::table('laporankeuangan')->insert([
                     'id_perjadin'   => $perjadinId,
-                    'id_status'     => $idStatusLapSelesai,          // "Selesai Dibayar"
+                    'id_status'     => $idStatusLapSelesai, // Menggunakan ID yang valid (bukan hardcode 6)
                     'verified_by'   => $ppkNip,
                     'verified_at'   => $selesai->copy()->addDays(3),
-                    'nomor_spm'     => 'SPM-' . Str::upper(Str::random(6)),
-                    'tanggal_spm'   => $selesai->copy()->addDay()->toDateString(),
-                    'nomor_sp2d'    => 'SP2D-' . Str::upper(Str::random(6)),
-                    'tanggal_sp2d'  => $selesai->copy()->addDays(2)->toDateString(),
-                    'biaya_rampung' => $total,
+                    'nomor_spm'     => 'SPM-' . Str::random(5),
+                    'tanggal_spm'   => $selesai->copy()->addDay(),
+                    'nomor_sp2d'    => 'SP2D-' . Str::random(5),
+                    'tanggal_sp2d'  => $selesai->copy()->addDays(2),
+                    'biaya_rampung' => $totalBiaya,
                     'created_at'    => $now,
                     'updated_at'    => $now,
                 ]);

@@ -132,6 +132,18 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
     Route::get('/verifikasi', [PPKController::class, 'index'])->name('verifikasi.index');
     Route::get('/verifikasi/{id}', [PPKController::class, 'show'])->name('verifikasi.detail');
     Route::post('/verifikasi/{id}/store', [PPKController::class, 'storeVerifikasi'])->name('verifikasi.store');
+    Route::post('/verifikasi/{id}/tolak', [PPKController::class, 'tolakVerifikasi'])->name('verifikasi.tolak');
+    Route::post('/verifikasi/{id}/spm', [PPKController::class, 'inputSPM'])->name('verifikasi.inputSPM');
+    Route::post('/verifikasi/{id}/sp2d', [PPKController::class, 'inputSP2D'])->name('verifikasi.inputSP2D');
+    Route::post('/verifikasi/{id}/revisi', [PPKController::class, 'mintaRevisi'])->name('verifikasi.revisi');
+    Route::get('/verifikasi/{id}/cetak', [PPKController::class, 'cetakLaporan'])->name('verifikasi.cetak');
+    Route::get('/verifikasi/{id}/export-excel', [PPKController::class, 'exportLaporanExcel'])->name('verifikasi.exportExcel');
+    Route::get('/verifikasi/{id}/export-pdf', [PPKController::class, 'exportLaporanPDF'])->name('verifikasi.exportPDF');
+    Route::get('/verifikasi/{id}/rekapitulasi', [PPKController::class, 'rekapitulasiLaporan'])->name('verifikasi.rekapitulasi');
+    Route::post('/verifikasi/{id}/rekapitulasi/store', [PPKController::class, 'storeRekapitulasi'])->name('verifikasi.rekapitulasi.store');
+    // [ROUTE BARU - DITAMBAHKAN] Approve & Reject
+    Route::post('/verifikasi/{id}/approve', [PPKController::class, 'approve'])->name('verifikasi.approve');
+    Route::post('/verifikasi/{id}/reject', [PPKController::class, 'reject'])->name('verifikasi.reject');
     
     Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
