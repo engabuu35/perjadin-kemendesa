@@ -10,7 +10,8 @@ use App\Http\Controllers\PimpinanController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\PPKController;
-use App\Http\Controllers\PelaporanController; // IMPORT INI
+use App\Http\Controllers\PelaporanController;
+use App\Http\Controllers\ManagePegawaiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +105,16 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
     Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
 
+    // View routes (server-rendered)
+    Route::get('/pegawai', [\App\Http\Controllers\ManagePegawaiController::class, 'index'])->name('pegawai.index');
+    Route::get('/pegawai/tambah', [\App\Http\Controllers\ManagePegawaiController::class, 'create'])->name('pegawai.create');
+    Route::post('/pegawai', [\App\Http\Controllers\ManagePegawaiController::class, 'store'])->name('pegawai.store');
+    Route::get('/pegawai/{nip}/edit', [\App\Http\Controllers\ManagePegawaiController::class, 'edit'])->name('pegawai.edit');
+    Route::patch('/pegawai/{nip}', [\App\Http\Controllers\ManagePegawaiController::class, 'update'])->name('pegawai.update');
+    Route::delete('/pegawai/{nip}', [\App\Http\Controllers\ManagePegawaiController::class, 'destroy'])->name('pegawai.destroy');
+
+    // Bulk delete (form submit)
+    Route::post('/pegawai/bulk-delete', [\App\Http\Controllers\ManagePegawaiController::class, 'bulkDelete'])->name('pegawai.bulkDelete');
     // [ROUTE BARU] Aksi Simpan & Hapus Bukti oleh PIC
     Route::post('/pelaporan-keuangan/{id}/store', [PelaporanController::class, 'storeBukti'])->name('pelaporan.storeBukti');
     Route::get('/pelaporan-keuangan/delete/{id}', [PelaporanController::class, 'deleteBukti'])->name('pelaporan.deleteBukti');
