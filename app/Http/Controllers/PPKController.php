@@ -8,6 +8,9 @@ use App\Models\LaporanKeuangan;
 use App\Models\BuktiLaporan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\RekapPerjadinExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class PPKController extends Controller
 {
@@ -193,4 +196,28 @@ class PPKController extends Controller
             'filterBulan'      => $bulan,
         ]);
     }
+
+    public function exportRekap(Request $request)
+    {
+        $tahun = $request->input('tahun');
+        $bulan = $request->input('bulan');
+
+        $fileName = 'rekap_perjalanan_dinas';
+        if ($tahun) {
+            $fileName .= '_' . $tahun;
+            if ($bulan) {
+                $fileName .= sprintf('-%02d', $bulan);
+            }
+        }
+        $fileName .= '.xlsx';
+
+        return Excel::download(
+            new RekapPerjadinExport(
+                $tahun ? (int)$tahun : null,
+                $bulan ? (int)$bulan : null
+            ),
+            $fileName
+        );
+    }
+
 }
