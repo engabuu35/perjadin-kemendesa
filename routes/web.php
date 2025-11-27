@@ -128,6 +128,8 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
     Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', [PPKController::class, 'tabelRekap'])->name('tabelrekap');
+    Route::get('/tabelrekap/export', [PPKController::class, 'exportRekap'])->name('tabelrekap.export');
+
 });
 
 
