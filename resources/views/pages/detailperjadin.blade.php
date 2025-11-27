@@ -17,9 +17,9 @@
                     ✅ Tugas Anda Sudah Selesai
                 </span>
             @else
-                <span class="inline-block mt-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
-                    ⚡ Sedang Berlangsung
-                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ $statusBadgeClass ?? '' }}">
+                {{ $statusPegawai ?? '—' }}
+            </span>
             @endif
         </div>
         

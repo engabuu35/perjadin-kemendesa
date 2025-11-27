@@ -107,6 +107,21 @@ class PerjadinController extends Controller
 
         if (!$dataSaya) abort(403, 'Akses ditolak.');
 
+        $today = Carbon::today();
+        $mulai = Carbon::parse($perjalanan->tgl_mulai);
+        $selesai = Carbon::parse($perjalanan->tgl_selesai);
+
+        if ($today->lt($mulai)) {
+            $statusPegawai = 'Akan Datang';
+            $statusBadgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
+        } elseif ($today->between($mulai, $selesai)) {
+            $statusPegawai = 'Sedang Berlangsung';
+            $statusBadgeClass = 'bg-orange-100 text-orange-700 border-orange-200';
+        } else {
+            $statusPegawai = 'Selesai';
+            $statusBadgeClass = 'bg-green-100 text-green-700 border-green-200';
+        }
+
         $isMyTaskFinished = $dataSaya->is_finished == 1;
 
         // 2. DATA GEOTAGGING
@@ -175,7 +190,9 @@ class PerjadinController extends Controller
             'isMyTaskFinished' => $isMyTaskFinished,
             // Variable Baru
             'canFinish' => $canFinish,
-            'finishMessage' => $finishMessage
+            'finishMessage' => $finishMessage,
+            'statusPegawai'    => $statusPegawai,
+            'statusBadgeClass' => $statusBadgeClass,
         ]);
     }
 

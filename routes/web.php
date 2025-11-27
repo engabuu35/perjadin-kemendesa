@@ -12,6 +12,7 @@ use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\PPKController;
 use App\Http\Controllers\PelaporanController;
 use App\Http\Controllers\ManagePegawaiController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/beranda', [BerandaController::class, 'index'])->middleware('auth')->name('pages.beranda');
 
     // Profile & Bantuan
-    Route::view('/profile', 'pages.lamanprofile')->name('profile');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::view('/laman-bantuan', 'pages.lamanBantuan')->name('bantuan');
 
     // Riwayat 
