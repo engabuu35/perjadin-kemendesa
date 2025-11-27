@@ -120,12 +120,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-keuangan/delete/{id}', [PelaporanController::class, 'deleteBukti'])->name('pelaporan.deleteBukti');
 
     Route::post('/pelaporan-keuangan/{id}/submit', [PelaporanController::class, 'submitToPPK'])->name('pelaporan.submit');
-    // Pegawai management
-    Route::get('/pegawai', fn() => view('pic.managePegawai'))->name('pegawai.index');
-    Route::get('/pegawai/tambah', fn() => view('pic.tambahPegawai'))->name('pegawai.create');
-    Route::get('/pegawai/{id}/edit', fn() => view('pic.editPegawai'))->name('pegawai.edit');
-    Route::get('/pegawai/{id}', fn() => view('pic.detailPegawai'))->name('pegawai.show');
-
+    
 });
 
 // PPK

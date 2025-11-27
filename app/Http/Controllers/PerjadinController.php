@@ -12,7 +12,26 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
 class PerjadinController extends Controller
-{
+{   
+    public function index(Request $request)
+    {
+        $q = $request->query('q');
+
+        $query = PerjalananDinas::query();
+
+        if ($q) {
+            $query->where('nomor_surat', 'like', "%$q%")
+                ->orWhere('tujuan', 'like', "%$q%");
+        }
+
+        $penugasans = $query->orderBy('tgl_mulai', 'desc')->paginate(10);
+
+        return view('pic.penugasan', [
+            'penugasans' => $penugasans,
+            'q' => $q
+        ]);
+    }
+
     public function show($id)
     {
         $userNip = Auth::user()->nip;
