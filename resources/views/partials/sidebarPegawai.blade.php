@@ -327,11 +327,15 @@
         <div class="user-profile absolute bottom-0 left-0 right-0 px-[15px] pt-5 pb-0 -mb-8
                     border-t border-white/20 flex flex-col items-center transition-all duration-300">
             
-        <!-- Avatar -->
+        <!-- Avatar Dinamis -->
         <a id="avatarBtn" 
         href="{{ route('profile') }}"
-        class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center mb-2.5 text-2xl text-white cursor-pointer transition-all duration-300">
-            <i class="fas fa-user"></i>
+        class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center mb-2.5 text-2xl text-white cursor-pointer transition-all duration-300 overflow-hidden">
+            @if(Auth::user()->foto_profil)
+                <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="Profile" class="w-full h-full object-cover">
+            @else
+                <i class="fas fa-user"></i>
+            @endif
         </a>
 
         <!-- Popup Menu -->
