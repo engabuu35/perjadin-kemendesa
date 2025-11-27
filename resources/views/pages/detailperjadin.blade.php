@@ -91,7 +91,7 @@
                     @endif
                 </p>
                 
-                <form action="{{ route('perjalanan.selesaikanSaya', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini?')">
+                <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini?')">
                     @csrf
                     <button type="submit" {{ !$canFinish ? 'disabled' : '' }} 
                         class="{{ !$canFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105' }} px-8 py-3 rounded-xl font-bold transition transform shadow-md">
