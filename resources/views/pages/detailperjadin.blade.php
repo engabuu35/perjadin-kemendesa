@@ -17,9 +17,9 @@
                     ✅ Tugas Anda Sudah Selesai
                 </span>
             @else
-                <span class="inline-block mt-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
-                    ⚡ Sedang Berlangsung
-                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ $statusBadgeClass ?? '' }}">
+                {{ $statusPegawai ?? '—' }}
+            </span>
             @endif
         </div>
         
@@ -91,7 +91,7 @@
                     @endif
                 </p>
                 
-                <form action="{{ route('perjalanan.selesaikanSaya', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini?')">
+                <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini?')">
                     @csrf
                     <button type="submit" {{ !$canFinish ? 'disabled' : '' }} 
                         class="{{ !$canFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105' }} px-8 py-3 rounded-xl font-bold transition transform shadow-md">
