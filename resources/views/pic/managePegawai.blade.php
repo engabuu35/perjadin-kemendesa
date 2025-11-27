@@ -42,7 +42,7 @@
             <!-- Bulk delete button (open modal) -->
             <form id="bulkDeleteForm" action="{{ route('pic.pegawai.bulkDelete') }}" method="POST" class="m-0 p-0">
                 @csrf
-                <input type="hidden" name="nips" id="bulkNips">
+                <input type="hidden" name="nips[]" id="bulkNips">
 
                 <button type="button" id="openBulkModal"
                     class="flex items-center gap-2 px-4 py-2 border-2 border-red-600 text-white bg-red-600 rounded-2xl hover:bg-red-700">
@@ -135,9 +135,21 @@ document.getElementById('openBulkModal').addEventListener('click', function () {
         return;
     }
 
-    // simpan ke hidden input sebagai JSON string
-    document.getElementById('bulkNips').value = JSON.stringify(checked);
+    const form = document.getElementById('bulkDeleteForm');
 
+    // hapus input hidden lama
+    form.querySelectorAll('input[name="nips[]"]').forEach(i => i.remove());
+
+    // buat input hidden baru per pegawai
+    checked.forEach(nip => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'nips[]';
+        input.value = nip;
+        form.appendChild(input);
+    });
+
+    // tampilkan modal
     const modal = document.getElementById('bulkModal');
     modal.classList.remove('opacity-0', 'invisible');
 });
