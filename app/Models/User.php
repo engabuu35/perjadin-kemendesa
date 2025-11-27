@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,34 +14,10 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * Nama tabel yang digunakan oleh model.
-     * Sesuai migrasi: 'users'
-     */
     protected $table = 'users';
-
-    /**
-     * Primary Key tabel.
-     * Sesuai migrasi: 'nip'
-     */
     protected $primaryKey = 'nip';
-
-    /**
-     * Tipe data dari primary key.
-     * Sesuai migrasi: 'string'
-     */
     protected $keyType = 'string';
-
-    /**
-     * Menunjukkan bahwa primary key BUKAN auto-incrementing.
-     * Sesuai migrasi: 'nip' bukan auto-increment
-     */
     public $incrementing = false;
-
-    /**
-     * Atribut yang dapat diisi secara massal (mass assignable).
-     * Disesuaikan dengan migrasi 'create_users_table'.
-     */
     protected $fillable = [
         'id_uke',
         'pangkat_gol_id',
@@ -52,47 +29,22 @@ class User extends Authenticatable
         'is_aktif',
     ];
 
-    /**
-     * Atribut yang harus disembunyikan saat serialisasi.
-     */
     protected $hidden = [
         'password_hash',
         'remember_token',
     ];
 
-    /**
-     * Tipe data casting untuk atribut.
-     */
     protected $casts = [
         'is_aktif' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Memberitahu Laravel kolom mana yang berisi password ter-hash.
-     * Auth::attempt() akan menggunakan ini untuk verifikasi.
-     * Sesuai migrasi: 'password_hash'
-     */
     public function getAuthPassword()
     {
         return $this->password_hash;
     }
 
-    // -------------------------------------------------------------------
-    // RELASI BERDASARKAN SKEMA DATABASE (MIGRASI)
-    // -------------------------------------------------------------------
-
-    /**
-     * Relasi many-to-many ke 'roles' via tabel 'penugasanperan'.
-     *
-     * Sesuai migrasi:
-     * - Tabel pivot: 'penugasanperan'
-     * - Foreign key di pivot (ke User): 'user_id'
-     * - Foreign key di pivot (ke Role): 'role_id'
-     * - Local key di model ini (User): 'nip' (karena ini PK kita)
-     * - Related key di model Role: 'id'
-     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -119,7 +71,6 @@ class User extends Authenticatable
      */
     public function pangkatGolongan()
     {
-        // Asumsi model PangkatGolongan ada
         return $this->belongsTo(PangkatGolongan::class, 'pangkat_gol_id', 'id');
     }
 
