@@ -2,43 +2,59 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
+use App\Models\UnitKerja;
+use App\Models\PangkatGolongan;
+use App\Models\Role;
+use App\Models\PenugasanPeran;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = User::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'id_uke'         => UnitKerja::inRandomOrder()->value('id'),
+            'pangkat_gol_id' => PangkatGolongan::inRandomOrder()->value('id'),
+
+            // NIP random, string, unik (silakan sesuaikan pola)
+            'nip'  => $this->faker->unique()->numerify('1980############'),
+            'nama' => $this->faker->name(),
+
+            'email'   => $this->faker->unique()->safeEmail(),
+            'no_telp' => $this->faker->phoneNumber(),
+
+            // SEMUA user pakai password sama → "password"
+            'password_hash' => Hash::make('password'),
+
+            'is_aktif' => true,
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Tambahkan satu role ke user via tabel penugasanperan.
+     * Asumsi tabel roles punya kolom 'kode' berisi 'PEGAWAI', 'PIC', dst.
      */
-    public function unverified(): static
+    public function withRole(string $kodeRole): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->afterCreating(function (User $user) use ($kodeRole) {
+            $roleId = Role::where('kode', $kodeRole)->value('id');
+
+            if ($roleId) {
+                PenugasanPeran::create([
+                    'user_id' => $user->nip,   // FK ke users.nip
+                    'role_id' => $roleId,
+                ]);
+            }
+        });
+    }
+
+    /** State khusus untuk PEGAWAI */
+    public function pegawai(): static
+    {
+        return $this->withRole('PEGAWAI');
     }
 }

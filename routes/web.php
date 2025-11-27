@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
 
 // PIMPINAN
 Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat');
     Route::get('/monitoring', [PimpinanController::class, 'index'])->name('monitoring');
     Route::get('/detail/{id}', [PimpinanController::class, 'detail'])->name('detail');
 });
@@ -100,7 +101,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 
-    // === ROUTE PELAPORAN KEUANGAN PIC (BARU) ===
+    // PELAPORAN KEUANGAN PIC (MANUAL)
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
     Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
 
@@ -114,11 +115,30 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
 
     // Bulk delete (form submit)
     Route::post('/pegawai/bulk-delete', [\App\Http\Controllers\ManagePegawaiController::class, 'bulkDelete'])->name('pegawai.bulkDelete');
+    // [ROUTE BARU] Aksi Simpan & Hapus Bukti oleh PIC
+    Route::post('/pelaporan-keuangan/{id}/store', [PelaporanController::class, 'storeBukti'])->name('pelaporan.storeBukti');
+    Route::get('/pelaporan-keuangan/delete/{id}', [PelaporanController::class, 'deleteBukti'])->name('pelaporan.deleteBukti');
+
+    Route::post('/pelaporan-keuangan/{id}/submit', [PelaporanController::class, 'submitToPPK'])->name('pelaporan.submit');
+
+    // Pegawai management
+    Route::get('/pegawai', fn() => view('pic.managePegawai'))->name('pegawai.index');
+    Route::get('/pegawai/tambah', fn() => view('pic.tambahPegawai'))->name('pegawai.create');
+    Route::get('/pegawai/{id}/edit', fn() => view('pic.editPegawai'))->name('pegawai.edit');
+    Route::get('/pegawai/{id}', fn() => view('pic.detailPegawai'))->name('pegawai.show');
 });
 
 // PPK
 Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(function () {
+
+    // VERIFIKASI & INPUT SPM/SP2D
+    Route::get('/verifikasi', [PPKController::class, 'index'])->name('verifikasi.index');
+    Route::get('/verifikasi/{id}', [PPKController::class, 'show'])->name('verifikasi.detail');
+    Route::post('/verifikasi/{id}/store', [PPKController::class, 'storeVerifikasi'])->name('verifikasi.store');
+    
     Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
-    Route::get('/tabelrekap', fn() => view('ppk.tabelRekap'))->name('tabelrekap');
+    Route::get('/tabelrekap', [PPKController::class, 'tabelRekap'])->name('tabelrekap');
 });
+
+
