@@ -18,19 +18,19 @@ class StatusLaporanSeeder extends Seeder
                 'nama_status' => 'Belum Dibuat' // Laporan sama sekali belum ada
             ],
             [
-                'nama_status' => 'Draft' // PIC sedang mengisi, belum dikirim
+                'nama_status' => 'Proses Pembuatan' // PIC sedang mengisi, belum dikirim
             ],
             [
                 'nama_status' => 'Menunggu Verifikasi' // PIC sudah kirim, PPK belum periksa
             ],
             [
-                'nama_status' => 'Perlu Revisi' // PPK tolak, PIC harus perbaiki
+                'nama_status' => 'Perlu Tindakan' // PPK tolak, PIC harus perbaiki
             ],
             [
-                'nama_status' => 'Disetujui' // PPK sudah setuju, siap bayar
+                'nama_status' => 'Disetujui' // PPK sudah setuju
             ],
             [
-                'nama_status' => 'Selesai Dibayar' // Proses selesai
+                'nama_status' => 'Perjalanan Dibatalkan' // Perjalananan dibatalkan
             ],
         ]);
     }

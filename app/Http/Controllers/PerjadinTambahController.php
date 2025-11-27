@@ -7,43 +7,62 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class PerjadinTambahController extends Controller
 {
     public function create()
     {
-        // Ambil semua pegawai dari users (nip & nama) — jangan select 'id' karena kolom id tidak ada
         $users = User::select('nip','nama')->get();
 
-        /**
-         * Ambil status perjalanan yang terkait user.
-         * NOTE: join berdasarkan users.nip karena id_user menyimpan NIP (bukan users.id).
-         */
+        // Ambil semua row (mapping status pegawai) -- tetap kalau kamu pakai
         $rows = DB::table('pegawaiperjadin as pp')
             ->join('perjalanandinas as p', 'pp.id_perjadin', '=', 'p.id')
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
-            ->select('u.nip', 'p.id_status', 'p.tgl_mulai')
+            ->select('u.nip', 'p.id_status', 'p.tgl_mulai', 'p.tgl_selesai')
             ->orderBy('p.id_status', 'asc')
             ->get();
 
         $pegawaiStatus = [];
         foreach ($rows as $r) {
             $nip = (string) $r->nip;
-            $status = (int) $r->id_status;
-
-            // jika belum ada mapping untuk nip ini, simpan (karena sudah di-order by tgl_mulai desc)
-            if (! array_key_exists($nip, $pegawaiStatus)) {
-                $pegawaiStatus[$nip] = $status;
-                continue;
-            }
-
-            // jika sudah ada dan ditemukan status 2, prioritaskan jadi 2
-            if ($status === 2) {
-                $pegawaiStatus[$nip] = 2;
-            }
+            $pegawaiStatus[$nip] = $r->id_status;
         }
 
-        return view('pic.penugasanTambah', compact('users', 'pegawaiStatus'));
+        // Hitung pegawai yang sedang punya perjalanan "aktif" sekarang
+        $today = Carbon::today()->toDateString();
+
+        // Ambil id status "Sedang Berlangsung" (jika ada)
+        $sedangBerlangsungId = DB::table('statusperjadin')
+            ->where('nama_status', 'Sedang Berlangsung')
+            ->value('id');
+
+        $activeQuery = DB::table('pegawaiperjadin as pp')
+            ->join('perjalanandinas as p', 'pp.id_perjadin', '=', 'p.id')
+            ->where(function($q) use ($today, $sedangBerlangsungId) {
+                // kondisi: tanggal tumpang tindih (today in [tgl_mulai, tgl_selesai])
+                $q->whereDate('p.tgl_mulai', '<=', $today)
+                  ->whereDate('p.tgl_selesai', '>=', $today);
+
+                // OR jika kamu ingin juga memasukkan berdasarkan status "Sedang Berlangsung"
+                if ($sedangBerlangsungId) {
+                    $q->orWhere('p.id_status', $sedangBerlangsungId);
+                }
+            })
+            ->select('pp.id_user')
+            ->distinct();
+
+        $pegawaiActive = $activeQuery->pluck('id_user')->toArray();
+
+        // Ambil list pimpinan dari penugasanperan (role_id = 1)
+        $pimpinans = DB::table('penugasanperan as pp')
+            ->join('users as u', 'pp.user_id', '=', 'u.nip')
+            ->where('pp.role_id', 1)
+            ->select('u.nip', 'u.nama')
+            ->get();
+
+        return view('pic.penugasanTambah', compact('users', 'pegawaiStatus', 'pimpinans', 'pegawaiActive'));
     }
 
     public function store(Request $request)
@@ -56,33 +75,45 @@ class PerjadinTambahController extends Controller
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'pegawai' => 'required|array|min:1',
             'pegawai.*.nip' => 'required|string|exists:users,nip',
-            'surat_tugas' => 'nullable|file|mimes:pdf|max:5120',
+            'surat_tugas' => 'nullable|file|mimes:pdf|max:5120', // opsional
+            'approved_by' => 'nullable|exists:users,nip', // opsional
         ]);
 
-        DB::transaction(function() use ($validated) {
+        $nips = array_map(fn($p) => $p['nip'], $validated['pegawai']);
+        if (count($nips) !== count(array_unique($nips))) {
+            return back()->withInput()->withErrors(['pegawai' => 'Nama pegawai tidak boleh duplikat']);
+        }
+
+        DB::transaction(function() use ($validated, $request) {
             $perjalanan = PerjalananDinas::create([
                 'nomor_surat' => $validated['nomor_surat'],
                 'tanggal_surat' => $validated['tanggal_surat'],
                 'tujuan' => $validated['tujuan'],
                 'tgl_mulai' => $validated['tgl_mulai'],
                 'tgl_selesai' => $validated['tgl_selesai'],
+                'approved_by' => $validated['approved_by'] ?? null,
                 'id_pembuat' => Auth::id(),
                 'id_status' => 1,
             ]);
 
-            // Buat array untuk insert batch
-            $insertData = [];
-            foreach ($validated['pegawai'] as $pegawai) {
-                // Ambil user berdasarkan NIP — kita tetap menyimpan NIP ke kolom id_user
-                $user = User::where('nip', $pegawai['nip'])->first();
-                if ($user) {
-                    $insertData[] = [
-                        'id_perjadin' => $perjalanan->id,
-                        'id_user' => $user->nip, // sesuai skema saat ini
-                    ];
-                }
+            // Handle file PDF
+            if ($request->hasFile('surat_tugas')) {
+                $file = $request->file('surat_tugas');
+                $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('surat_tugas', $filename, 'public');
+
+                $perjalanan->surat_tugas = $path;
+                $perjalanan->save();
             }
 
+            // Insert pegawai
+            $insertData = [];
+            foreach ($validated['pegawai'] as $pegawai) {
+                $insertData[] = [
+                    'id_perjadin' => $perjalanan->id,
+                    'id_user' => $pegawai['nip'],
+                ];
+            }
             if (!empty($insertData)) {
                 DB::table('pegawaiperjadin')->insert($insertData);
             }
@@ -91,49 +122,64 @@ class PerjadinTambahController extends Controller
         return redirect()->route('pic.penugasan')
             ->with('success','Perjalanan Dinas berhasil disimpan.');
     }
+
     public function edit($id)
     {
         $users = User::select('nip','nama')->get();
 
-        // mapping status pegawai sama seperti di create()
         $rows = DB::table('pegawaiperjadin as pp')
             ->join('perjalanandinas as p', 'pp.id_perjadin', '=', 'p.id')
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
-            ->select('u.nip', 'p.id_status', 'p.tgl_mulai')
+            ->select('u.nip', 'p.id_status', 'p.tgl_mulai', 'p.tgl_selesai')
             ->orderBy('p.id_status', 'asc')
             ->get();
 
         $pegawaiStatus = [];
         foreach ($rows as $r) {
             $nip = (string) $r->nip;
-            $status = (int) $r->id_status;
-            if (! array_key_exists($nip, $pegawaiStatus)) {
-                $pegawaiStatus[$nip] = $status;
-                continue;
-            }
-            if ($status === 2) {
-                $pegawaiStatus[$nip] = 2;
-            }
+            $pegawaiStatus[$nip] = $r->id_status;
         }
 
-        // ambil perjalanan
         $perjalanan = PerjalananDinas::findOrFail($id);
 
-        // ambil list pegawai untuk perjalanandinas ini (nip + nama)
         $pegawaiList = DB::table('pegawaiperjadin as pp')
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
             ->where('pp.id_perjadin', $id)
             ->select('u.nip', 'u.nama')
             ->get()
-            ->map(function($r){ return ['nip'=> $r->nip, 'nama' => $r->nama]; })
+            ->map(fn($r) => ['nip' => $r->nip, 'nama' => $r->nama])
             ->toArray();
 
-        return view('pic.penugasanTambah', compact('users','pegawaiStatus','perjalanan','pegawaiList'));
+        // Hitung pegawai aktif (sama logic seperti create)
+        $today = Carbon::today()->toDateString();
+        $sedangBerlangsungId = DB::table('statusperjadin')
+            ->where('nama_status', 'Sedang Berlangsung')
+            ->value('id');
+
+        $activeQuery = DB::table('pegawaiperjadin as pp')
+            ->join('perjalanandinas as p', 'pp.id_perjadin', '=', 'p.id')
+            ->where(function($q) use ($today, $sedangBerlangsungId) {
+                $q->whereDate('p.tgl_mulai', '<=', $today)
+                  ->whereDate('p.tgl_selesai', '>=', $today);
+
+                if ($sedangBerlangsungId) {
+                    $q->orWhere('p.id_status', $sedangBerlangsungId);
+                }
+            })
+            ->select('pp.id_user')
+            ->distinct();
+
+        $pegawaiActive = $activeQuery->pluck('id_user')->toArray();
+
+        $pimpinans = DB::table('penugasanperan as pp')
+            ->join('users as u', 'pp.user_id', '=', 'u.nip')
+            ->where('pp.role_id', 1)
+            ->select('u.nip', 'u.nama')
+            ->get();
+
+        return view('pic.penugasanTambah', compact('users','pegawaiStatus','perjalanan','pegawaiList','pimpinans','pegawaiActive'));
     }
 
-    /**
-     * Update perjalanan & pegawai yang terkait.
-     */
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
@@ -145,6 +191,7 @@ class PerjadinTambahController extends Controller
             'pegawai' => 'required|array|min:1',
             'pegawai.*.nip' => 'required|string|exists:users,nip',
             'surat_tugas' => 'nullable|file|mimes:pdf|max:5120',
+            'approved_by' => 'nullable|exists:users,nip',
         ]);
 
         DB::transaction(function() use ($validated, $id) {
@@ -155,32 +202,26 @@ class PerjadinTambahController extends Controller
                 'tujuan' => $validated['tujuan'],
                 'tgl_mulai' => $validated['tgl_mulai'],
                 'tgl_selesai' => $validated['tgl_selesai'],
-                // jangan ubah id_pembuat di edit
+                'approved_by' => $validated['approved_by'],
             ]);
 
-            // handle surat_tugas file jika diupload => replace existing
             if (request()->hasFile('surat_tugas')) {
                 $file = request()->file('surat_tugas');
                 $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('surat_tugas', $filename, 'public');
 
-                // jika ada kolom surat_tugas pada model, simpan path (sesuaikan)
                 $perjalanan->surat_tugas = $path;
                 $perjalanan->save();
             }
 
-            // reset pegawaiperjadin: hapus lalu insert baru
             DB::table('pegawaiperjadin')->where('id_perjadin', $perjalanan->id)->delete();
 
             $insertData = [];
             foreach ($validated['pegawai'] as $pegawai) {
-                $user = User::where('nip', $pegawai['nip'])->first();
-                if ($user) {
-                    $insertData[] = [
-                        'id_perjadin' => $perjalanan->id,
-                        'id_user' => $user->nip,
-                    ];
-                }
+                $insertData[] = [
+                    'id_perjadin' => $perjalanan->id,
+                    'id_user' => $pegawai['nip'],
+                ];
             }
             if (!empty($insertData)) {
                 DB::table('pegawaiperjadin')->insert($insertData);
@@ -189,5 +230,29 @@ class PerjadinTambahController extends Controller
 
         return redirect()->route('pic.penugasan')
             ->with('success', 'Perjalanan Dinas berhasil diperbarui.');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|string',
+        ]);
+
+        $perjalanan = PerjalananDinas::findOrFail($id);
+
+        // Map status string ke id_status
+        $statusMap = [
+            'Diselesaikan Manual' => 7, // sesuai seeder
+            'Dibatalkan' => 8,
+        ];
+
+        if (!isset($statusMap[$request->status])) {
+            return response()->json(['message' => 'Status tidak valid'], 422);
+        }
+
+        $perjalanan->id_status = $statusMap[$request->status];
+        $perjalanan->save();
+
+        return response()->json(['message' => 'Status berhasil diubah']);
     }
 }
