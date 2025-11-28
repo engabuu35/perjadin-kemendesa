@@ -10,24 +10,22 @@ use Carbon\Carbon;
 class RiwayatController extends Controller
 {
     /**
-     * Halaman utama riwayat perjalanan dinas.
-     * - Semua role melihat tab "Pribadi"
-     * - Khusus PIMPINAN, tab "Pegawai" berisi semua perjadin selesai.
+     * Menampilkan halaman riwayat perjalanan dinas.
+     * - Untuk PIMPINAN: tab Pribadi & Pegawai (view pimpinan.riwayatAllUsers)
+     * - Untuk role lain: riwayat pribadi seperti sebelumnya (view pages.riwayat)
      */
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        // Ambil role user (kode: PIMPINAN, PIC, PPK, PEGAWAI, dst.)
+        // Ambil role berdasarkan NIP
         $roleKode = DB::table('penugasanperan')
             ->join('roles', 'penugasanperan.role_id', '=', 'roles.id')
             ->where('penugasanperan.user_id', $user->nip)
             ->value('roles.kode');
 
-        $roleKode = strtoupper((string) $roleKode);
+        $roleKode = $roleKode ? strtoupper($roleKode) : null;
 
-        // Tab aktif: 'pribadi' (default) atau 'pegawai'
-        $tab    = $request->input('tab', 'pribadi');
         $search = $request->input('search');
 
         // ID status "Selesai"
@@ -35,82 +33,118 @@ class RiwayatController extends Controller
             ->where('nama_status', 'Selesai')
             ->value('id');
 
-        // ============================
-        // TAB PRIBADI (default semua role)
-        // ============================
-        if ($tab === 'pribadi') {
+        // ============================================================
+        //  CASE 1: PIMPINAN  →  gunakan view pimpinan.riwayatAllUsers
+        // ============================================================
+        if ($roleKode === 'PIMPINAN') {
 
-            $query = DB::table('perjalanandinas')
-                ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
-                ->where('perjalanandinas.id_status', $idSelesai)
-                ->where('perjalanandinas.created_at', '>=', Carbon::now()->subYear())
-                ->select('perjalanandinas.*', 'statusperjadin.nama_status');
+            // Base query: semua perjadin yang sudah selesai, 1 tahun terakhir
+            $baseQuery = function () use ($idSelesai) {
+                return DB::table('perjalanandinas')
+                    ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
+                    ->where('perjalanandinas.id_status', $idSelesai)
+                    ->where('perjalanandinas.created_at', '>=', Carbon::now()->subYear())
+                    ->select(
+                        'perjalanandinas.*',
+                        'statusperjadin.nama_status'
+                    );
+            };
 
-            // Jika role PEGAWAI → filter per pegawai
-            if ($roleKode === 'PEGAWAI') {
-                $query->join('pegawaiperjadin', 'perjalanandinas.id', '=', 'pegawaiperjadin.id_perjadin')
-                      ->where('pegawaiperjadin.id_user', $user->nip);
-            }
+            // --- PRIBADI: perjadin yang diikuti pimpinan ---
+            $qPribadi = $baseQuery()
+                ->join('pegawaiperjadin', 'perjalanandinas.id', '=', 'pegawaiperjadin.id_perjadin')
+                ->where('pegawaiperjadin.id_user', $user->nip);
 
+            // --- PEGAWAI: semua perjadin selesai (tanpa filter pegawai) ---
+            $qPegawai = $baseQuery();
+
+            // Filter search untuk kedua query
             if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('perjalanandinas.nomor_surat', 'LIKE', "%{$search}%")
-                      ->orWhere('perjalanandinas.tujuan', 'LIKE', "%{$search}%");
-                });
+                $applySearch = function ($q) use ($search) {
+                    $q->where(function ($qq) use ($search) {
+                        $qq->where('perjalanandinas.nomor_surat', 'LIKE', "%{$search}%")
+                           ->orWhere('perjalanandinas.tujuan', 'LIKE', "%{$search}%");
+                    });
+                };
+                $applySearch($qPribadi);
+                $applySearch($qPegawai);
             }
 
-            $riwayat_list = $query
+            $riwayatPribadi = $qPribadi
                 ->orderBy('perjalanandinas.tgl_mulai', 'desc')
                 ->get();
-        }
 
-        // =====================================
-        // TAB PEGAWAI (KHUSUS PIMPINAN)
-        //  → riwayat semua perjadin yang selesai
-        // =====================================
-        elseif ($tab === 'pegawai' && $roleKode === 'PIMPINAN') {
-
-            $query = DB::table('perjalanandinas')
-                ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
-                ->where('perjalanandinas.id_status', $idSelesai)
-                ->where('perjalanandinas.created_at', '>=', Carbon::now()->subYear())
-                ->select('perjalanandinas.*', 'statusperjadin.nama_status');
-
-            if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('perjalanandinas.nomor_surat', 'LIKE', "%{$search}%")
-                      ->orWhere('perjalanandinas.tujuan', 'LIKE', "%{$search}%");
-                });
-            }
-
-            $riwayat_list = $query
+            $riwayatPegawai = $qPegawai
                 ->orderBy('perjalanandinas.tgl_mulai', 'desc')
                 ->get();
+
+            // Tambahkan field bantu (lokasi, tanggal, status) untuk dipakai di view
+            $formatter = function ($item) {
+                $mulai   = Carbon::parse($item->tgl_mulai);
+                $selesai = Carbon::parse($item->tgl_selesai);
+
+                $item->lokasi  = $item->tujuan;
+                $item->tanggal = $mulai->translatedFormat('d F Y') . ' - ' . $selesai->translatedFormat('d F Y');
+                $item->status  = $item->nama_status ?? 'Selesai';
+
+                return $item;
+            };
+
+            $riwayatPribadi = $riwayatPribadi->map($formatter);
+            $riwayatPegawai = $riwayatPegawai->map($formatter);
+
+            return view('pimpinan.riwayatAllUsers', [
+                'riwayatPribadi' => $riwayatPribadi,
+                'riwayatPegawai' => $riwayatPegawai,
+                'search'         => $search,
+            ]);
         }
 
-        // Jika tab=pegawai tapi bukan pimpinan → fallback ke pribadi
-        else {
-            return redirect()->route('riwayat', ['tab' => 'pribadi']);
+        // ============================================================
+        //  CASE 2: NON-PIMPINAN  →  logika lama (Pribadi saja)
+        // ============================================================
+
+        $query = DB::table('perjalanandinas')
+            ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
+            ->where('perjalanandinas.id_status', $idSelesai) // hanya selesai
+            ->where('perjalanandinas.created_at', '>=', Carbon::now()->subYear())
+            ->select(
+                'perjalanandinas.*',
+                'statusperjadin.nama_status'
+            );
+
+        // Jika dia PEGAWAI biasa → filter hanya perjadin yang diikutinya
+        if ($roleKode === 'PEGAWAI') {
+            $query->join('pegawaiperjadin', 'perjalanandinas.id', '=', 'pegawaiperjadin.id_perjadin')
+                  ->where('pegawaiperjadin.id_user', $user->nip);
         }
 
-        // Normalisasi properti status untuk kebutuhan view
+        // Filter pencarian
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('perjalanandinas.nomor_surat', 'LIKE', "%{$search}%")
+                    ->orWhere('perjalanandinas.tujuan', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $riwayat_list = $query
+            ->orderBy('perjalanandinas.tgl_mulai', 'desc')
+            ->get();
+
+        // Tambahkan property status agar view lama tetap jalan
         $riwayat_list->transform(function ($item) {
             $item->status        = 'Selesai';
-            $item->nama_status   = $item->nama_status ?? 'Selesai';
+            $item->nama_status   = 'Selesai';
+            $item->custom_status = 'Selesai';
             $item->status_color  = 'green';
             return $item;
         });
 
-        return view('pages.riwayat', [
-            'riwayat_list' => $riwayat_list,
-            'tab'          => $tab,
-            'role'         => $roleKode,
-            'search'       => $search,
-        ]);
+        return view('pages.riwayat', compact('riwayat_list'));
     }
 
     /**
-     * Detail perjalanan dinas (dipakai dari versi lama, jika masih digunakan).
+     * Detail perjalanan dinas (untuk route lama /riwayat/{id} kalau dipakai).
      */
     public function show($id)
     {

@@ -3,25 +3,419 @@
 @section('title', 'Detail Perjalanan Dinas')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 p-6">
-    <div class="max-w-6xl mx-auto">
-        <!-- Back Button -->
-        <a href="{{ route('pimpinan.monitoring') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
+<div class="ml-[80px] p-6 mt-[90px] max-w-6xl mx-auto">
+    {{-- BACK LINK --}}
+    <div class="mb-6">
+        <a href="{{ route('pimpinan.monitoring') }}"
+           class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
+            <i class="fa-solid fa-arrow-left mr-2"></i>
             Kembali ke Dashboard
         </a>
+    </div>
 
-        <!-- Header -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">{{ $perjadin->nomor_surat }}</h1>
-            <span class="bg-orange-400 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                {{ $perjadin->nama_status }}
-            </span>
+    @php
+        use Carbon\Carbon;
+
+        $tglMulai   = $progress['mulai'] ? $progress['mulai']->translatedFormat('d M Y') : '-';
+        $tglSelesai = $progress['selesai'] ? $progress['selesai']->translatedFormat('d M Y') : '-';
+
+        // Badge status utama perjadin
+        $statusLabel = $progress['status_perjadin'] ?? $progress['fase'] ?? '-';
+        $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+        if (str_contains(strtolower($statusLabel), 'berlangsung')) {
+            $statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        } elseif (str_contains(strtolower($statusLabel), 'selesai')) {
+            $statusClass = 'bg-green-100 text-green-700 border-green-200';
+        } elseif (str_contains(strtolower($statusLabel), 'pembuatan')) {
+            $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
+        } elseif (str_contains(strtolower($statusLabel), 'tindakan')) {
+            $statusClass = 'bg-red-100 text-red-700 border-red-200';
+        }
+
+        // Badge status laporan keuangan
+        $statusLap = $keuangan['status_laporan'] ?? 'Belum Dibuat';
+        $statusLapClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+        if (str_contains(strtolower($statusLap), 'disetujui')
+            || str_contains(strtolower($statusLap), 'valid')) {
+            $statusLapClass = 'bg-green-100 text-green-700 border-green-200';
+        } elseif (str_contains(strtolower($statusLap), 'revisi')
+            || str_contains(strtolower($statusLap), 'perlu')) {
+            $statusLapClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        } elseif (str_contains(strtolower($statusLap), 'tolak')) {
+            $statusLapClass = 'bg-red-100 text-red-700 border-red-200';
+        }
+    @endphp
+
+    {{-- ================= HEADER PERJADIN ================= --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                    Surat Tugas
+                </p>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 tracking-wide mb-2">
+                    {{ $perjadin->nomor_surat ?? '-' }}
+                </h1>
+                <p class="text-gray-600 text-sm md:text-base">
+                    <i class="fa-solid fa-location-dot mr-2 text-gray-400"></i>
+                    {{ $perjadin->tujuan ?? '-' }}
+                </p>
+                <p class="text-gray-500 text-sm mt-1">
+                    <i class="fa-regular fa-calendar mr-2 text-gray-400"></i>
+                    {{ $tglMulai }} &mdash; {{ $tglSelesai }}
+                </p>
+            </div>
+
+            <div class="flex flex-col items-start md:items-end gap-2">
+                <span class="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-semibold {{ $statusClass }}">
+                    <span class="w-2 h-2 rounded-full bg-current mr-2 opacity-70"></span>
+                    {{ $statusLabel }}
+                </span>
+
+                <span class="inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-semibold {{ $statusLapClass }}">
+                    <i class="fa-solid fa-file-invoice-dollar mr-2 text-xs"></i>
+                    Laporan Keuangan: {{ $statusLap }}
+                </span>
+
+                <div class="text-right text-xs text-gray-500 mt-1">
+                    <p>Dibuat oleh:
+                        <span class="font-semibold text-gray-700">
+                            {{ $pembuat->nama ?? '-' }}
+                        </span>
+                    </p>
+                    @if($approver)
+                        <p>Disetujui oleh:
+                            <span class="font-semibold text-gray-700">
+                                {{ $approver->nama }}
+                            </span>
+                        </p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {{-- ================= TIM & KONTAK ================= --}}
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-blue-500"></i>
+                    Tim Perjalanan Dinas
+                </h2>
+                <span class="text-xs text-gray-500">
+                    {{ $progress['pegawai_selesai'] }}/{{ $progress['total_pegawai'] }} pegawai menandai selesai
+                </span>
+            </div>
+
+            @if($pegawai->isEmpty())
+                <p class="text-sm text-gray-500 italic">
+                    Belum ada pegawai yang terdaftar pada perjalanan dinas ini.
+                </p>
+            @else
+                <div class="space-y-3">
+                    @foreach($pegawai as $pg)
+                        @php
+                            $finished = (int) $pg->is_finished === 1;
+                        @endphp
+                        <div class="flex items-start justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                            <div class="space-y-0.5">
+                                <p class="font-semibold text-gray-800 text-sm">
+                                    {{ $pg->nama }}
+                                    <span class="text-xs font-normal text-gray-500">
+                                        &mdash; {{ $pg->role_perjadin ?? 'Anggota' }}
+                                    </span>
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    NIP: {{ $pg->nip }}
+                                </p>
+                                @if(!empty($pg->no_telp))
+                                    <p class="text-xs text-gray-500">
+                                        <i class="fa-solid fa-phone mr-1 text-gray-400"></i>
+                                        {{ $pg->no_telp }}
+                                    </p>
+                                @endif
+                                @if(!empty($pg->email))
+                                    <p class="text-xs text-gray-500">
+                                        <i class="fa-solid fa-envelope mr-1 text-gray-400"></i>
+                                        {{ $pg->email }}
+                                    </p>
+                                @endif
+                            </div>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold
+                                {{ $finished ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200' }}">
+                                <i class="fa-solid {{ $finished ? 'fa-check-circle' : 'fa-clock' }} mr-1.5"></i>
+                                {{ $finished ? 'Selesai' : 'Belum Selesai' }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
-        <!-- Detail Content akan ditambahkan di sini -->
+        {{-- ================= RINGKASAN PROGRESS ================= --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-list text-indigo-500"></i>
+                Ringkasan Progres
+            </h2>
+
+            <div class="space-y-3 text-sm">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-flag text-blue-500 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800">Fase Perjalanan</p>
+                        <p class="text-gray-600 text-xs">{{ $progress['fase'] }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-calendar-days text-emerald-500 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold text-gray-800">Periode</p>
+                        <p class="text-gray-600 text-xs">{{ $tglMulai }} &mdash; {{ $tglSelesai }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-user-check text-sky-500 mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">Penyelesaian Tugas Pegawai</p>
+                        <p class="text-gray-600 text-xs mb-1">
+                            {{ $progress['pegawai_selesai'] }} dari {{ $progress['total_pegawai'] }} pegawai menandai selesai.
+                        </p>
+                        <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <div class="h-2 rounded-full bg-emerald-500"
+                                 style="width: {{ $progress['persen_pegawai_selesai'] }}%;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-dashed border-gray-200 my-2"></div>
+
+                <ul class="space-y-1 text-xs text-gray-700">
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid {{ $progress['ada_uraian_perjadin'] ? 'fa-check-circle text-green-500' : 'fa-circle-xmark text-gray-400' }}"></i>
+                        Uraian pelaksanaan PIC
+                        <span class="ml-auto font-semibold">
+                            {{ $progress['ada_uraian_perjadin'] ? 'Sudah diisi' : 'Belum ada' }}
+                        </span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid {{ $progress['jumlah_uraian_individu'] > 0 ? 'fa-check-circle text-green-500' : 'fa-circle-xmark text-gray-400' }}"></i>
+                        Uraian individu pegawai
+                        <span class="ml-auto font-semibold">
+                            {{ $progress['jumlah_uraian_individu'] }} laporan
+                        </span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid {{ $keuangan['ada_laporan'] ? 'fa-check-circle text-green-500' : 'fa-circle-xmark text-gray-400' }}"></i>
+                        Laporan keuangan
+                        <span class="ml-auto font-semibold">
+                            {{ $keuangan['status_laporan'] }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {{-- ================= URAIAN PELAKSANAAN ================= --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-file-lines text-amber-500"></i>
+            Uraian Pelaksanaan
+        </h2>
+
+        {{-- Uraian PIC / perjadin --}}
+        <div class="mb-4">
+            <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                Uraian Utama (PIC / Surat Tugas)
+            </p>
+            @if(!empty(trim($uraianPerjadin)))
+                <div class="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
+                    {!! nl2br(e($uraianPerjadin)) !!}
+                </div>
+            @else
+                <p class="text-sm text-gray-400 italic">
+                    Belum ada uraian pelaksanaan yang diisi oleh PIC.
+                </p>
+            @endif
+        </div>
+
+        {{-- Uraian individu --}}
+        <div>
+            <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                Uraian Individu Pegawai ({{ $uraianIndividu->count() }})
+            </p>
+            @if($uraianIndividu->isEmpty())
+                <p class="text-sm text-gray-400 italic">
+                    Belum ada uraian individu yang masuk.
+                </p>
+            @else
+                <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+                    @foreach($uraianIndividu as $lap)
+                        <div class="border border-gray-100 bg-gray-50 rounded-xl px-4 py-3">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <p class="text-sm font-semibold text-gray-800">
+                                    {{ $lap->nama }}
+                                </p>
+                                <p class="text-[11px] text-gray-400">
+                                    {{ optional($lap->created_at ? Carbon::parse($lap->created_at) : null)->format('d M Y H:i') }}
+                                </p>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-1">
+                                NIP: {{ $lap->nip }}
+                            </p>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                {!! nl2br(e($lap->uraian ?? '')) !!}
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- ================= REKAP KEUANGAN & GEOTAG ================= --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        {{-- REKAP KEUANGAN --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-coins text-green-500"></i>
+                Rekapitulasi Keuangan
+            </h2>
+
+            @if(!$keuangan['ada_laporan'])
+                <p class="text-sm text-gray-400 italic">
+                    Belum ada laporan keuangan untuk perjalanan dinas ini.
+                </p>
+            @else
+                <div class="mb-4">
+                    <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                        Total Biaya Rampung
+                    </p>
+                    <p class="text-2xl font-bold text-gray-800">
+                        Rp {{ number_format($keuangan['total_biaya_rampung'], 0, ',', '.') }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Status: {{ $keuangan['status_laporan'] }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                        Rincian Biaya
+                    </p>
+                    @if($keuangan['rincian']->isEmpty())
+                        <p class="text-sm text-gray-400 italic">
+                            Rincian biaya belum diinput.
+                        </p>
+                    @else
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <table class="min-w-full text-xs">
+                                <thead class="bg-gray-50 text-gray-600 uppercase tracking-wide">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">Kategori</th>
+                                        <th class="px-3 py-2 text-right">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach($keuangan['rincian'] as $row)
+                                        @php
+                                            // fallback total: kalau kolom total_biaya tidak ada, pakai biaya_rincian/biaya dll
+                                            $nominal = $row->total_biaya
+                                                ?? $row->biaya_rincian
+                                                ?? $row->biaya
+                                                ?? 0;
+                                        @endphp
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-3 py-2 text-gray-700">
+                                                {{ $row->nama_kategori }}
+                                            </td>
+                                            <td class="px-3 py-2 text-right text-gray-800">
+                                                Rp {{ number_format($nominal, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+
+        {{-- RINGKASAN GEOTAGGING --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-location-dot text-rose-500"></i>
+                Ringkasan Geotagging
+            </h2>
+
+            @if($geotagSummary['total_hari'] === 0)
+                <p class="text-sm text-gray-400 italic">
+                    Periode perjalanan belum lengkap, ringkasan geotagging tidak tersedia.
+                </p>
+            @else
+                <div class="grid grid-cols-3 gap-3 mb-4 text-center">
+                    <div class="bg-gray-50 rounded-xl px-3 py-2">
+                        <p class="text-xs text-gray-500">Total Hari</p>
+                        <p class="text-lg font-bold text-gray-800">
+                            {{ $geotagSummary['total_hari'] }}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl px-3 py-2">
+                        <p class="text-xs text-gray-500">Hari Terisi</p>
+                        <p class="text-lg font-bold text-emerald-600">
+                            {{ $geotagSummary['hari_terisi'] }}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl px-3 py-2">
+                        <p class="text-xs text-gray-500">Total Titik</p>
+                        <p class="text-lg font-bold text-blue-600">
+                            {{ $geotagSummary['total_record'] }}
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                    Log Geotagging Terbaru
+                </p>
+
+                @if($geotagList->isEmpty())
+                    <p class="text-sm text-gray-400 italic">
+                        Belum ada data geotagging yang terekam.
+                    </p>
+                @else
+                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1 text-xs">
+                        @foreach($geotagList as $gt)
+                            <div class="flex items-start justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                                <div class="space-y-0.5">
+                                    <p class="font-semibold text-gray-800">
+                                        {{ $gt->nama }}
+                                        @if($gt->nama_tipe)
+                                            <span class="text-[10px] font-normal text-gray-500">
+                                                &mdash; {{ $gt->nama_tipe }}
+                                            </span>
+                                        @endif
+                                    </p>
+                                    <p class="text-gray-500">
+                                        Lat: {{ $gt->latitude }}, Long: {{ $gt->longitude }}
+                                    </p>
+                                </div>
+                                <p class="text-[10px] text-gray-400 text-right">
+                                    {{ Carbon::parse($gt->created_at)->format('d M Y H:i') }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            @endif
+        </div>
     </div>
 </div>
 @endsection
