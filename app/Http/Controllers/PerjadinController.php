@@ -13,23 +13,20 @@ use Carbon\CarbonPeriod;
 
 class PerjadinController extends Controller
 {   
+    // ... (Fungsi index dan show tidak berubah drastis, fokus ke selesaikanTugasSaya)
+    // Saya sertakan full class agar aman
+    
     public function index(Request $request)
     {
         $q = $request->query('q');
-
         $query = PerjalananDinas::query();
 
         if ($q) {
             $query->where('nomor_surat', 'like', "%$q%")
                 ->orWhere('tujuan', 'like', "%$q%");
         }
-
         $penugasans = $query->orderBy('tgl_mulai', 'desc')->paginate(10);
-
-        return view('pic.penugasan', [
-            'penugasans' => $penugasans,
-            'q' => $q
-        ]);
+        return view('pic.penugasan', ['penugasans' => $penugasans, 'q' => $q]);
     }
 
     public function show($id)
@@ -55,6 +52,7 @@ class PerjadinController extends Controller
         $hariKe = 1;
         
         $today = Carbon::today();
+        // Cek absen hari ini
         $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->whereDate('created_at', $today)
@@ -81,21 +79,26 @@ class PerjadinController extends Controller
         // 4. VALIDASI TANGGAL & ABSEN UNTUK TOMBOL SELESAI
         $isTodayInPeriod = $today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         $isLastDay = $today->isSameDay($perjalanan->tgl_selesai);
-        $canFinish = $isLastDay && $sudahAbsenHariIni;
+        
+        // Logika Tombol Selesai:
+        // Harus hari terakhir DAN sudah absen hari ini
+        // ATAU tanggal hari ini sudah MELEWATI tanggal selesai (kasus lupa klik)
+        $isPastEnd = $today->gt($perjalanan->tgl_selesai);
+        
+        $canFinish = ($isLastDay && $sudahAbsenHariIni) || $isPastEnd;
 
         $finishMessage = '';
         if ($isMyTaskFinished) {
             $finishMessage = 'Anda sudah menyelesaikan tugas ini.';
-        } elseif (!$isLastDay) {
-            $finishMessage = 'Tombol penyelesaian hanya aktif pada tanggal terakhir tugas (' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . ').';
-        } elseif (!$sudahAbsenHariIni) {
-            $finishMessage = 'Anda belum melakukan Geotagging hari ini. Harap tandai lokasi terlebih dahulu.';
+        } elseif (!$isLastDay && !$isPastEnd) {
+            $finishMessage = 'Tombol penyelesaian hanya aktif pada tanggal terakhir tugas.';
+        } elseif ($isLastDay && !$sudahAbsenHariIni) {
+            $finishMessage = 'Anda belum melakukan Geotagging hari ini.';
         }
 
         $statusMessage = '';
-        if (!$isTodayInPeriod) {
-            if ($today->lt($perjalanan->tgl_mulai)) $statusMessage = 'Belum dimulai.';
-            elseif ($today->gt($perjalanan->tgl_selesai)) $statusMessage = 'Masa tugas sudah lewat.';
+        if (!$isTodayInPeriod && !$isPastEnd) {
+             $statusMessage = 'Belum dimulai.';
         }
 
         return view('pages.detailperjadin', [
@@ -114,35 +117,32 @@ class PerjadinController extends Controller
     public function selesaikanTugasSaya(Request $request, $id)
     {
         $userNip = Auth::user()->nip;
-        $perjalanan = PerjalananDinas::find($id);
-        $today = Carbon::today();
-
-        if (!$today->isSameDay($perjalanan->tgl_selesai)) {
-            return back()->with('error', 'Gagal! Anda hanya bisa menyelesaikan tugas pada tanggal selesai jadwal.');
-        }
         
-        $sudahAbsen = Geotagging::where('id_perjadin', $id)->where('id_user', $userNip)->whereDate('created_at', $today)->exists();
-        if (!$sudahAbsen) {
-            return back()->with('error', 'Gagal! Anda belum melakukan Geotagging hari ini.');
-        }
-
+        // 1. Update status pegawai ini jadi finished
         DB::table('pegawaiperjadin')
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->update(['is_finished' => 1]);
 
-        // Cek semua selesai?
+        // 2. Cek apakah SEMUA pegawai dalam tim sudah selesai?
         $totalPegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->count();
         $totalSelesai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('is_finished', 1)->count();
 
         if ($totalPegawai == $totalSelesai) {
-            // Status: Menunggu Verifikasi Laporan (Masuk PIC)
-            $idMenungguVerif = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
-            PerjalananDinas::where('id', $id)->update(['id_status' => $idMenungguVerif]);
-            return back()->with('success', 'Tugas selesai! Status perjalanan kini diteruskan ke PIC.');
+            // JIKA SEMUA SUDAH SELESAI -> Update Status Perjadin jadi "Menunggu Verifikasi Laporan"
+            // Ini akan mentrigger item ini muncul di Dashboard PIC
+            
+            $statusNext = DB::table('statusperjadin')
+                ->where('nama_status', 'Menunggu Verifikasi Laporan')
+                ->value('id');
+
+            if ($statusNext) {
+                PerjalananDinas::where('id', $id)->update(['id_status' => $statusNext]);
+                return back()->with('success', 'Tugas Anda selesai! Karena semua tim sudah selesai, laporan kini diteruskan ke PIC.');
+            }
         }
 
-        return back()->with('success', 'Tugas Anda berhasil diselesaikan.');
+        return back()->with('success', 'Tugas Anda berhasil diselesaikan. Menunggu rekan tim lain selesai.');
     }
 
     public function storeUraian(Request $request, $id) {
@@ -160,9 +160,11 @@ class PerjadinController extends Controller
         $perjalanan = PerjalananDinas::find($id);
         $today = Carbon::today();
         
-        if (!$today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai)) {
-            return response()->json(['status'=>'error', 'message'=>'Di luar jadwal.'], 403);
+        // Izinkan absen jika hari ini <= tanggal selesai (menghindari error jika telat absen di hari terakhir)
+        if ($today->gt($perjalanan->tgl_selesai)) {
+             return response()->json(['status'=>'error', 'message'=>'Masa tugas sudah lewat.'], 403);
         }
+
         if (Geotagging::where('id_perjadin', $id)->where('id_user', Auth::user()->nip)->whereDate('created_at', $today)->exists()) {
             return response()->json(['status'=>'error', 'message'=>'Sudah absen.'], 400);
         }

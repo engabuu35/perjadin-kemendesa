@@ -6,21 +6,25 @@ use Illuminate\Http\Request;
 use App\Models\PerjalananDinas;
 use App\Models\LaporanPerjadin;
 use App\Models\BuktiLaporan;
+use App\Models\LaporanKeuangan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class PelaporanController extends Controller
 {
     public function index(Request $request)
     {
+        // QUERY UTAMA PIC
         $query = PerjalananDinas::query();
         $query->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
-              ->select('perjalanandinas.*', 'statusperjadin.nama_status');
+              ->leftJoin('laporankeuangan', 'perjalanandinas.id', '=', 'laporankeuangan.id_perjadin')
+              ->select(
+                  'perjalanandinas.*', 
+                  'statusperjadin.nama_status',
+                  'laporankeuangan.id as id_keuangan'
+               );
 
-        // PIC melihat:
-        // 1. Menunggu Verifikasi Laporan (Baru masuk dari Pegawai)
-        // 2. Perlu Revisi (Ditolak PPK)
-        // 3. Menunggu Verifikasi (History yang sudah dikirim ke PPK)
         $query->whereIn('statusperjadin.nama_status', [
             'Menunggu Verifikasi Laporan', 
             'Perlu Revisi',
@@ -29,10 +33,45 @@ class PelaporanController extends Controller
 
         if ($request->has('q')) {
             $q = $request->q;
-            $query->where('nomor_surat', 'like', "%$q%")->orWhere('tujuan', 'like', "%$q%");
+            $query->where(function($sub) use ($q){
+                $sub->where('nomor_surat', 'like', "%$q%")
+                    ->orWhere('tujuan', 'like', "%$q%");
+            });
         }
 
         $laporanList = $query->orderBy('updated_at', 'desc')->paginate(10);
+        
+        // --- PERBAIKAN LOGIKA STATUS UNTUK TAMPILAN PIC ---
+        $laporanList->getCollection()->transform(function ($item) {
+            
+            // 1. Jika Status: PERLU REVISI (Ditolak PPK)
+            if ($item->nama_status == 'Perlu Revisi') {
+                $item->custom_status = 'Perlu Revisi';
+                $item->status_color  = 'red'; // Merah
+                $item->status_icon   = '⚠️';
+            } 
+            // 2. Jika Status: MENUNGGU VERIFIKASI (Sudah dikirim ke PPK)
+            elseif ($item->nama_status == 'Menunggu Verifikasi') {
+                $item->custom_status = 'Menunggu PPK';
+                $item->status_color  = 'yellow'; // Kuning (Menunggu pihak lain)
+                $item->status_icon   = '⏳';
+            }
+            // 3. Jika Status: MENUNGGU VERIFIKASI LAPORAN (Baru masuk dari Pegawai)
+            else {
+                // Cek apakah PIC sudah mulai mengisi draft?
+                if (!$item->id_keuangan) {
+                    $item->custom_status = 'Perlu Tindakan';
+                    $item->status_color  = 'blue'; // Biru (Tugas Baru)
+                    $item->status_icon   = '⚡';
+                } else {
+                    $item->custom_status = 'Sedang Dilengkapi';
+                    $item->status_color  = 'indigo'; // Indigo (Draft)
+                    $item->status_icon   = '📝';
+                }
+            }
+            return $item;
+        });
+
         return view('pic.pelaporan.index', compact('laporanList'));
     }
 
@@ -41,8 +80,8 @@ class PelaporanController extends Controller
         $perjalanan = PerjalananDinas::findOrFail($id);
         $statusText = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
-        // Read Only jika statusnya "Menunggu Verifikasi" (Sudah di PPK) atau "Selesai"
-        $isReadOnly = in_array($statusText, ['Menunggu Verifikasi', 'Selesai']);
+        // Read Only jika statusnya sudah di PPK
+        $isReadOnly = !in_array($statusText, ['Menunggu Verifikasi Laporan', 'Perlu Revisi']);
 
         $allPeserta = DB::table('pegawaiperjadin')
             ->join('users', 'users.nip', '=', 'pegawaiperjadin.id_user')
@@ -65,15 +104,13 @@ class PelaporanController extends Controller
         $perjalanan = PerjalananDinas::findOrFail($id);
         $statusName = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
-        // PIC hanya bisa edit kalau statusnya ini
         if (!in_array($statusName, ['Menunggu Verifikasi Laporan', 'Perlu Revisi'])) {
             return back()->with('error', 'Data sudah dikirim ke PPK. Tidak bisa diedit.');
         }
 
         $request->validate([
             'target_nip' => 'required',
-            'kategori'   => 'required',
-            'bukti'      => 'nullable|max:5120'
+            'kategori'   => 'required'
         ]);
 
         $dataToSave = [
@@ -98,26 +135,38 @@ class PelaporanController extends Controller
             $dataToSave['nama_file'] = $file->getClientOriginalName();
         }
         BuktiLaporan::create($dataToSave);
+        
+        // Buat Draft Keuangan agar status berubah jadi 'Sedang Dilengkapi'
+        $statusAwal = DB::table('statuslaporan')->where('nama_status', 'Perlu Tindakan')->value('id');
+        LaporanKeuangan::firstOrCreate(
+            ['id_perjadin' => $id],
+            ['id_status' => $statusAwal ?? 1, 'created_at' => now()]
+        );
+
         return back()->with('success', 'Data tersimpan.');
     }
 
-    // Fungsi Delete (Sama seperti sebelumnya)
     public function deleteBukti($idBukti) {
         $bukti = BuktiLaporan::find($idBukti);
         if($bukti) { $bukti->delete(); return back()->with('success', 'Dihapus'); }
         return back();
     }
 
-    // --- KIRIM KE PPK ---
     public function submitToPPK($id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
         
-        // Ubah Status jadi "Menunggu Verifikasi" (Masuk PPK)
+        // Ubah Status Perjadin -> Menunggu Verifikasi (Masuk PPK)
         $idPPK = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi')->value('id');
-        
         $perjalanan->update(['id_status' => $idPPK, 'catatan_penolakan' => null]);
 
-        return redirect()->route('pic.pelaporan.index')->with('success', 'Laporan berhasil dikirim ke PPK.');
+        // Ubah Status Laporan -> Menunggu Verifikasi
+        $idLapPPK = DB::table('statuslaporan')->where('nama_status', 'Menunggu Verifikasi')->value('id');
+        LaporanKeuangan::updateOrCreate(
+            ['id_perjadin' => $id],
+            ['id_status' => $idLapPPK, 'updated_at' => now()]
+        );
+
+        return redirect()->route('pic.pelaporan.index')->with('success', 'Laporan dikirim ke PPK.');
     }
 }

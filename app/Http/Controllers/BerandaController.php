@@ -13,15 +13,19 @@ class BerandaController extends Controller
     {
         $user = Auth::user();
         
+        // Ambil Data Perjadin milik User Login
+        // Filter: TIDAK MUNCULKAN yang statusnya sudah 'Selesai'
+        // Karena 'Selesai' akan masuk ke Riwayat
         $daftarPerjadin = DB::table('perjalanandinas')
             ->join('pegawaiperjadin', 'perjalanandinas.id', '=', 'pegawaiperjadin.id_perjadin')
+            ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
             ->where('pegawaiperjadin.id_user', $user->nip)
+            ->where('statusperjadin.nama_status', '!=', 'Selesai') // Filter Selesai
             ->select(
                 'perjalanandinas.*',
-                // Ambil file dari tabel induk
-                'perjalanandinas.pdf_keuangan'
+                'statusperjadin.nama_status as status_db'
             )
-            ->orderBy('perjalanandinas.tgl_mulai', 'desc')
+            ->orderBy('perjalanandinas.tgl_mulai', 'asc')
             ->get();
 
         $perjalanan_list = $daftarPerjadin->map(function($item) {
@@ -29,32 +33,34 @@ class BerandaController extends Controller
             $mulai = Carbon::parse($item->tgl_mulai)->startOfDay();
             $selesai = Carbon::parse($item->tgl_selesai)->endOfDay();
             
-            // LOGIKA SEDERHANA:
-            // Jika file di induk ada = SELESAI (Hijau)
-            // Jika tidak ada = Cek Tanggal
+            // LOGIKA TAMPILAN STATUS DI BERANDA PEGAWAI
             
-            $isSubmitted = !empty($item->pdf_keuangan); 
-            
-            if ($isSubmitted) {
-                $status = 'Selesai';
-                $status_color = 'green';
-                $catatan = 'Laporan tim lengkap';
-            } 
+            // 1. Cek Status Database (Prioritas Utama untuk Flow Sistem)
+            if ($item->status_db == 'Menunggu Verifikasi Laporan' || 
+                $item->status_db == 'Menunggu Verifikasi' || 
+                $item->status_db == 'Perlu Revisi') {
+                
+                $status = 'Menunggu Proses';
+                $status_color = 'orange'; // Menunggu PIC/PPK
+                $catatan = 'Laporan sedang diverifikasi admin.';
+            }
+            // 2. Jika Status Database masih Draft/Belum/Sedang, mainkan Logika Tanggal
             else {
                 if ($today->lt($mulai)) {
-                    $status = 'Akan Datang';
+                    $status = 'Belum Berlangsung';
                     $status_color = 'blue';
-                    $catatan = 'Menunggu keberangkatan';
+                    $catatan = 'Menunggu tanggal keberangkatan';
                 } 
                 elseif ($today->between($mulai, $selesai)) {
                     $status = 'Sedang Berlangsung';
-                    $status_color = 'yellow';
-                    $catatan = 'Selamat bertugas';
+                    $status_color = 'green';
+                    $catatan = 'Selamat bertugas, jangan lupa absen.';
                 } 
                 else {
-                    $status = 'Belum Lengkap';
+                    // Tanggal sudah lewat, tapi status DB belum berubah (artinya pegawai belum klik Selesai)
+                    $status = 'Perlu Tindakan';
                     $status_color = 'red';
-                    $catatan = 'Ketua/Anggota harap upload laporan gabungan';
+                    $catatan = 'Harap klik tombol Selesai di detail.';
                 }
             }
 
