@@ -98,12 +98,46 @@
                     </div>
                 </div>
 
-                <div class="bg-red-50 px-6 py-4 border-t border-red-200">
-                    <p class="text-red-700 text-base font-medium flex items-center gap-2">
-                        <i class="fa-solid fa-circle-exclamation w-4 text-center"></i>
-                        <span>{{ $catatan }}</span>
-                    </p>
-                </div>
+                @php
+                    $miss = $missingUraian[$perjalanan->id] ?? [];
+                    $isSuratMissing = $suratMissing[$perjalanan->id] ?? false;
+                    $conf = $conflicts[$perjalanan->id] ?? [];
+                @endphp
+
+                @if(count($miss) || $isSuratMissing || count($conf))
+                    <div class="bg-red-50 px-5 py-3 border-t border-red-200">
+                        <p class="text-red-700 font-semibold flex items-center gap-2 mb-1 text-sm">
+                            <i class="fa-solid fa-circle-exclamation w-3 text-center text-xs"></i>
+                            <span>Peringatan</span>
+                        </p>
+
+                        <ul class="text-red-700 text-xs list-disc ml-4 space-y-1 leading-relaxed">
+                            @if(count($miss))
+                                <li>
+                                    Uraian pegawai belum lengkap = NIP
+                                    <strong>{{ implode(', ', $miss) }}</strong>.
+                                </li>
+                            @endif
+
+                            @if($isSuratMissing)
+                                <li>Surat tugas belum di-upload.</li>
+                            @endif
+
+                            @if(count($conf))
+                                <li>
+                                    Pegawai dengan NIP <strong>{{ implode(', ', $conf) }}</strong>
+                                    memiliki perjalanan dinas pada tanggal yang sama / bersinggungan.
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
+                @else
+                    <div class="bg-green-50 px-5 py-3 border-t border-green-200">
+                        <p class="text-green-700 text-xs">Semua data lengkap.</p>
+                    </div>
+                @endif
+
+
             </div>
         @empty
             <div class="bg-white p-6 rounded-lg text-center text-gray-500">

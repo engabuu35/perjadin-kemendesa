@@ -100,6 +100,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::post('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'store'])->name('penugasan.store');
     Route::get('/penugasan-perjadin/{id}/edit', [\App\Http\Controllers\PerjadinTambahController::class, 'edit'])->name('penugasan.edit');
     Route::patch('/penugasan-perjadin/{id}', [\App\Http\Controllers\PerjadinTambahController::class, 'update'])->name('penugasan.update');
+    Route::patch('/penugasan-perjadin/{id}/status', [\App\Http\Controllers\PerjadinTambahController::class, 'updateStatus'])->name('penugasan.updateStatus');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
 
