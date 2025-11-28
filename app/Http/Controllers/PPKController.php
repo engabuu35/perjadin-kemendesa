@@ -20,7 +20,8 @@ class PPKController extends Controller
         $query->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
               ->select('perjalanandinas.*', 'statusperjadin.nama_status');
 
-        $query->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Selesai']);
+        // PPK melihat "Menunggu Verifikasi" dan History "Selesai"
+        $query->whereIn('statusperjadin.nama_status', ['Menunggu Verifikasi', 'Selesai']);
 
         if ($request->has('q')) {
             $q = $request->q;
@@ -106,22 +107,16 @@ class PPKController extends Controller
         ));    
     }
 
+    // --- APPROVE (SELESAI) ---
     public function storeVerifikasi(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
 
-        $request->validate([
-            'nomor_spm' => 'required|string|max:100',
-            'nomor_sp2d' => 'required|string|max:100',
-            'tanggal_spm' => 'required|date',
-            'tanggal_sp2d' => 'required|date',
-            'total_biaya_rampung' => 'required|numeric'
-        ]);
-
+        // Update Laporan Keuangan (SPM SP2D)
         LaporanKeuangan::updateOrCreate(
             ['id_perjadin' => $id],
             [
-                'id_status' => 1, 
+                'id_status' => 5, // Selesai
                 'verified_by' => Auth::user()->nip,
                 'verified_at' => now(),
                 'nomor_spm' => $request->nomor_spm,
@@ -132,10 +127,11 @@ class PPKController extends Controller
             ]
         );
 
+        // Update Status Perjadin -> Selesai
         $idSelesai = DB::table('statusperjadin')->where('nama_status', 'Selesai')->value('id');
         $perjalanan->update(['id_status' => $idSelesai]);
 
-        return redirect()->route('ppk.verifikasi.index')->with('success', 'Verifikasi Berhasil! Data SP2D telah disimpan.');
+        return redirect()->route('ppk.verifikasi.index')->with('success', 'Laporan Selesai.');
     }
 
     public function tabelRekap(Request $request)
@@ -219,5 +215,18 @@ class PPKController extends Controller
             $fileName
         );
     }
+    
+    // --- REJECT (REVISI) ---
+    public function reject(Request $request, $id)
+    {
+        $perjalanan = PerjalananDinas::findOrFail($id);
+        $idRevisi = DB::table('statusperjadin')->where('nama_status', 'Perlu Revisi')->value('id');
 
+        $perjalanan->update([
+            'id_status' => $idRevisi,
+            'catatan_penolakan' => $request->alasan_penolakan
+        ]);
+
+        return redirect()->route('ppk.verifikasi.index')->with('warning', 'Laporan dikembalikan ke PIC.');
+    }
 }

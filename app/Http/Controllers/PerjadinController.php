@@ -107,21 +107,6 @@ class PerjadinController extends Controller
 
         if (!$dataSaya) abort(403, 'Akses ditolak.');
 
-        $today = Carbon::today();
-        $mulai = Carbon::parse($perjalanan->tgl_mulai);
-        $selesai = Carbon::parse($perjalanan->tgl_selesai);
-
-        if ($today->lt($mulai)) {
-            $statusPegawai = 'Akan Datang';
-            $statusBadgeClass = 'bg-blue-100 text-blue-700 border-blue-200';
-        } elseif ($today->between($mulai, $selesai)) {
-            $statusPegawai = 'Sedang Berlangsung';
-            $statusBadgeClass = 'bg-orange-100 text-orange-700 border-orange-200';
-        } else {
-            $statusPegawai = 'Selesai';
-            $statusBadgeClass = 'bg-green-100 text-green-700 border-green-200';
-        }
-
         $isMyTaskFinished = $dataSaya->is_finished == 1;
 
         // 2. DATA GEOTAGGING
@@ -129,7 +114,6 @@ class PerjadinController extends Controller
         $geotagHistory = [];
         $hariKe = 1;
         
-        // Cek Absen HARI INI
         $today = Carbon::today();
         $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)
             ->where('id_user', $userNip)
@@ -156,20 +140,14 @@ class PerjadinController extends Controller
 
         // 4. VALIDASI TANGGAL & ABSEN UNTUK TOMBOL SELESAI
         $isTodayInPeriod = $today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
-        
-        // [LOGIKA BARU]
-        // Cek apakah hari ini adalah HARI TERAKHIR?
         $isLastDay = $today->isSameDay($perjalanan->tgl_selesai);
-        
-        // Syarat tombol aktif:
-        // 1. Hari ini adalah hari terakhir
-        // 2. Sudah absen di hari terakhir ini
         $canFinish = $isLastDay && $sudahAbsenHariIni;
 
-        // Pesan Error untuk tombol
         $finishMessage = '';
-        if (!$isLastDay) {
-            $finishMessage = 'Tombol penyelesaian hanya aktif pada tanggal selesai tugas (' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . ').';
+        if ($isMyTaskFinished) {
+            $finishMessage = 'Anda sudah menyelesaikan tugas ini.';
+        } elseif (!$isLastDay) {
+            $finishMessage = 'Tombol penyelesaian hanya aktif pada tanggal terakhir tugas (' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . ').';
         } elseif (!$sudahAbsenHariIni) {
             $finishMessage = 'Anda belum melakukan Geotagging hari ini. Harap tandai lokasi terlebih dahulu.';
         }
@@ -177,7 +155,7 @@ class PerjadinController extends Controller
         $statusMessage = '';
         if (!$isTodayInPeriod) {
             if ($today->lt($perjalanan->tgl_mulai)) $statusMessage = 'Belum dimulai.';
-            elseif ($today->gt($perjalanan->tgl_selesai)) $statusMessage = 'Masa tugas lewat.';
+            elseif ($today->gt($perjalanan->tgl_selesai)) $statusMessage = 'Masa tugas sudah lewat.';
         }
 
         return view('pages.detailperjadin', [
@@ -188,11 +166,8 @@ class PerjadinController extends Controller
             'isTodayInPeriod' => $isTodayInPeriod,
             'statusMessage' => $statusMessage,
             'isMyTaskFinished' => $isMyTaskFinished,
-            // Variable Baru
             'canFinish' => $canFinish,
-            'finishMessage' => $finishMessage,
-            'statusPegawai'    => $statusPegawai,
-            'statusBadgeClass' => $statusBadgeClass,
+            'finishMessage' => $finishMessage
         ]);
     }
 
@@ -202,7 +177,6 @@ class PerjadinController extends Controller
         $perjalanan = PerjalananDinas::find($id);
         $today = Carbon::today();
 
-        // VALIDASI BACKEND (Security)
         if (!$today->isSameDay($perjalanan->tgl_selesai)) {
             return back()->with('error', 'Gagal! Anda hanya bisa menyelesaikan tugas pada tanggal selesai jadwal.');
         }
@@ -212,13 +186,12 @@ class PerjadinController extends Controller
             return back()->with('error', 'Gagal! Anda belum melakukan Geotagging hari ini.');
         }
 
-        // 1. Update Status Individu
         DB::table('pegawaiperjadin')
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->update(['is_finished' => 1]);
 
-        // 2. Cek Semua Selesai?
+        // Cek semua selesai?
         $totalPegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->count();
         $totalSelesai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('is_finished', 1)->count();
 
@@ -248,6 +221,8 @@ class PerjadinController extends Controller
         if ($cek->is_finished) {
             return back()->with('error', 'Sudah selesai, tidak bisa edit.');
         }
+        $cek = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('id_user', Auth::user()->nip)->first();
+        if($cek->is_finished) return back()->with('error', 'Tugas sudah selesai, tidak bisa edit uraian.');
 
         // Update uraian langsung di PerjalananDinas
         $perjalanan = PerjalananDinas::findOrFail($id);
@@ -262,7 +237,6 @@ class PerjadinController extends Controller
     
     public function tandaiKehadiran(Request $request, $id) {
         $request->validate(['latitude'=>'required','longitude'=>'required','id_tipe'=>'required']);
-        
         $perjalanan = PerjalananDinas::find($id);
         $today = Carbon::today();
         

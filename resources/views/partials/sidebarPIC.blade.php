@@ -382,11 +382,17 @@
         <div class="user-profile absolute bottom-0 left-0 right-0 px-[15px] pt-5 pb-0 -mb-8
                     border-t border-white/20 flex flex-col items-center transition-all duration-300">
             
-        <!-- Avatar -->
+        <!-- Avatar Dinamis (UPDATE) -->
         <a id="avatarBtn" 
         href="{{ route('profile') }}"
-        class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center mb-2.5 text-2xl text-white cursor-pointer transition-all duration-300">
-            <i class="fas fa-user"></i>
+        class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center mb-2.5 text-2xl text-white cursor-pointer transition-all duration-300 overflow-hidden">
+            @if(Auth::user()->foto_profil)
+                <!-- Tampilkan Foto User -->
+                <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="Foto Profil" class="w-full h-full object-cover">
+            @else
+                <!-- Tampilkan Icon Default -->
+                <i class="fas fa-user"></i>
+            @endif
         </a>
 
         <!-- Popup Menu -->
@@ -605,119 +611,7 @@
                     profilePopup.classList.add('opacity-0', 'invisible');
                     profilePopup.classList.remove('opacity-100', 'visible');
                 }
-            }); 
+            });    
     </script>
-    <!-- <script>
-    
-
-    // ===== Sidebar Ripple Effect =====
-    sidebar.addEventListener('click', function(e) {
-        // Jangan toggle jika klik di user profile atau logout button
-        if (userProfile.contains(e.target)) return;
-
-        toggleSidebar();
-
-        // Dapatkan posisi klik relatif terhadap sidebar
-        const rect = sidebar.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Buat ripple
-        const ripple = document.createElement('span');
-        ripple.style.cssText = `
-            position: absolute;
-            left: ${x}px;
-            top: ${y}px;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.4);
-            transform: translate(-50%, -50%);
-            animation: ripple-effect-1 1s ease-out;
-            pointer-events: none;
-            z-index: 9999;
-        `;
-        sidebar.appendChild(ripple);
-
-        setTimeout(() => ripple.remove(), 1000);
-    });
-
-    // ===== Logout Modal =====
-    const logoutModalHTML = `
-    <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-50">
-        <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
-            <h3 class="text-lg font-bold mb-4 text-gray-800">Konfirmasi Logout</h3>
-            <p class="text-gray-600 mb-5">Apakah kamu yakin ingin keluar dari akun ini?</p>
-            <div class="flex justify-between gap-3">
-                <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
-                <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Logout</button>
-            </div>
-        </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', logoutModalHTML);
-
-    const logoutModal = document.getElementById('logoutModal');
-    const cancelLogout = document.getElementById('cancelLogout');
-    const confirmLogout = document.getElementById('confirmLogout');
-
-    logoutBtn.addEventListener('click', function(e) {
-        e.stopPropagation(); // Jangan trigger ripple sidebar
-        logoutModal.classList.remove('opacity-0', 'invisible');
-        logoutModal.classList.add('opacity-100', 'visible');
-    });
-
-    // Tutup modal saat klik Batal
-    cancelLogout.addEventListener('click', () => {
-        logoutModal.classList.add('opacity-0', 'invisible');
-        logoutModal.classList.remove('opacity-100', 'visible');
-    });
-
-    // Logout sesungguhnya saat klik Logout
-    confirmLogout.addEventListener('click', () => {
-        logoutForm.submit();
-    });
-
-    // ===== Menu Click Smooth Transition =====
-    const menuLinks = document.querySelectorAll('.sidebar-menu a');
-    menuLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            menuLinks.forEach(item => {
-                if (item !== this && item.classList.contains('active')) {
-                    item.style.transition = 'all 0.3s ease-out';
-                    item.classList.remove('active');
-                }
-            });
-
-            this.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            this.classList.add('active');
-
-            const url = this.getAttribute('href');
-            setTimeout(() => { window.location.href = url; }, 150);
-        });
-    });
-
-    // ===== Toggle Sidebar =====
-    function toggleSidebar() {
-        const overlay = document.querySelector('.overlay');
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-
-        const menuIcon = document.querySelector('.menu-icon');
-        if (menuIcon) {
-            const iconElement = menuIcon.querySelector('i');
-            menuIcon.classList.toggle('active');
-
-            if (menuIcon.classList.contains('active')) {
-                iconElement.classList.remove('fa-bars');
-                iconElement.classList.add('fa-bars-staggered');
-            } else {
-                iconElement.classList.remove('fa-bars-staggered');
-                iconElement.classList.add('fa-bars');
-            }
-        }
-    }
-    </script> -->
 </body>
 </html>
