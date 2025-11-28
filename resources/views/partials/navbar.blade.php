@@ -13,14 +13,14 @@
             font-family: sans-serif;
             background-color: #e8e9f0;
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="2" fill="%23d0d0dc" opacity="0.3"/></svg>');
-            padding-top: 80px;
+            padding-top: 50px;
         }
         
         /* Animasi untuk hamburger menu */
         .menu-icon {
             transition: all 0.3s ease;
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 8px;
+            padding: 6px;
         }
         
         .menu-icon:hover {
@@ -44,7 +44,7 @@
         }
         
         .logo:hover {
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             transform: scale(1.05) translateY(-2px);
             text-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
             background-position: 100% 0;
@@ -68,7 +68,7 @@
         }
         
         .user-info:hover span {
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             transform: scale(1.05) translateY(-2px);
             text-shadow: 0 2px 8px rgba(255, 255, 255, 0.4);
             background-position: 100% 0;
@@ -94,18 +94,18 @@
     <!-- Navbar dengan position fixed -->
     <div class="header fixed top-0 left-0 right-0 z-[100] flex justify-between items-center 
                 bg-[#2954B0] text-white 
-                py-[15px] px-4 md:px-[20px] rounded-b-[30px] shadow-[0_8px_20px_rgba(0,0,0,0.2)]">
+                py-[8px] px-3 md:px-[12px] rounded-b-[15px] shadow-[0_6px_15px_rgba(0,0,0,0.2)]">
         
-        <div class="header-left flex items-center gap-[15px]">
-            <div class="menu-icon text-2xl cursor-pointer transition-all duration-300 hover:text-gray-200" onclick="toggleSidebar()">
+        <div class="header-left flex items-center gap-[10px]">
+            <div class="menu-icon text-lg cursor-pointer transition-all duration-300 hover:text-gray-200" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
             </div>
-            <div class="logo font-bold italic tracking-[1px] text-xl md:text-3xl">
+            <div class="logo font-bold italic tracking-[0.5px] text-base md:text-xl">
                 SIPERDIN
             </div>
         </div>
 
-        <div class="user-info flex items-center gap-3 text-lg mr-6">
+        <div class="user-info flex items-center gap-2 text-sm mr-3">
             <span class="hidden md:inline font-light tracking-wide font-semibold text-white/95">
                 Selamat {{ $greeting }}, {{ Auth::user()->nama }}!
             </span>

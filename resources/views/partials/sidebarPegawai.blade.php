@@ -14,28 +14,35 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-  <style>
+    <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
         
         /* Sidebar Active State */
         .sidebar.active {
-            width: 250px;
+            width: 210px;
         }
 
         .sidebar.active .sidebar-menu a span:last-child {
+            flex: 0;
+            text-align: center;
             opacity: 1;
         }
 
         .sidebar.active .user-profile {
             align-items: center;
-            padding-left: 30px;
-            padding-right: 30px;
-            padding-top: 20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-top: 12px;
             padding-bottom: 20px;
-            bottom: 30px;
+            bottom: 15px;
             margin-bottom: 0;
+        }
+
+        /* Tambahkan setelah line 42 */
+        .sidebar:not(.active) .user-profile {
+            bottom: -10px;
         }
 
         .sidebar.active .user-profile .name,
@@ -60,7 +67,8 @@
                 url('/img/sidebar-pattern.png'),
                 linear-gradient(to bottom, #2954B0, #24519D);
             background-repeat: repeat, no-repeat;
-            background-size: 255px, cover;
+            background-size: 200px, cover;
+            background-position: 7px 20px, center;
         }
 
         /* Hover Effect Bulat untuk Menu */
@@ -86,24 +94,24 @@
         }
 
         .sidebar-menu a:hover::before {
-            width: 60px;
-            height: 60px;
+            width: 42px;
+            height: 42px;
             opacity: 1;
         }
         
         .sidebar-menu a:active::before {
-            width: 60px;
-            height: 60px;
+            width: 42px;
+            height: 42px;
             opacity: 1;
         }
 
         .sidebar-menu a.active::before {
             content: "";
             position: absolute;
-            width: 55px;            /* ukuran lingkaran */
-            height: 55px;
-            background: #ffffffd0;  /* putih lembut */
-            border-radius: 50%;     /* bentuk lingkaran */
+            width: 38px;
+            height: 38px;
+            background: #ffffffd0;
+            border-radius: 50%;
             opacity: 1;
             z-index: -1;
         }
@@ -120,6 +128,7 @@
         .sidebar-menu a.active {
             background: none !important;
         }
+        
         .sidebar-menu a .icon {
             position: relative;
         }
@@ -129,35 +138,35 @@
             color: #2954B0 !important;
         }
 
-
         /* Hover memanjang saat sidebar aktif */
         .sidebar.active .sidebar-menu a {
-            padding-left: 40px;
-            padding-right: 40px;
+            justify-content: flex-start;
+            padding-left: 50px;
+            padding-right: 30px;
         }
 
         .sidebar.active .sidebar-menu a:hover::before {
-            width: calc(100% - 40px);
-            height: 50px;
-            border-radius: 20px;
+            width: calc(100% - 30px);
+            height: 40px;
+            border-radius: 15px;
             opacity: 1;
         }
         
         .sidebar.active .sidebar-menu a:active::before {
-            width: calc(100% - 40px);
-            height: 50px;
-            border-radius: 20px;
+            width: calc(100% - 30px);
+            height: 40px;
+            border-radius: 15px;
             opacity: 1;
         }
 
         .sidebar.active .sidebar-menu a.active::before {
-            width: calc(100% - 40px);
-            height: 50px;
-            border-radius: 20px;
+            width: calc(100% - 30px);
+            height: 40px;
+            border-radius: 15px;
             opacity: 1;
         }
 
-        /* Ripple Animation - 2 waves */
+        /* Ripple Animation */
         @keyframes ripple-effect-1 {
             0% {
                 width: 0;
@@ -165,39 +174,25 @@
                 opacity: 1;
             }
             100% {
-                width: 120px;
-                height: 120px;
-                opacity: 0;
-            }
-        }
-        
-        @keyframes ripple-effect-2 {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 1;
-            }
-            100% {
-                width: 150px;
-                height: 150px;
+                width: 100px;
+                height: 100px;
                 opacity: 0;
             }
         }
 
         .sidebar-menu a .icon {
             position: relative;
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), scale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+            transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 30;
         }
 
         .sidebar-menu a:hover .icon {
-            transform: scale(1.1);
             color: #2954B0;
         }
 
@@ -213,8 +208,7 @@
 
         .sidebar-menu a span:last-child {
             position: relative;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateX(-10px);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 30;
         }
 
@@ -269,8 +263,8 @@
         }
 
         .logout-btn:hover::before {
-            width: 200px;
-            height: 200px;
+            width: 180px;
+            height: 180px;
         }
 
         .logout-btn:active {
@@ -294,17 +288,17 @@
         onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <aside class="sidebar bg-sidebar fixed left-0 top-[90px] w-[80px] h-[calc(100vh-80px)]
-                transition-all duration-300 ease-in-out z-[99] pt-5 rounded-r-[30px]
-                shadow-[5px_0_15px_rgba(0,0,0,0.2)] overflow-visible">
+    <aside class="sidebar bg-sidebar fixed left-0 top-[65px] w-[60px] h-[calc(100vh-50px)]
+                transition-all duration-300 ease-in-out z-[99] pt-3 rounded-r-[20px]
+                shadow-[4px_0_12px_rgba(0,0,0,0.2)] overflow-visible">
 
         <!-- Menu List -->
-        <ul class="sidebar-menu list-none py-5">
+        <ul class="sidebar-menu list-none py-3">
             <!-- Menu Beranda -->
-            <li class="my-2.5">
-                <a href="{{ route('pages.beranda') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('pages.beranda') ? 'active' : '' }}">
-                    <span class="icon w-6 h-6 flex items-center justify-center text-xl">
+            <li class="my-1.5">
+                <a href="{{ route('pages.beranda') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pages.beranda') ? 'active' : '' }}">
+                    <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-home"></i>
                     </span>
                     <span class="opacity-0 transition-opacity duration-300">Beranda</span>
@@ -312,10 +306,10 @@
             </li>
             
             <!-- Menu Riwayat -->
-            <li class="my-2.5">
-                <a href="{{ route('riwayat') }}" class="flex items-center py-[15px] px-[26px] text-white no-underline 
-                                transition-colors duration-300 gap-[15px] text-xl whitespace-nowrap {{ request()->routeIs('riwayat') ? 'active' : '' }}">
-                    <span class="icon w-6 h-6 flex items-center justify-center text-xl">
+            <li class="my-1.5">
+                <a href="{{ route('riwayat') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('riwayat') ? 'active' : '' }}">
+                    <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-history"></i>
                     </span>
                     <span class="opacity-0 transition-opacity duration-300">Riwayat</span>
@@ -324,13 +318,13 @@
         </ul>
 
         <!-- User Profile Section -->
-        <div class="user-profile absolute bottom-0 left-0 right-0 px-[15px] pt-5 pb-0 -mb-8
+        <div class="user-profile absolute bottom-0 left-0 right-0 px-[10px] pt-3 pb-0 -mb-5
                     border-t border-white/20 flex flex-col items-center transition-all duration-300">
             
         <!-- Avatar Dinamis -->
         <a id="avatarBtn" 
         href="{{ route('profile') }}"
-        class="avatar w-[50px] h-[50px] bg-white/20 rounded-full flex items-center justify-center mb-2.5 text-2xl text-white cursor-pointer transition-all duration-300 overflow-hidden">
+        class="avatar w-[38px] h-[38px] bg-white/20 rounded-full flex items-center justify-center mb-1.5 text-lg text-white cursor-pointer transition-all duration-300 overflow-hidden">
             @if(Auth::user()->foto_profil)
                 <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="Profile" class="w-full h-full object-cover">
             @else
@@ -340,32 +334,32 @@
 
         <!-- Popup Menu -->
         <div id="profilePopup"
-            class="absolute bottom-[185px] left-[110%] -translate-x-1/2 bg-white text-gray-800 
-                    rounded-xl shadow-lg py-2 w-[160px] opacity-0 invisible 
+            class="absolute bottom-[145px] left-[110%] -translate-x-1/2 bg-white text-gray-800 
+                    rounded-xl shadow-lg py-1.5 w-[140px] opacity-0 invisible 
                     transition-all duration-300 z-[9999]">
 
             <!-- Profil Saya -->
             <a href="{{ route('profile') }}"
-            class="block px-4 py-2 text-sm hover:bg-gray-100 rounded-lg">
+            class="block px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
             <i class="fas fa-user"></i>
                 Profil Saya
             </a>
 
             <!-- Logout -->
             <button id="popupLogout"
-                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 rounded-lg">
+                class="block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
                 <i class="fas fa-sign-out-alt"></i>
                 Logout
             </button>
         </div>
             
             <!-- User Name -->
-            <div class="name text-white text-sm font-bold mb-[5px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
+            <div class="name text-white text-xs font-bold mb-[3px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
                 {{ Auth::user()->nama }}
             </div>
             
             <!-- User Role/NPM -->
-            <div class="role text-white/70 text-xs mb-[15px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
+            <div class="role text-white/70 text-[10px] mb-[10px] opacity-0 transition-opacity duration-300 whitespace-nowrap">
                 {{ Auth::user()->nip }}
             </div>
             
@@ -373,12 +367,12 @@
             <form id="logoutForm" method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                    class="logout-btn flex items-center justify-center gap-2.5 
-                        py-3 px-6
+                    class="logout-btn flex items-center justify-center gap-1.5 
+                        py-2 px-4
                         w-full
                         bg-white/10 border-none rounded-lg text-white cursor-pointer 
-                        transition-all duration-300 hover:bg-white/20 text-sm">
-                    <i class="fas fa-sign-out-alt"></i>
+                        transition-all duration-300 hover:bg-white/20 text-xs">
+                    <i class="fas fa-sign-out-alt text-xs"></i>
                     <span>Logout</span>
                 </button>
             </form>
@@ -398,9 +392,8 @@
 
     <!-- JavaScript -->
     <script>
-        // Ripple effect saat klik di sidebar - 1 gelombang aja
+        // Ripple effect saat klik di sidebar
         const sidebar = document.querySelector('.sidebar');
-        // const userProfile = document.querySelector('.user-profile');
         const logoutBtn = document.querySelector('.logout-btn');
         const logoutForm = document.getElementById('logoutForm');
         const logoutModal = document.getElementById('logoutModal');
@@ -517,45 +510,45 @@
             }
         }
 
-            const sidebarEl = document.querySelector('.sidebar');
-            const avatarBtn = document.getElementById('avatarBtn');
-            const profilePopup = document.getElementById('profilePopup');
-            const popupLogout = document.getElementById('popupLogout');
+        const sidebarEl = document.querySelector('.sidebar');
+        const avatarBtn = document.getElementById('avatarBtn');
+        const profilePopup = document.getElementById('profilePopup');
+        const popupLogout = document.getElementById('popupLogout');
 
-            //profil pop up
-            profilePopup.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
+        //profil pop up
+        profilePopup.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
 
-            // Klik avatar
-            avatarBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const sidebarExpanded =
-                    sidebarEl.classList.contains('active') ||
-                    sidebarEl.offsetWidth > 80;
+        // Klik avatar
+        avatarBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const sidebarExpanded =
+                sidebarEl.classList.contains('active') ||
+                sidebarEl.offsetWidth > 60;
 
-                if (!sidebarExpanded) {
-                    e.preventDefault();
-                    profilePopup.classList.remove('opacity-0', 'invisible');
-                    profilePopup.classList.add('opacity-100', 'visible');
-                }
-            });
+            if (!sidebarExpanded) {
+                e.preventDefault();
+                profilePopup.classList.remove('opacity-0', 'invisible');
+                profilePopup.classList.add('opacity-100', 'visible');
+            }
+        });
 
 
-            // klik Logout dari popup
-            popupLogout.addEventListener('click', function (e) {
-                e.stopPropagation();
-                logoutModal.classList.remove('opacity-0', 'invisible');
-                logoutModal.classList.add('opacity-100', 'visible');
-            });
+        // klik Logout dari popup
+        popupLogout.addEventListener('click', function (e) {
+            e.stopPropagation();
+            logoutModal.classList.remove('opacity-0', 'invisible');
+            logoutModal.classList.add('opacity-100', 'visible');
+        });
 
-            // Klik di luar popup → tutup
-            document.addEventListener('click', function (e) {
-                if (!profilePopup.contains(e.target) && !avatarBtn.contains(e.target)) {
-                    profilePopup.classList.add('opacity-0', 'invisible');
-                    profilePopup.classList.remove('opacity-100', 'visible');
-                }
-            });
+        // Klik di luar popup → tutup
+        document.addEventListener('click', function (e) {
+            if (!profilePopup.contains(e.target) && !avatarBtn.contains(e.target)) {
+                profilePopup.classList.add('opacity-0', 'invisible');
+                profilePopup.classList.remove('opacity-100', 'visible');
+            }
+        });
     </script>
 </body>
 </html>
