@@ -14,64 +14,46 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
     public function run(): void
     {
         // 1. JALANKAN SEEDER STATUS TERLEBIH DAHULU (WAJIB)
-        // Ini memastikan ID status 1-6 tersedia sebelum dipakai
         $this->call([
             StatusPerjadinSeeder::class,
             StatusLaporanSeeder::class,
         ]);
 
-        // Biar semua insert rapi dalam 1 transaksi
         DB::transaction(function () {
 
             $now   = Carbon::now();
             $today = Carbon::today();
 
-            // -------------------------------------------------
-            // 2. Ambil referensi ID (Jangan Hardcode Angka)
-            // -------------------------------------------------
-            $unitIds    = DB::table('unitkerja')->pluck('id')->all();
-            $pangkatIds = DB::table('pangkatgolongan')->pluck('id')->all();
-
-            if (empty($unitIds) || empty($pangkatIds)) {
-                // Fallback jika unit kerja kosong (untuk safety dev)
-                $unitIds = [DB::table('unitkerja')->insertGetId(['nama_unit' => 'Dummy Unit', 'kode_uke' => 'DUMMY'])];
-                $pangkatIds = [DB::table('pangkatgolongan')->insertGetId(['nama_pangkat' => 'Dummy Pangkat', 'kode_golongan' => 'IV/a'])];
-            }
-
             $roleIds = DB::table('roles')->pluck('id', 'kode'); 
             
-            // Ambil ID Status secara dinamis (Lebih aman daripada '?? 6')
+            // Ambil ID Status
             $statusPerjadin = DB::table('statusperjadin')->pluck('id', 'nama_status');
             $statusLaporan  = DB::table('statuslaporan')->pluck('id', 'nama_status');
 
-            $idStatusSedang    = $statusPerjadin['Sedang Berlangsung']    ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Sedang Berlangsung']);
-            $idStatusSelesai   = $statusPerjadin['Selesai']               ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Selesai']);
-            $idStatusBelum     = $statusPerjadin['Belum Berlangsung']     ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Belum Berlangsung']);
-            $idStatusMenungguP = $statusPerjadin['Menunggu Validasi PPK'] ?? DB::table('statusperjadin')->insertGetId(['nama_status' => 'Menunggu Validasi PPK']);
+            // --- MAPPING STATUS ---
+            $idStatusSedang    = $statusPerjadin['Sedang Berlangsung']    ?? 2;
+            $idStatusSelesai   = $statusPerjadin['Selesai']               ?? 5;
+            $idStatusBelum     = $statusPerjadin['Belum Berlangsung']     ?? 1;
+            
+            // Status PPK
+            $idStatusMenungguP = $statusPerjadin['Menunggu Validasi PPK'] ?? 
+                                 $statusPerjadin['Menunggu Verifikasi'] ?? 4; 
 
-            // FIX UTAMA: Pastikan ID ini ada untuk 'laporankeuangan'
-            $idStatusLapSelesai = $statusLaporan['Selesai Dibayar'] 
-                                ?? DB::table('statuslaporan')->where('nama_status', 'Selesai Dibayar')->value('id')
-                                ?? DB::table('statuslaporan')->insertGetId(['nama_status' => 'Selesai Dibayar']);
+            // PERBAIKAN UTAMA: Tambahkan Status PIC
+            $idStatusPic = $statusPerjadin['Menunggu Verifikasi Laporan'] ?? 
+                           DB::table('statusperjadin')->insertGetId(['nama_status' => 'Menunggu Verifikasi Laporan']);
 
-            // Cari salah satu PPK
-            $ppkNip = null;
-            if (isset($roleIds['PPK'])) {
-                $ppkNip = DB::table('penugasanperan')->where('role_id', $roleIds['PPK'])->value('user_id');
-            }
-            // Fallback PPK jika null
-            if (!$ppkNip) $ppkNip = '198001012010011001'; 
+            $idStatusLapSelesai = $statusLaporan['Selesai Dibayar'] ?? 
+                                  $statusLaporan['Selesai'] ?? 6;
 
-            // -------------------------------------------------
+            $ppkNip = '199002022020022002'; 
+
             // 3. Buat 50 Pegawai Dummy
-            // -------------------------------------------------
-            // Menggunakan Factory User untuk mempersingkat kode
             $pegawaiList = User::factory()->count(50)->create([
                 'password_hash' => Hash::make('password'),
                 'is_aktif' => 1
             ]);
 
-            // Assign role PEGAWAI
             if (isset($roleIds['PEGAWAI'])) {
                 $roleData = [];
                 foreach ($pegawaiList as $p) {
@@ -80,30 +62,38 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                 DB::table('penugasanperan')->insertOrIgnore($roleData);
             }
 
-            // -------------------------------------------------
             // 4. Buat Perjalanan Dinas
-            // -------------------------------------------------
             $perjadinMeta = []; 
 
             foreach ($pegawaiList as $index => $user) {
                 $nip  = $user->nip;
                 $nama = $user->nama;
 
-                // Skenario 1: Pasti Sedang Berlangsung (Index 0)
                 if ($index === 0) {
                     $mulai   = $today->copy()->subDay();
                     $selesai = $today->copy()->addDay();
                     $status  = $idStatusSedang;
                 } else {
-                    // Skenario Random
                     $monthOffset = rand(-2, 1);
                     $start       = $today->copy()->addMonths($monthOffset)->day(rand(1, 25));
                     $duration    = rand(2, 4);
                     $end         = $start->copy()->addDays($duration);
 
                     if ($end->lt($today)) {
-                        // Sudah lewat -> Random antara Selesai atau Menunggu Validasi
-                        $status = rand(0, 1) ? $idStatusSelesai : $idStatusMenungguP;
+                        // LOGIKA RANDOM BARU:
+                        // 33% Selesai (Riwayat)
+                        // 33% Menunggu PPK (Dashboard PPK)
+                        // 33% Menunggu PIC (Dashboard PIC - INI YANG ANDA CARI)
+                        
+                        $rand = rand(1, 3);
+                        if ($rand == 1) {
+                            $status = $idStatusSelesai;
+                        } elseif ($rand == 2) {
+                            $status = $idStatusMenungguP;
+                        } else {
+                            $status = $idStatusPic; // Masuk ke dashboard PIC
+                        }
+
                     } elseif ($start->gt($today)) {
                         $status = $idStatusBelum;
                     } else {
@@ -115,11 +105,11 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                 }
 
                 $perjadinId = DB::table('perjalanandinas')->insertGetId([
-                    'id_pembuat'    => $nip,
+                    'id_pembuat'    => $nip, 
                     'id_status'     => $status,
-                    'approved_by'   => $ppkNip,
+                    'approved_by'   => $ppkNip, 
                     'approved_at'   => $mulai->copy()->subDays(5),
-                    'nomor_surat'   => 'ST-' . Str::upper(Str::random(6)),
+                    'nomor_surat'   => 'ST-DUMMY-' . Str::upper(Str::random(4)),
                     'tanggal_surat' => $mulai->copy()->subDays(3),
                     'tujuan'        => 'Kota ' . Str::upper(Str::random(5)),
                     'tgl_mulai'     => $mulai,
@@ -129,13 +119,30 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                     'updated_at'    => $now,
                 ]);
 
+                // Pivot Pegawai
                 DB::table('pegawaiperjadin')->insert([
                     'id_perjadin'   => $perjadinId,
                     'id_user'       => $nip,
                     'role_perjadin' => 'Anggota',
-                    'is_finished'   => ($status == $idStatusSelesai || $status == $idStatusMenungguP) ? 1 : 0,
+                    // Pegawai dianggap sudah selesai tugasnya jika status sudah masuk PIC/PPK/Selesai
+                    'is_finished'   => ($status == $idStatusSelesai || $status == $idStatusMenungguP || $status == $idStatusPic) ? 1 : 0,
                     'is_lead'       => 1,
                 ]);
+
+                // Buat Laporan Keuangan Dummy HANYA jika status Menunggu Validasi PPK (Agar PIC bersih)
+                if ($status == $idStatusMenungguP) {
+                    $idLapMenunggu = $statusLaporan['Menunggu Verifikasi'] ?? 3;
+
+                    DB::table('laporankeuangan')->insert([
+                        'id_perjadin'   => $perjadinId,
+                        'id_status'     => $idLapMenunggu,
+                        'verified_by'   => null,
+                        'verified_at'   => null,
+                        'biaya_rampung' => rand(3000000, 5000000),
+                        'created_at'    => $now,
+                        'updated_at'    => $now,
+                    ]);
+                }
 
                 $perjadinMeta[] = [
                     'id'        => $perjadinId,
@@ -145,64 +152,71 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                 ];
             }
 
-            // -------------------------------------------------
-            // 5. Buat Laporan & Keuangan (Hanya yg sudah lewat)
-            // -------------------------------------------------
+            // 5. Buat Laporan Pegawai & Bukti (Untuk semua yang sudah lewat tanggalnya)
             foreach ($perjadinMeta as $meta) {
+                // Generate bukti untuk: Selesai, Menunggu PPK, DAN Menunggu PIC
+                // Agar PIC bisa melihat rincian biaya saat mau kirim
+                if ($meta['status_pj'] != $idStatusSelesai && 
+                    $meta['status_pj'] != $idStatusMenungguP && 
+                    $meta['status_pj'] != $idStatusPic) continue;
+
                 $perjadinId = $meta['id'];
                 $nip        = $meta['nip'];
                 $selesai    = $meta['selesai'];
 
-                if ($selesai->gt($today)) continue;
-
-                // Laporan Pegawai
                 $laporanId = DB::table('laporan_perjadin')->insertGetId([
                     'id_perjadin' => $perjadinId,
                     'id_user'     => $nip,
-                    'uraian'      => 'Laporan dummy lengkap.',
+                    'uraian'      => 'Laporan dummy generated.',
                     'is_final'    => 1,
                     'created_at'  => $now,
                     'updated_at'  => $now,
                 ]);
 
-                // Bukti Dummy
-                $buktiData = [
-                    ['kategori' => 'Tiket', 'nominal' => 1500000, 'keterangan' => 'Garuda GA-123'],
-                    ['kategori' => 'Uang Harian', 'nominal' => 1200000, 'keterangan' => '3 Hari'],
-                    ['kategori' => 'Penginapan', 'nominal' => 2000000, 'keterangan' => 'Hotel Grand'],
-                ];
-                
-                $totalBiaya = 0;
-                foreach ($buktiData as $b) {
-                    $totalBiaya += $b['nominal'];
-                    DB::table('bukti_laporan')->insert([
-                        'id_laporan' => $laporanId,
-                        'kategori'   => $b['kategori'],
-                        'nominal'    => $b['nominal'],
-                        'keterangan' => $b['keterangan'],
-                        'nama_file'  => null,
-                        'path_file'  => null,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ]);
-                }
+                $this->insertBuktiDummy($laporanId, $now);
 
-                // Laporan Keuangan (Tabel Rekap PPK)
-                // INSERT INI YANG TADI ERROR, SEKARANG SUDAH AMAN KARENA ID PASTI ADA
-                DB::table('laporankeuangan')->insert([
-                    'id_perjadin'   => $perjadinId,
-                    'id_status'     => $idStatusLapSelesai, // Menggunakan ID yang valid (bukan hardcode 6)
-                    'verified_by'   => $ppkNip,
-                    'verified_at'   => $selesai->copy()->addDays(3),
-                    'nomor_spm'     => 'SPM-' . Str::random(5),
-                    'tanggal_spm'   => $selesai->copy()->addDay(),
-                    'nomor_sp2d'    => 'SP2D-' . Str::random(5),
-                    'tanggal_sp2d'  => $selesai->copy()->addDays(2),
-                    'biaya_rampung' => $totalBiaya,
-                    'created_at'    => $now,
-                    'updated_at'    => $now,
-                ]);
+                // Jika Selesai, buat laporan keuangan final
+                if ($meta['status_pj'] == $idStatusSelesai) {
+                    DB::table('laporankeuangan')->updateOrInsert(
+                        ['id_perjadin' => $perjadinId],
+                        [
+                            'id_status'     => $idStatusLapSelesai,
+                            'verified_by'   => $ppkNip,
+                            'verified_at'   => $selesai->copy()->addDays(3),
+                            'nomor_spm'     => 'SPM-' . Str::random(5),
+                            'tanggal_spm'   => $selesai->copy()->addDay(),
+                            'nomor_sp2d'    => 'SP2D-' . Str::random(5),
+                            'tanggal_sp2d'  => $selesai->copy()->addDays(2),
+                            'biaya_rampung' => 4700000,
+                            'created_at'    => $now,
+                            'updated_at'    => $now,
+                        ]
+                    );
+                }
             }
         });
+    }
+
+    private function insertBuktiDummy($laporanId, $now) {
+        $buktiData = [
+            ['kategori' => 'Tiket', 'nominal' => 1500000, 'ket' => null],
+            ['kategori' => 'Uang Harian', 'nominal' => 1200000, 'ket' => null],
+            ['kategori' => 'Penginapan', 'nominal' => 2000000, 'ket' => null],
+            ['kategori' => 'Maskapai', 'nominal' => 0, 'ket' => 'Garuda GA-123'],
+            ['kategori' => 'Nama Penginapan', 'nominal' => 0, 'ket' => 'Hotel Grand'],
+        ];
+        
+        foreach ($buktiData as $b) {
+            DB::table('bukti_laporan')->insert([
+                'id_laporan' => $laporanId,
+                'kategori'   => $b['kategori'],
+                'nominal'    => $b['nominal'],
+                'keterangan' => $b['ket'],
+                'nama_file'  => null,
+                'path_file'  => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
     }
 }
