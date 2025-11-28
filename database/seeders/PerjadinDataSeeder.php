@@ -20,7 +20,15 @@ class PerjadinDataSeeder extends Seeder
         DB::table('geotagging')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        $stMenungguVerif = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
+        // 2. AMBIL ID STATUS (SESUAIKAN DENGAN TABEL BARU)
+        // Status awal masuk ke PIC sekarang bernama "Pembuatan Laporan"
+        $statusName = 'Pembuatan Laporan'; 
+        $stPembuatanLaporan = DB::table('statusperjadin')->where('nama_status', $statusName)->value('id');
+        
+        // Safety check
+        if (!$stPembuatanLaporan) {
+            $stPembuatanLaporan = DB::table('statusperjadin')->insertGetId(['nama_status' => $statusName]);
+        }
         
         $nipPic = '199103032021031003'; 
         $nipPimpinan = '198001012010011001';
@@ -29,13 +37,18 @@ class PerjadinDataSeeder extends Seeder
             ->whereNotIn('nip', [$nipPic, $nipPimpinan])
             ->pluck('nip')
             ->toArray();
+            
+        if (empty($availableUsers)) {
+            $this->command->error('Tabel users kosong. Jalankan UsersSeeder terlebih dahulu.');
+            return;
+        }
 
         // Buat 10 Data Dummy
         for ($i = 1; $i <= 10; $i++) {
             
             $perjadinId = DB::table('perjalanandinas')->insertGetId([
                 'id_pembuat' => $nipPic,
-                'id_status' => $stMenungguVerif, 
+                'id_status' => $stPembuatanLaporan, // Menggunakan status baru
                 'id_atasan' => $nipPimpinan,
                 'approved_by' => $nipPimpinan,
                 'approved_at' => now()->subDays(10),
@@ -68,45 +81,35 @@ class PerjadinDataSeeder extends Seeder
                     'created_at' => now()
                 ]);
 
-                // --- INSERT DATA SESUAI STRUKTUR BARU (KOLOM KETERANGAN) ---
-                
-                // 1. TIKET (Nominal)
+                // Insert Biaya
                 $this->insertBiaya($laporanId, 'Tiket', 1500000);
-                // 1b. TIKET (Info: Maskapai & Kode) -> Masuk ke kolom 'keterangan'
                 $this->insertInfoTeks($laporanId, 'Maskapai', 'Garuda Indonesia');
                 $this->insertInfoTeks($laporanId, 'Kode Tiket', 'GA-' . rand(100, 999));
-
-                // 2. PENGINAPAN (Nominal)
                 $this->insertBiaya($laporanId, 'Penginapan', 2000000);
-                // 2b. PENGINAPAN (Info: Hotel & Kota) -> Masuk ke kolom 'keterangan'
                 $this->insertInfoTeks($laporanId, 'Nama Penginapan', 'Hotel Bintang ' . rand(3,5));
                 $this->insertInfoTeks($laporanId, 'Kota', $this->getNamaKota($i));
-
-                // 3. UANG HARIAN (Hanya Nominal)
                 $this->insertBiaya($laporanId, 'Uang Harian', 450000 * 3);
             }
         }
     }
 
-    // Helper: Simpan Biaya (Nominal)
     private function insertBiaya($idLaporan, $kategori, $nominal) {
         DB::table('bukti_laporan')->insert([
             'id_laporan' => $idLaporan, 
             'kategori' => $kategori, 
             'nominal' => $nominal,
-            'keterangan' => null, // Keterangan kosong untuk data biaya
+            'keterangan' => null, 
             'nama_file' => null, 'path_file' => null, 
             'created_at' => now(), 'updated_at' => now()
         ]);
     }
 
-    // Helper: Simpan Info Teks (Satu fungsi untuk semua)
     private function insertInfoTeks($idLaporan, $kategori, $isiTeks) {
         DB::table('bukti_laporan')->insert([
             'id_laporan' => $idLaporan, 
-            'kategori' => $kategori, // Misal: "Maskapai", "Kota"
+            'kategori' => $kategori, 
             'nominal' => 0,
-            'keterangan' => $isiTeks, // Misal: "Garuda", "Bandung"
+            'keterangan' => $isiTeks, 
             'nama_file' => null, 'path_file' => null, 
             'created_at' => now(), 'updated_at' => now()
         ]);
