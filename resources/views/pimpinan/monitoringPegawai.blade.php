@@ -8,25 +8,24 @@
     .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
     }
-    
     .custom-scrollbar::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
     }
-    
     .custom-scrollbar::-webkit-scrollbar-thumb {
         background: #fb923c;
         border-radius: 10px;
     }
-    
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #f97316;
     }
 </style>
 
-<div class="min-h-screen p-6">
-    <div class="mx-auto" style="max-width: 1400px;">
-        <!-- Header -->
+{{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
+<div class="ml-[80px] mt-[90px] px-6 pb-10 min-h-screen">
+    <div class="mx-auto max-w-[1400px]">
+
+        {{-- Header --}}
         <div class="mb-8">
             <h2 class="text-gray-700 text-4xl font-bold pb-3 relative">
                 Monitoring Pegawai
@@ -37,111 +36,124 @@
             </p>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left Column - Map, Bar Chart, Line Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+            {{-- LEFT COLUMN: Map + Bar + Line --}}
             <div class="space-y-6" id="leftColumn">
-                <!-- Map Card with Pegawai Counter -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">                 
-                    <div class="p-8 flex items-center justify-center border border-gray-200" style="height: 292px;">
+                {{-- Map --}}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-8 flex items-center justify-center border border-gray-200 h-[292px]">
                         <div class="text-center">
                             <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                                </path>
                             </svg>
                             <h2 class="text-2xl font-bold text-gray-400">PETA</h2>
-                            <p class="text-gray-500 text-sm mt-2">Lokasi perjalanan dinas akan ditampilkan di sini</p>
+                            <p class="text-gray-500 text-sm mt-2">
+                                Lokasi perjalanan dinas akan ditampilkan di sini
+                            </p>
                         </div>
                     </div>
 
                     <div class="bg-orange-500 text-white px-6 py-3">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">Pegawai dalam Perjalanan Dinas Saat Ini :
-                                <span class="bg-white text-orange-500 px-3 py-1 rounded-full text-lg font-bold ml-3"> {{ $pegawaiOnProgress }}
+                            <p class="text-lg font-semibold">
+                                Pegawai dalam Perjalanan Dinas Saat Ini :
+                                <span class="bg-white text-orange-500 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                    {{ $pegawaiOnProgress }}
                                 </span>
                             </p>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Bar Chart Card -->
+
+                {{-- Bar chart --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Grafik Perjalanan Dinas per Bulan</h3>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                            Grafik Perjalanan Dinas per Bulan
+                        </h3>
                         <div class="h-64">
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
-                    
+
                     <div class="bg-green-600 text-white px-6 py-3">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">Total Perjalanan Dinas Sebulan Terakhir :
-                                <span class="bg-white text-green-600 px-3 py-1 rounded-full text-lg font-bold ml-3"> {{ $totalSebulanTerakhir }} 
+                            <p class="text-lg font-semibold">
+                                Total Perjalanan Dinas Sebulan Terakhir :
+                                <span class="bg-white text-green-600 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                    {{ $totalSebulanTerakhir }}
                                 </span>
                             </p>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Line Chart Card -->
+
+                {{-- Line chart --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Grafik Anggaran Perjalanan Dinas per Bulan</h3>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                            Grafik Anggaran Perjalanan Dinas per Bulan
+                        </h3>
                         <div class="h-64">
                             <canvas id="lineChart"></canvas>
                         </div>
                     </div>
-                    
+
                     <div class="bg-red-500 text-white px-6 py-3">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">Total Anggaran Sebulan Terakhir :
-                                <span class="bg-white text-red-500 px-3 py-1 rounded-full text-lg font-bold ml-3">Rp {{ number_format($anggaranSebulanTerakhir, 0, ',', '.') }}</span>
+                            <p class="text-lg font-semibold">
+                                Total Anggaran Sebulan Terakhir :
+                                <span class="bg-white text-red-500 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                    Rp {{ number_format($anggaranSebulanTerakhir, 0, ',', '.') }}
+                                </span>
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Right Column - Employee Cards -->
-            <div class="flex flex-col" style="height: 100%;" id="rightColumnWrapper">
-                <!-- Employee Cards Header -->
+
+            {{-- RIGHT COLUMN: daftar perjalanan aktif --}}
+            <div class="flex flex-col h-full" id="rightColumnWrapper">
+                {{-- header box --}}
                 <div class="bg-white rounded-2xl shadow-md p-4 mb-4 flex-shrink-0">
                     <h2 class="text-xl font-bold text-gray-800">Perjalanan Dinas Aktif</h2>
-                    <p class="text-gray-600 text-sm">Daftar perjalanan dinas yang sedang berlangsung</p>
+                    <p class="text-gray-600 text-sm">
+                        Daftar perjalanan dinas yang sedang berlangsung
+                    </p>
                 </div>
 
-                <!-- Scrollable Cards Container -->
-                <div class="space-y-4 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-4 flex-1" id="rightColumn">
+                {{-- scrollable cards --}}
+                <div
+                    id="rightColumn"
+                    class="space-y-4 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-4 flex-1
+                           max-h-[calc(100vh-260px)]">
+
                     @forelse($perjalanandinas as $perjadin)
                         @php
-                            // Format tanggal
-                            $tglMulai = \Carbon\Carbon::parse($perjadin->tgl_mulai)->format('d M Y');
+                            $tglMulai   = \Carbon\Carbon::parse($perjadin->tgl_mulai)->format('d M Y');
                             $tglSelesai = \Carbon\Carbon::parse($perjadin->tgl_selesai)->format('d M Y');
-                            $tanggal = $tglMulai . ' - ' . $tglSelesai;
-                            
-                            // Status untuk perjalanan yang sedang berlangsung
-                            $status = 'On Progress';
-                            $status_color = 'yellow';
-                            
-                            // Tentukan badge class
+                            $tanggal    = $tglMulai . ' - ' . $tglSelesai;
+                            $status     = 'On Progress';
                             $badge_class = 'bg-yellow-500';
                         @endphp
 
-                        <!-- Kartu Perjalanan -->
                         <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
-                            
-                            <!-- Bagian Atas Kartu (Info Utama) -->
                             <div class="border-l-[6px] border-blue-500 p-6">
                                 <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                    
-                                    <!-- Info Kiri -->
                                     <div class="flex-1 space-y-3 min-w-0">
                                         <h3 class="text-blue-800 font-bold text-xl tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-200 pb-2 truncate">
                                             {{ $perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia' }}
                                         </h3>
-                                        
+
                                         <div class="space-y-2">
                                             <p class="flex items-start gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
                                                 <i class="fa-solid fa-location-dot w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
-                                                <span class="font-medium break-words">{{ $perjadin->tujuan ?? 'Tidak ada tujuan' }}</span>
+                                                <span class="font-medium break-words">
+                                                    {{ $perjadin->tujuan ?? 'Tidak ada tujuan' }}
+                                                </span>
                                             </p>
                                             <p class="flex items-start gap-3 text-gray-600 text-sm group-hover:translate-x-1 transition-transform duration-300 delay-100">
                                                 <i class="fa-regular fa-calendar w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
@@ -150,16 +162,13 @@
                                         </div>
                                     </div>
 
-                                    <!-- Info Kanan (Status & Link) -->
-                                    <div class="flex flex-col items-center sm:items-center gap-3 sm:min-w-[150px]">
-                                        
-                                        <!-- Badge Status -->
+                                    <div class="flex flex-col items-center gap-3 sm:min-w-[150px]">
                                         <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-2 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
                                             <span class="w-2 h-2 bg-white rounded-full"></span>
                                             {{ $status }}
-                                        </span>                                        
-                                        <!-- Link Detail -->
-                                        <a href="{{ route('pimpinan.detail', $perjadin->id) }}" 
+                                        </span>
+
+                                        <a href="{{ route('pimpinan.detail', $perjadin->id) }}"
                                            class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold transition-all duration-200 flex items-center gap-2 group/link px-2 py-1 rounded hover:bg-blue-50">
                                             <span>Lihat Detail</span>
                                             <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
@@ -167,17 +176,20 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-                        <!-- Akhir Kartu Perjalanan -->
                     @empty
-                        <!-- Empty State -->
                         <div class="bg-white rounded-lg shadow-md p-8 text-center">
                             <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                                </path>
                             </svg>
-                            <h3 class="text-lg font-semibold text-gray-600 mb-2">Tidak Ada Perjalanan Dinas Aktif</h3>
-                            <p class="text-gray-500 text-sm">Saat ini tidak ada pegawai yang sedang melakukan perjalanan dinas</p>
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">
+                                Tidak Ada Perjalanan Dinas Aktif
+                            </h3>
+                            <p class="text-gray-500 text-sm">
+                                Saat ini tidak ada pegawai yang sedang melakukan perjalanan dinas
+                            </p>
                         </div>
                     @endforelse
                 </div>
@@ -186,175 +198,116 @@
     </div>
 </div>
 
-<!-- Chart.js Script -->
+{{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Tunggu hingga DOM sepenuhnya dimuat
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        // Ambil data dari PHP
-        const barData = @json($barChartData);
-        const lineData = @json($lineChartData);
-        
-        // Debug: tampilkan data di console
-        console.log('Bar Chart Data:', barData);
-        console.log('Line Chart Data:', lineData);
-        
-        // Validasi data
-        if (!barData || barData.length === 0) {
-            console.error('Bar chart data kosong!');
-        }
-        
-        if (!lineData || lineData.length === 0) {
-            console.error('Line chart data kosong!');
-        }
-        
-        // Bar Chart - Jumlah Perjalanan Dinas per Bulan
-        const barCanvas = document.getElementById('barChart');
-        if (barCanvas) {
-            const barCtx = barCanvas.getContext('2d');
-            new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Jumlah Perjalanan Dinas',
-                        data: barData,
-                        backgroundColor: '#10b981',
-                        borderRadius: 6,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Total: ' + context.parsed.y + ' perjalanan dinas';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    if (Number.isInteger(value)) {
-                                        return value;
-                                    }
-                                }
-                            },
-                            grid: {
-                                color: '#f3f4f6'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-            console.log('Bar chart berhasil dibuat');
-        } else {
-            console.error('Canvas barChart tidak ditemukan!');
-        }
-        
-        // Line Chart - Total Anggaran per Bulan
-        const lineCanvas = document.getElementById('lineChart');
-        if (lineCanvas) {
-            const lineCtx = lineCanvas.getContext('2d');
-            new Chart(lineCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-                    datasets: [{
-                        label: 'Total Anggaran (Rp)',
-                        data: lineData,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.4,
-                        pointBackgroundColor: '#ef4444',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Anggaran: Rp ' + context.parsed.y.toLocaleString('id-ID');
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    if (value >= 1000000) {
-                                        return 'Rp ' + (value / 1000000).toFixed(1) + 'jt';
-                                    } else if (value >= 1000) {
-                                        return 'Rp ' + (value / 1000).toFixed(0) + 'k';
-                                    }
-                                    return 'Rp ' + value;
-                                }
-                            },
-                            grid: {
-                                color: '#f3f4f6'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-            console.log('Line chart berhasil dibuat');
-        } else {
-            console.error('Canvas lineChart tidak ditemukan!');
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    const barData  = @json($barChartData);
+    const lineData = @json($lineChartData);
 
-        // JavaScript untuk menyamakan tinggi kolom
-        const leftColumn = document.getElementById('leftColumn');
-        const rightColumn = document.getElementById('rightColumn');
-        
-        if (leftColumn && rightColumn) {
-            const leftHeight = leftColumn.offsetHeight;
-            rightColumn.style.maxHeight = (leftHeight - 100) + 'px';
-        }
-    });
+    console.log('Bar Chart Data:', barData);
+    console.log('Line Chart Data:', lineData);
+
+    // BAR
+    const barCanvas = document.getElementById('barChart');
+    if (barCanvas) {
+        const barCtx = barCanvas.getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+                datasets: [{
+                    label: 'Jumlah Perjalanan Dinas',
+                    data: barData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 6,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { font: { size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => 'Total: ' + ctx.parsed.y + ' perjalanan dinas'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: value => Number.isInteger(value) ? value : null
+                        },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // LINE
+    const lineCanvas = document.getElementById('lineChart');
+    if (lineCanvas) {
+        const lineCtx = lineCanvas.getContext('2d');
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+                datasets: [{
+                    label: 'Total Anggaran (Rp)',
+                    data: lineData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239,68,68,0.1)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { font: { size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => 'Anggaran: Rp ' + ctx.parsed.y.toLocaleString('id-ID')
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => {
+                                if (value >= 1_000_000) return 'Rp ' + (value / 1_000_000).toFixed(1) + 'jt';
+                                if (value >= 1_000)    return 'Rp ' + (value / 1_000).toFixed(0) + 'k';
+                                return 'Rp ' + value;
+                            }
+                        },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+});
 </script>
 @endsection
