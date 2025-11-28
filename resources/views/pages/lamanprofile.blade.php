@@ -23,8 +23,13 @@
         </div>
     @endif
 
-    <x-back-button />
-    <x-page-title title="Edit Profil" />
+    <div class="flex items-center justify-between mb-6">
+        <x-page-title title="Edit Profil" />
+
+        <div class="shrink-0">
+            <x-back-button />
+        </div>
+    </div>
 
     <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
@@ -109,34 +114,6 @@
                                 placeholder="Nama Lengkap">
                         </div>
                     </div>
-
-                    <!-- Ganti Password dengan Fitur Toggle Eye -->
-                    <div class="mt-8 pt-6 border-t border-gray-200">
-                        <h3 class="text-gray-600 font-bold mb-4">Ganti Password (Opsional)</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            
-                            <!-- Password Baru -->
-                            <div class="relative">
-                                <input type="password" name="password" id="password" placeholder="Password Baru" 
-                                    class="bg-white border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none w-full pr-10">
-                                <button type="button" onclick="togglePassword('password', 'eyeIconPass')" 
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
-                                    <i id="eyeIconPass" class="fas fa-eye"></i>
-                                </button>
-                            </div>
-
-                            <!-- Konfirmasi Password -->
-                            <div class="relative">
-                                <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Konfirmasi Password" 
-                                    class="bg-white border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none w-full pr-10">
-                                <button type="button" onclick="togglePassword('password_confirmation', 'eyeIconConf')" 
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-blue-600 focus:outline-none">
-                                    <i id="eyeIconConf" class="fas fa-eye"></i>
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -180,22 +157,6 @@
             }
             
             reader.readAsDataURL(file);
-        }
-    }
-
-    // 2. Script Toggle Password Visibility (Fitur Baru)
-    function togglePassword(inputId, iconId) {
-        const passwordInput = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = "password";
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
         }
     }
 </script>
