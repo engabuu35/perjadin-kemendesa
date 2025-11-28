@@ -4,17 +4,18 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-<div class="ml-[80px] p-6 mt-[90px] max-w-4xl mx-auto">
+<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
     
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">Pelaksanaan Tugas</h1>
+               <x-page-title 
+    title="Pelaksanaan Tugas" />
             <p class="text-gray-500 mt-1">Surat Tugas: <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span></p>
             
             @if($isMyTaskFinished)
                 <span class="inline-block mt-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200">
-                    ✅ Tugas Anda Sudah Selesai
+                    Tugas Anda Sudah Selesai
                 </span>
             @else
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ $statusBadgeClass ?? '' }}">
@@ -23,9 +24,7 @@
             @endif
         </div>
         
-        <div class="flex gap-2">
-            <a href="{{ url()->previous() }}" class="bg-white border border-gray-300 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition shadow-sm font-medium">← Kembali</a>
-        </div>
+        <x-back-button />
     </div>
 
     @if(session('success'))
@@ -39,13 +38,13 @@
         
         <!-- 1. GEOTAGGING -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isMyTaskFinished ? 'opacity-75 pointer-events-none grayscale-[20%]' : '' }}">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">📍 Geotagging Harian</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4"> Geotagging Harian</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2">
                     <div id="map" class="w-full h-64 bg-gray-100 rounded-xl mb-4 z-0 border border-gray-200"></div>
                     @if(!$isMyTaskFinished)
                         <button type="button" id="geotag-btn" data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}" {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }} class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition">
-                            @if($sudahAbsenHariIni) ✓ Lokasi Hari Ini Tercatat @else 🎯 Tandai Lokasi Saya @endif
+                            @if($sudahAbsenHariIni)  Lokasi Hari Ini Tercatat @else  Tandai Lokasi Saya @endif
                         </button>
                         @if(!$isTodayInPeriod)<p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>@endif
                     @endif
@@ -66,7 +65,7 @@
 
         <!-- 2. URAIAN -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isMyTaskFinished ? 'opacity-75 pointer-events-none' : '' }}">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">📝 Uraian Kegiatan</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4"> Uraian Kegiatan</h2>
             <form action="{{ route('perjalanan.storeUraian', $perjalanan->id) }}" method="POST">
                 @csrf
                 <textarea name="uraian" rows="5" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4" placeholder="Ceritakan aktivitas..." {{ $isMyTaskFinished ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
@@ -82,7 +81,7 @@
                 <p class="text-blue-100 mb-6 text-sm max-w-md mx-auto">
                     @if(!$canFinish)
                         <span class="bg-white/20 px-3 py-1 rounded text-yellow-300 font-bold border border-white/30 block mb-2">
-                            ⚠️ Tombol Belum Aktif
+                             Tombol Belum Aktif
                         </span>
                         {{ $finishMessage }}
                     @else
@@ -95,7 +94,7 @@
                     @csrf
                     <button type="submit" {{ !$canFinish ? 'disabled' : '' }} 
                         class="{{ !$canFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105' }} px-8 py-3 rounded-xl font-bold transition transform shadow-md">
-                        @if(!$canFinish) ⏳ Belum Bisa Selesai @else ✅ Saya Sudah Selesai @endif
+                        @if(!$canFinish) Belum Bisa Selesai @else  Saya Sudah Selesai @endif
                     </button>
                 </form>
             </div>
