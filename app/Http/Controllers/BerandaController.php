@@ -4,77 +4,71 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\PerjalananDinas;
+use App\Models\Geotagging; // pastikan model ini ada
 
 class BerandaController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
-        
-        // Ambil Data Perjadin milik User Login
-        // Filter: TIDAK MUNCULKAN yang statusnya sudah 'Selesai'
-        // Karena 'Selesai' akan masuk ke Riwayat
-        $daftarPerjadin = DB::table('perjalanandinas')
-            ->join('pegawaiperjadin', 'perjalanandinas.id', '=', 'pegawaiperjadin.id_perjadin')
-            ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
-            ->where('pegawaiperjadin.id_user', $user->nip)
-            ->where('statusperjadin.nama_status', '!=', 'Selesai') // Filter Selesai
-            ->select(
-                'perjalanandinas.*',
-                'statusperjadin.nama_status as status_db'
-            )
-            ->orderBy('perjalanandinas.tgl_mulai', 'asc')
+
+        $daftar = PerjalananDinas::with(['status', 'laporanKeuangan', 'pegawai'])
+            ->whereHas('pegawai', function ($q) use ($user) {
+                $q->where('nip', $user->nip);
+            })
+            ->whereHas('status', function ($q) {
+                $q->where('nama_status', '!=', 'Selesai');
+            })
+            ->orderBy('tgl_mulai', 'asc')
             ->get();
 
-        $perjalanan_list = $daftarPerjadin->map(function($item) {
-            $today = Carbon::now()->startOfDay();
-            $mulai = Carbon::parse($item->tgl_mulai)->startOfDay();
-            $selesai = Carbon::parse($item->tgl_selesai)->endOfDay();
-            
-            // LOGIKA TAMPILAN STATUS DI BERANDA PEGAWAI
-            
-            // 1. Cek Status Database (Prioritas Utama untuk Flow Sistem)
-            if ($item->status_db == 'Menunggu Verifikasi Laporan' || 
-                $item->status_db == 'Menunggu Verifikasi' || 
-                $item->status_db == 'Perlu Revisi') {
-                
-                $status = 'Menunggu Proses';
-                $status_color = 'orange'; // Menunggu PIC/PPK
-                $catatan = 'Laporan sedang diverifikasi admin.';
-            }
-            // 2. Jika Status Database masih Draft/Belum/Sedang, mainkan Logika Tanggal
-            else {
-                if ($today->lt($mulai)) {
-                    $status = 'Belum Berlangsung';
-                    $status_color = 'blue';
-                    $catatan = 'Menunggu tanggal keberangkatan';
-                } 
-                elseif ($today->between($mulai, $selesai)) {
-                    $status = 'Sedang Berlangsung';
-                    $status_color = 'green';
-                    $catatan = 'Selamat bertugas, jangan lupa absen.';
-                } 
-                else {
-                    // Tanggal sudah lewat, tapi status DB belum berubah (artinya pegawai belum klik Selesai)
-                    $status = 'Perlu Tindakan';
-                    $status_color = 'red';
-                    $catatan = 'Harap klik tombol Selesai di detail.';
-                }
+        // --- OPTIMISASI: ambil semua geotag hari ini untuk user sekali saja ---
+        $todayDate = now()->toDateString();
+        $geotaggedPerjadinIds = Geotagging::where('id_user', $user->nip)
+            ->whereDate('created_at', $todayDate)
+            ->pluck('id_perjadin')
+            ->toArray();
+
+        $perjalanan_list = $daftar->map(function ($p) use ($user, $geotaggedPerjadinIds) {
+            $today   = now()->startOfDay();
+            $mulai   = $p->tgl_mulai ? $p->tgl_mulai->startOfDay() : null;
+            $selesai = $p->tgl_selesai ? $p->tgl_selesai->endOfDay() : null;
+
+            // Sumber kebenaran: MODEL
+            $status_text  = $p->status_name ?? ($p->status->nama_status ?? '—');
+            $status_class = $p->status_class ?? 'bg-gray-500';
+
+            $tglString = ($p->tgl_mulai ? $p->tgl_mulai->translatedFormat('d M') : '-') .
+                        ' - ' .
+                        ($p->tgl_selesai ? $p->tgl_selesai->translatedFormat('d M Y') : '-');
+
+            // ===== PER-USER CHECKS (BERANDA) =====
+            // 1) Uraian untuk user ini kosong pada pivot? (nama pivot: 'laporan_individu' atau 'uraian')
+            $uraianMissing = false;
+            $pivotUser = $p->pegawai->firstWhere('nip', $user->nip);
+            if ($pivotUser) {
+                $laporan = $pivotUser->pivot->laporan_individu ?? $pivotUser->pivot->uraian ?? null;
+                $uraianMissing = (! $laporan || trim($laporan) === '');
+            } else {
+                // seharusnya tidak terjadi karena whereHas, tapi safe fallback:
+                $uraianMissing = true;
             }
 
-            $tglString = Carbon::parse($item->tgl_mulai)->translatedFormat('d M') . ' - ' . 
-                         Carbon::parse($item->tgl_selesai)->translatedFormat('d M Y');
+            // 2) Geotag hari ini sudah ada untuk perjadin ini?
+            $geotagExistsToday = in_array($p->id, $geotaggedPerjadinIds, true);
+            $geotagMissingToday = ! $geotagExistsToday;
 
             return (object) [
-                'id' => $item->id,
-                'nomor_surat' => $item->nomor_surat,
-                'lokasi' => $item->tujuan,
-                'tanggal' => $tglString,
-                'status' => $status,
-                'status_color' => $status_color,
-                'catatan' => $catatan
+                'id'                    => $p->id,
+                'nomor_surat'           => $p->nomor_surat,
+                'lokasi'                => $p->tujuan,
+                'tanggal'               => $tglString,
+                'status'                => $status_text,
+                'status_class'          => $status_class,
+                'uraian_missing'        => $uraianMissing,
+                'geotag_missing_today'  => $geotagMissingToday,
             ];
         });
 

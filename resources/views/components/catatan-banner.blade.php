@@ -1,32 +1,25 @@
+@props(['statusClass' => null, 'text' => ''])
+
 @php
-    $background = match($color) {
-        'red' => 'bg-red-50',
-        'yellow' => 'bg-yellow-50',
-        'green' => 'bg-green-50',
-        'blue' => 'bg-blue-50',
-        default => 'bg-gray-50'
-    };
+    // Jika statusClass diberikan (ex: 'bg-blue-500'), ubah suffix -500/-600/-700 -> -50
+    // Aman digunakan di Blade karena ini hanya bekerja pada string kelas.
+    $classBg = 'bg-gray-50';
+    if ($statusClass) {
+        // ganti akhir -500/-600/-700 jadi -50, fallback jika tidak cocok
+        $classBg = preg_replace('/-\\d{3}$/', '-50', $statusClass) ?: 'bg-gray-50';
+    }
 
-    $textColor = match($color) {
-        'red' => 'text-red-700',
-        'yellow' => 'text-yellow-700',
-        'green' => 'text-green-700',
-        'blue' => 'text-blue-700',
-        default => 'text-gray-700'
-    };
-
-    $icon = match($color) {
-        'red' => 'fa-circle-exclamation',
-        'yellow' => 'fa-spinner fa-spin',
-        'green' => 'fa-circle-check',
-        'blue' => 'fa-info-circle',
-        default => 'fa-info-circle'
-    };
+    // Pilih warna teks sesuai background
+    $textColor = 'text-gray-700';
+    if (str_contains($classBg, 'red')) $textColor = 'text-red-700';
+    elseif (str_contains($classBg, 'yellow')) $textColor = 'text-yellow-700';
+    elseif (str_contains($classBg, 'green')) $textColor = 'text-green-700';
+    elseif (str_contains($classBg, 'blue')) $textColor = 'text-blue-700';
 @endphp
 
-<div class="{{ $background }} px-6 py-3 border-t border-gray-100">
+<div class="{{ $classBg }} px-6 py-3 border-t border-gray-100">
     <p class="{{ $textColor }} text-sm font-medium flex items-center gap-2">
-        <i class="fa-solid {{ $icon }} text-lg"></i>
+        <i class="fa-solid fa-info-circle text-lg"></i>
         <span>{{ $text }}</span>
     </p>
 </div>
