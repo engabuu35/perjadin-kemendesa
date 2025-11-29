@@ -307,23 +307,27 @@
                 </a>
             </li>
             
-            <!-- Menu Monitoring -->
+            {{-- MENU MONITORING --}}
             <li class="my-1.5">
-                <a href="{{ route('pimpinan.monitoring') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pimpinan.monitoring','pimpinan.detail') ? 'active' : '' }}">
+                <a href="{{ route('pimpinan.monitoring') }}"
+                class="flex items-center py-[10px] px-[18px] text-white no-underline
+                        transition-colors duration-300 gap-[10px] text-base whitespace-nowrap
+                        {{ request()->routeIs('pimpinan.monitoring') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-desktop"></i>
                     </span>
                     <span class="opacity-0 transition-opacity duration-300">Monitoring</span>
                 </a>
             </li>
-            
-            <!-- Menu Riwayat -->
+
+            {{-- MENU RIWAYAT --}}
             <li class="my-1.5">
-                <a href="{{ route('riwayat') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('riwayat') ? 'active' : '' }}">
+                <a href="{{ route('pimpinan.riwayat') }}"
+                class="flex items-center py-[10px] px-[18px] text-white no-underline
+                        transition-colors duration-300 gap-[10px] text-base whitespace-nowrap
+                        {{ request()->routeIs('pimpinan.riwayat', 'pimpinan.detail') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
-                        <i class="fa-solid fa-history"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </span>
                     <span class="opacity-0 transition-opacity duration-300">Riwayat</span>
                 </a>
