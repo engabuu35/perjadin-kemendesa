@@ -21,7 +21,7 @@
                 Manajemen Pegawai
                 <span class="absolute bottom-0 left-0 w-60 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
             </h2>
-            <p class="text-gray-500 text-sm">Kelola data pegawai: tambah, lihat detail, atau hapus.</p>
+            <p class="text-gray-500 text-sm">Halaman untuk Mengelola data pegawai</p>
         </div>
 
         <div class="flex items-center gap-3 w-full sm:w-auto overflow-x-auto sm:overflow-visible">
