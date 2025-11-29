@@ -22,7 +22,7 @@
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[25px] px-4 pb-8 min-h-screen">
+<div class="ml-[80px] mt-[70px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
@@ -42,7 +42,7 @@
             <div class="space-y-4" id="leftColumn">
                 {{-- Map --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-4 flex items-center justify-center border border-gray-200 h-[180px]">
+                    <div class="p-4 flex items-center justify-center border border-gray-200 h-[250px]">
                         <div class="text-center">
                             <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,16 +116,45 @@
             </div>
 
             {{-- RIGHT COLUMN: daftar perjalanan aktif --}}
-            <div class="flex flex-col" id="rightColumnWrapper">
+            <div class="flex flex-col h-full" id="rightColumnWrapper">
                 {{-- header box --}}
                 <div class="bg-white rounded-xl shadow-md p-2.5 mb-2.5 flex-shrink-0">
                     <h2 class="text-base font-bold text-gray-800">Perjalanan Dinas Aktif</h2>
-                    <p class="text-gray-600 text-[10px]">
+                    <p class="text-gray-600 text-[10px] mb-2">
                         Daftar perjalanan dinas yang sedang berlangsung
                     </p>
+                    
+                    {{-- Search & Filter --}}
+                    <div class="flex gap-2 mt-2">
+                        {{-- Search Input --}}
+                        <div class="flex-1 relative">
+                            <input 
+                                type="text" 
+                                id="searchInput"
+                                placeholder="Cari nomor surat atau tujuan..."
+                                class="w-full px-3 py-1.5 pl-8 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+                            <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                        </div>
+                        
+                        {{-- Filter Dropdown --}}
+                        <div class="relative">
+                            <select 
+                                id="filterStatus"
+                                class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent appearance-none pr-8 bg-white cursor-pointer">
+                                <option value="all">Semua Status</option>
+                                <option value="onprogress">On Progress</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[8px] pointer-events-none"></i>
+                        </div>
+                    </div>
+                    
+                    {{-- Result Count --}}
+                    <div class="mt-2 text-[10px] text-gray-500">
+                        Menampilkan <span id="resultCount" class="font-semibold text-blue-600">{{ count($perjalanandinas) }}</span> perjalanan dinas
+                    </div>
                 </div>
 
-                {{-- scrollable cards --}}
+                {{-- scrollable cards container --}}
                 <div
                     id="rightColumn"
                     class="space-y-2.5 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-2.5 flex-1">
@@ -137,9 +166,13 @@
                             $tanggal    = $tglMulai . ' - ' . $tglSelesai;
                             $status     = 'On Progress';
                             $badge_class = 'bg-yellow-500';
+                            $status_value = 'onprogress';
                         @endphp
 
-                        <div class="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
+                        <div class="perjadin-card bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100"
+                             data-nomor="{{ strtolower($perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia') }}"
+                             data-tujuan="{{ strtolower($perjadin->tujuan ?? 'Tidak ada tujuan') }}"
+                             data-status="{{ $status_value }}">
                             <div class="border-l-[5px] border-blue-500 p-3">
                                 <div class="flex flex-col sm:flex-row justify-between items-start gap-2.5">
                                     <div class="flex-1 space-y-1.5 min-w-0">
@@ -177,7 +210,7 @@
                             </div>
                         </div>
                     @empty
-                        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                        <div id="emptyState" class="bg-white rounded-lg shadow-md p-6 text-center">
                             <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
@@ -191,6 +224,21 @@
                             </p>
                         </div>
                     @endforelse
+                    
+                    {{-- No Results Message --}}
+                    <div id="noResults" class="hidden bg-white rounded-lg shadow-md p-6 text-center">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+                            </path>
+                        </svg>
+                        <h3 class="text-base font-semibold text-gray-600 mb-1.5">
+                            Tidak Ada Hasil
+                        </h3>
+                        <p class="text-gray-500 text-xs">
+                            Tidak ditemukan perjalanan dinas yang sesuai dengan pencarian atau filter Anda
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -201,6 +249,55 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Search and Filter Functionality
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const resultCount = document.getElementById('resultCount');
+    const perjadinCards = document.querySelectorAll('.perjadin-card');
+    const noResults = document.getElementById('noResults');
+    
+    function filterCards() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const statusFilter = filterStatus.value;
+        let visibleCount = 0;
+        
+        perjadinCards.forEach(card => {
+            const nomor = card.getAttribute('data-nomor').toLowerCase();
+            const tujuan = card.getAttribute('data-tujuan').toLowerCase();
+            const status = card.getAttribute('data-status');
+            
+            // Check search match
+            const matchSearch = searchTerm === '' || 
+                                nomor.includes(searchTerm) || 
+                                tujuan.includes(searchTerm);
+            
+            // Check status filter
+            const matchStatus = statusFilter === 'all' || status === statusFilter;
+            
+            // Show/hide card
+            if (matchSearch && matchStatus) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update result count
+        resultCount.textContent = visibleCount;
+        
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            noResults.classList.remove('hidden');
+        } else {
+            noResults.classList.add('hidden');
+        }
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterCards);
+    filterStatus.addEventListener('change', filterCards);
+    
     // Sync height between columns
     function syncColumnHeights() {
         const leftColumn = document.getElementById('leftColumn');
@@ -225,7 +322,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const headerBox = rightWrapper.querySelector('.bg-white.rounded-xl');
             const headerHeight = headerBox ? headerBox.getBoundingClientRect().height : 0;
             const gap = 10; // mb-2.5 = 10px
-            const padding = 10; // p-2.5 on scrollable container = 10px top + 10px bottom
             
             // Set max-height for scrollable area
             const scrollableHeight = leftHeight - headerHeight - gap;
