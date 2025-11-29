@@ -306,7 +306,7 @@
                     </p>
                 </div>
 
-                <div>
+                <!-- <div>
                     <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
                         Rincian Biaya
                     </p>
@@ -345,7 +345,7 @@
                             </table>
                         </div>
                     @endif
-                </div>
+                </div> -->
             @endif
         </div>
 
@@ -382,7 +382,7 @@
                     </div>
                 </div>
 
-                <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                <!-- <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
                     Log Geotagging Terbaru
                 </p>
 
@@ -412,8 +412,8 @@
                                 </p>
                             </div>
                         @endforeach
-                    </div>
-                @endif
+                    </div>x
+                @endif -->
             @endif
         </div>
     </div>
