@@ -132,6 +132,51 @@ class PerjadinController extends Controller
 
         $canFinish = ($isLastDay && $sudahAbsenHariIni) || $isPastEnd;
 
+        // ---------- finishMessage: alasan tombol belum aktif ----------
+        $finishMessage = null;
+        if (!$canFinish) {
+            if ($today->lt($perjalanan->tgl_mulai)) {
+                $finishMessage = 'Belum bisa diselesaikan: tugas belum dimulai (mulai ' . Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') . ').';
+            } elseif ($today->gt($perjalanan->tgl_selesai)) {
+                // meskipun lewat tanggal selesai, canFinish akan true karena isPastEnd => jarang sampai sini,
+                // tetap sediakan fallback
+                $finishMessage = 'Periode tugas telah berakhir pada ' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . '.';
+            } elseif (!$isLastDay && !$isPastEnd) {
+                $finishMessage = 'Tombol hanya aktif pada hari terakhir tugas atau setelah tugas selesai.';
+            } elseif ($isLastDay && !$sudahAbsenHariIni) {
+                $finishMessage = 'Hari ini hari terakhir tugas, tetapi Anda belum melakukan geotagging hari ini.';
+            } else {
+                $finishMessage = 'Belum memenuhi syarat untuk menyelesaikan tugas.';
+            }
+        }
+        // ---------------------------------------------------------------
+
+        // ----- tambahan: status message + badge -----
+        if (!$isTodayInPeriod) {
+            if ($today->lt($perjalanan->tgl_mulai)) {
+                $statusMessage = 'Tugas belum dimulai. Periode: ' . Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') . ' — ' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . '.';
+            } else {
+                $statusMessage = 'Periode tugas telah berakhir pada ' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . '.';
+            }
+        } else {
+            $statusMessage = null;
+        }
+
+        if ($isMyTaskFinished) {
+            $statusPegawai = 'Selesai';
+            $statusBadgeClass = 'bg-gray-100 text-gray-700 border border-gray-200';
+        } elseif ($sudahAbsenHariIni) {
+            $statusPegawai = 'Hadir Hari Ini';
+            $statusBadgeClass = 'bg-green-100 text-green-700 border border-green-200';
+        } elseif ($isTodayInPeriod) {
+            $statusPegawai = 'Dalam Perjalanan';
+            $statusBadgeClass = 'bg-blue-50 text-blue-700 border border-blue-100';
+        } else {
+            $statusPegawai = 'Belum Hadir';
+            $statusBadgeClass = 'bg-yellow-50 text-yellow-700 border border-yellow-100';
+        }
+        // --------------------------------------------
+
         return view('pages.detailperjadin', compact(
             'perjalanan',
             'geotagHistory',
@@ -139,9 +184,14 @@ class PerjadinController extends Controller
             'laporanSaya',
             'isTodayInPeriod',
             'isMyTaskFinished',
-            'canFinish'
+            'canFinish',
+            'statusMessage',
+            'statusPegawai',
+            'statusBadgeClass',
+            'finishMessage'  // <-- kirim finishMessage ke view
         ));
     }
+
 
     /**
      * FINISH TUGAS SAYA
