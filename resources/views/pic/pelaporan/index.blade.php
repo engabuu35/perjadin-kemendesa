@@ -6,13 +6,9 @@
 <main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
     
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-            <h2 class="text-gray-700 text-3xl font-bold pb-2 relative">
-                Verifikasi Pelaporan
-                <span class="absolute bottom-0 left-0 w-32 h-1 bg-blue-500 rounded"></span>
-            </h2>
-            <p class="text-gray-500 mt-2">Daftar laporan perjalanan dinas yang menunggu verifikasi atau revisi.</p>
-        </div>
+    <x-page-title 
+        title="Verifikasi Pelaporan"
+        subtitle="Daftar laporan perjalanan dinas yang menunggu verifikasi atau revisi." />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

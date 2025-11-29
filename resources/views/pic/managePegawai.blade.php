@@ -2,7 +2,8 @@
 @section('title','Manajemen Pegawai')
 
 @section('content')
-<div class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8 ">
+<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+    
     @if(session('success'))
         <div class="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
             {{ session('success') }}
@@ -15,31 +16,32 @@
     @endif
 
     <!-- Header + Search + Buttons -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <h2 class="text-gray-700 text-2xl font-bold pb-3 relative">
-                Manajemen Pegawai
-                <span class="absolute bottom-0 left-0 w-60 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
-            </h2>
-            <p class="text-gray-500 text-sm">Kelola data pegawai: tambah, lihat detail, atau hapus.</p>
-        </div>
+     <div class="flex flex-col gap-0.5 mb-1">
+        <x-page-title 
+        title="Manajemen Pegawai"
+        subtitle="Kelola data pegawai: tambah, lihat detail, atau hapus." />
+     </div>
 
-        <div class="flex items-center gap-3 w-full sm:w-auto">
-            <!-- search -->
-            <form action="{{ route('pic.pegawai.index') }}" method="GET" class="mr-3 w-full sm:w-auto">
-                <div class="flex items-center gap-2">
-                    <input type="search" name="q" value="{{ $q ?? '' }}" placeholder="Cari NIP atau Nama" class="px-3 py-2 border rounded-lg text-sm w-full sm:w-64">
-                    <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">Cari</button>
+       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+           <!-- Search -->
+            <form action="{{ route('pic.pegawai.index') }}" method="GET" class="flex-grow">
+                <div class="flex items-center gap-2 w-full">
+                    <input type="search" name="q" value="{{ $q ?? '' }}"
+                        placeholder="Cari NIP atau Nama"
+                        class="px-3 py-2 border rounded-lg text-sm w-full">
+                    <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">
+                        Cari
+                    </button>
                 </div>
             </form>
 
             <!-- Tambah -->
             <a href="{{ route('pic.pegawai.create') }}"
-               class="px-4 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
+            class="px-4 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
                 + Tambah
             </a>
 
-            <!-- Bulk delete button (open modal) -->
+            <!-- Bulk delete button -->
             <form id="bulkDeleteForm" action="{{ route('pic.pegawai.bulkDelete') }}" method="POST" class="m-0 p-0">
                 @csrf
                 <input type="hidden" name="nips[]" id="bulkNips">
@@ -52,7 +54,7 @@
                 </button>
             </form>
         </div>
-    </div>
+
 
     <!-- List of users -->
     <form id="listForm" action="#" method="POST">
@@ -60,7 +62,7 @@
         @forelse($users as $user)
             <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex justify-between items-center mb-3">
                 <div class="flex items-start gap-4">
-                    <input type="checkbox" name="nips[]" value="{{ $user->nip }}" class="select-checkbox">
+                    <input type="checkbox" name="nips[]" value="{{ $user->nip }}" class="select-checkbox opacity-0 transition-all duration-300">
                     <div>
                         <div class="text-blue-700 font-semibold text-lg">{{ $user->nama }}</div>
                         <div class="text-gray-600 text-sm">NIP {{ $user->nip }}</div>
@@ -85,9 +87,57 @@
         @endforelse
     </form>
 
-    <div class="mt-4">
-        {{ $users->links() }}
+    <!-- Pagination-->   
+    @if ($users->hasPages())
+    <div class="mt-6 flex justify-center">
+
+        <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+
+            {{-- Previous --}}
+            @if ($users->onFirstPage())
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
+            @else
+                <a href="{{ $users->previousPageUrl() }}"
+                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                    ❮
+                </a>
+            @endif
+
+            {{-- LOOP DARI PAGINATION ARRAY --}}
+            @foreach ($users->toArray()['links'] as $link)
+
+                {{-- Skip "Previous" & "Next" default --}}
+                @if ($loop->first || $loop->last)
+                    @continue
+                @endif
+
+                {{-- Active Page --}}
+                @if ($link['active'])
+                    <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
+                        {{ $link['label'] }}
+                    </span>
+                @else
+                    <a href="{{ $link['url'] }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        {{ $link['label'] }}
+                    </a>
+                @endif
+
+            @endforeach
+
+            {{-- Next --}}
+            @if ($users->hasMorePages())
+                <a href="{{ $users->nextPageUrl() }}"
+                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                    ❯
+                </a>
+            @else
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
+            @endif
+
+        </nav>
     </div>
+    @endif  
 </div>
 
 <!-- Modal Konfirmasi Bulk Delete (sama gaya dengan modal logout) -->
@@ -126,90 +176,124 @@
 
 @push('scripts')
 <script>
-// BULK DELETE modal logic
+// ==========================
+// TOMBOL HAPUS → MODE SELEKSI
+// ==========================
 document.getElementById('openBulkModal').addEventListener('click', function () {
-    const checked = Array.from(document.querySelectorAll('.select-checkbox:checked')).map(i => i.value);
 
-    if (!checked.length) {
-        alert('Pilih minimal satu pegawai.');
+    const checkboxes = document.querySelectorAll('.select-checkbox');
+
+    // Klik pertama → tampilkan checkbox (TANPA auto-centang)
+    if (checkboxes[0].classList.contains('opacity-0')) {
+
+        checkboxes.forEach(cb => {
+            cb.classList.remove('opacity-0');
+            cb.classList.add('opacity-100');
+        });
+
+        return; // klik berikutnya baru buka modal
+    }
+
+    // ==========================
+    // Klik kedua → buka modal
+    // ==========================
+    const form = document.getElementById('bulkDeleteForm');
+
+    // Hapus input nips lama
+    form.querySelectorAll('input[name="nips[]"]').forEach(i => i.remove());
+
+    // Masukkan hanya checkbox yang dicentang (manual oleh user)
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'nips[]';
+            input.value = cb.value;
+            form.appendChild(input);
+        }
+    });
+
+    // Jika user tidak mencentang apa pun → beri peringatan
+    if (form.querySelectorAll('input[name="nips[]"]').length === 0) {
+        alert('Pilih pegawai yang ingin dihapus.');
         return;
     }
 
-    const form = document.getElementById('bulkDeleteForm');
-
-    // hapus input hidden lama
-    form.querySelectorAll('input[name="nips[]"]').forEach(i => i.remove());
-
-    // buat input hidden baru per pegawai
-    checked.forEach(nip => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'nips[]';
-        input.value = nip;
-        form.appendChild(input);
-    });
-
-    // tampilkan modal
+    // Tampilkan modal
     const modal = document.getElementById('bulkModal');
     modal.classList.remove('opacity-0', 'invisible');
 });
 
-// Cancel bulk modal
+
+// ==========================
+// BATAL BULK MODAL
+// ==========================
 document.getElementById('cancelBulk').addEventListener('click', function () {
     const modal = document.getElementById('bulkModal');
     modal.classList.add('opacity-0');
     setTimeout(() => modal.classList.add('invisible'), 300);
 });
 
-// Confirm bulk delete -> submit the bulkDeleteForm
+
+// ==========================
+// KONFIRMASI BULK DELETE
+// ==========================
 document.getElementById('confirmBulk').addEventListener('click', function () {
     document.getElementById('bulkDeleteForm').submit();
 });
 
-// SINGLE DELETE modal logic
-const singleButtons = document.querySelectorAll('.openSingleDeleteModal');
-singleButtons.forEach(btn => {
+
+// ==========================
+// SINGLE DELETE
+// ==========================
+document.querySelectorAll('.openSingleDeleteModal').forEach(btn => {
     btn.addEventListener('click', function () {
-        const nip = this.getAttribute('data-nip');
-        const nama = this.getAttribute('data-nama');
 
-        // set modal message
+        const nip = this.dataset.nip;
+        const nama = this.dataset.nama;
+
         document.getElementById('singleDeleteMessage').innerHTML =
-        `Apakah Anda yakin ingin menghapus:<br>
-        <span class="text-red-600 font-semibold">${nama}</span><br>
-        <span class="text-red-600 font-semibold">NIP: ${nip}</span><br>
-        Tindakan ini tidak dapat dibatalkan.`;
+        `Yakin hapus <br><b>${nama}</b><br>NIP: ${nip}?`;
 
-        // set form action to the destroy route: /pic/pegawai/{nip}
-        const base = "{{ url('pic/pegawai') }}"; // resolves to /pic/pegawai
-        const action = base + '/' + encodeURIComponent(nip);
-        const form = document.getElementById('singleDeleteForm');
-        form.action = action;
+        const base = "{{ url('pic/pegawai') }}";
+        document.getElementById('singleDeleteForm').action = `${base}/${nip}`;
 
-        // show modal
         const modal = document.getElementById('singleDeleteModal');
         modal.classList.remove('opacity-0', 'invisible');
     });
 });
 
-// Cancel single modal
+
+// ==========================
+// CANCEL SINGLE MODAL
+// ==========================
 document.getElementById('cancelSingle').addEventListener('click', function () {
     const modal = document.getElementById('singleDeleteModal');
     modal.classList.add('opacity-0');
     setTimeout(() => modal.classList.add('invisible'), 300);
 });
 
-// Confirm single delete -> submit the hidden form
+
+// ==========================
+// CONFIRM SINGLE DELETE
+// ==========================
 document.getElementById('confirmSingle').addEventListener('click', function () {
     document.getElementById('singleDeleteForm').submit();
 });
 
-// Optional: close modals on ESC
+
+// ==========================
+// ESC → TUTUP SEMUA MODAL
+// ==========================
 document.addEventListener('keydown', function(e){
     if (e.key === 'Escape') {
-        const bulk = document.getElementById('bulkModal');
-        const single = document.getElementById('singleDeleteModal');
-        [bulk, single].forEach(modal => {
+
+        const modals = [
+            document.getElementById('bulkModal'),
+            document.getElementById('singleDeleteModal')
+        ];
+
+        modals.forEach(modal => {
             if (!modal.classList.contains('invisible')) {
                 modal.classList.add('opacity-0');
                 setTimeout(() => modal.classList.add('invisible'), 300);
@@ -218,4 +302,5 @@ document.addEventListener('keydown', function(e){
     }
 });
 </script>
+
 @endpush
