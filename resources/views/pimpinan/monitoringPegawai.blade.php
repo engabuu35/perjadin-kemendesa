@@ -51,7 +51,128 @@
                             </svg>
                             <h2 class="text-lg font-bold text-gray-400">PETA</h2>
                             <p class="text-gray-500 text-[10px] mt-1">
-                                Lokasi perjalanan dinas akan ditampilkan di sini
+                                {{-- ======================= CARD PETA ======================= --}}
+                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+
+                                    <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <i class="fa-solid fa-map-location-dot text-blue-500"></i>
+                                        Peta Perjalanan Dinas Aktif
+                                    </h2>
+
+                                    @if($geotagMapData->isEmpty())
+                                        <p class="text-sm text-gray-400 italic">
+                                            Belum ada titik geotagging dari perjalanan dinas yang sedang berlangsung.
+                                        </p>
+                                    @else
+                                        <div id="mapMonitoring"
+                                            class="w-full h-80 rounded-xl border border-gray-200 overflow-hidden">
+                                        </div>
+                                        <p class="mt-2 text-xs text-gray-500">
+                                            Menampilkan {{ $geotagMapData->count() }} titik geotagging dari perjalanan dinas aktif.
+                                        </p>
+
+                                        <div id="mapLegend" class="mt-3 text-xs text-gray-600"></div> 
+                                    @endif
+                                    @if(!$geotagMapData->isEmpty())
+                                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+                                        <script>
+                                        document.addEventListener("DOMContentLoaded", function () {
+                                            const geoData = @json($geotagMapData);
+
+                                            // Inisialisasi peta (view awal kira-kira di Indonesia)
+                                            const map = L.map('mapMonitoring').setView([-2.548926, 118.0148634], 5);
+
+                                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                maxZoom: 19
+                                            }).addTo(map);
+
+                                            const layer  = L.layerGroup().addTo(map);
+                                            const bounds = [];
+
+                                            // Palet warna untuk perjadin
+                                            const palette = [
+                                                '#2563eb', // biru
+                                                '#16a34a', // hijau
+                                                '#f97316', // oranye
+                                                '#e11d48', '#a855f7',
+                                                '#0ea5e9', '#facc15'
+                                            ];
+
+                                            // Map: id_perjadin -> warna
+                                            const colorByPerjadin = {};
+                                            let colorIndex = 0;
+
+                                            geoData.forEach(point => {
+                                                if (!colorByPerjadin[point.id_perjadin]) {
+                                                    colorByPerjadin[point.id_perjadin] =
+                                                        palette[colorIndex % palette.length];
+                                                    colorIndex++;
+                                                }
+                                            });
+
+                                            // Tambah marker
+                                            geoData.forEach(point => {
+                                                const color = colorByPerjadin[point.id_perjadin];
+
+                                                // Circle marker berwarna (beda per perjadin)
+                                                const marker = L.circleMarker([point.lat, point.lng], {
+                                                    radius: 7,
+                                                    weight: 2,
+                                                    color: color,
+                                                    fillColor: color,
+                                                    fillOpacity: 0.85
+                                                }).addTo(layer);
+
+                                                marker.bindPopup(`
+                                                    <div class="text-xs">
+                                                        <strong>${point.nama}</strong> (${point.nip})<br>
+                                                        <span class="text-gray-600">${point.nomor}</span><br>
+                                                        Tujuan: ${point.tujuan}<br>
+                                                        Waktu: ${point.waktu}<br>
+                                                        Tipe: ${point.tipe ?? '-'}
+                                                    </div>
+                                                `);
+
+                                                bounds.push([point.lat, point.lng]);
+                                            });
+
+                                            // Auto zoom ke semua titik, tapi kalau cuma 1 titik jangan terlalu dekat
+                                            if (bounds.length === 1) {
+                                                map.setView(bounds[0], 13); // zoom 13 biar gak terlalu nge-zoom ke bangunan
+                                            } else if (bounds.length > 1) {
+                                                map.fitBounds(bounds, { padding: [25, 25] });
+                                            }
+
+                                            // Buat legenda warna per perjadin
+                                            const legendEl = document.getElementById('mapLegend');
+                                            if (legendEl) {
+                                                const entries = Object.entries(colorByPerjadin).map(([id, color]) => {
+                                                    const anyPoint = geoData.find(p => p.id_perjadin === parseInt(id));
+                                                    const label    = anyPoint
+                                                        ? `${anyPoint.nomor} – ${anyPoint.tujuan}`
+                                                        : `Perjalanan dinas ${id}`;
+
+                                                    return `
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <span style="
+                                                                width:12px;height:12px;border-radius:9999px;
+                                                                display:inline-block;background:${color};
+                                                            "></span>
+                                                            <span>${label}</span>
+                                                        </div>
+                                                    `;
+                                                }).join('');
+
+                                                legendEl.innerHTML =
+                                                    '<p class="mb-1 font-semibold">Keterangan warna per perjalanan dinas:</p>'
+                                                    + entries;
+                                            }
+                                        });
+                                        </script>
+                                    @endif
+                                </div>
                             </p>
                         </div>
                     </div>

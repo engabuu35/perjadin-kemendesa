@@ -10,7 +10,7 @@ class PimpinanController extends Controller
 {
     /**
      * Halaman dashboard / monitoring pimpinan:
-     * - Peta (dummy)
+     * - Peta geotagging perjadin aktif
      * - Grafik jumlah perjadin per bulan
      * - Grafik anggaran per bulan
      * - Daftar perjadin yang sedang berlangsung
@@ -44,8 +44,8 @@ class PimpinanController extends Controller
         // ==========================
         //   BAR CHART: JUMLAH PERJADIN PER BULAN
         // ==========================
-        $barChartData = [];
-        $tahunSekarang = Carbon::now()->year;
+        $barChartData   = [];
+        $tahunSekarang  = Carbon::now()->year;
 
         for ($bulan = 1; $bulan <= 12; $bulan++) {
             $count = DB::table('perjalanandinas')
@@ -86,13 +86,48 @@ class PimpinanController extends Controller
             ->whereNotNull('laporankeuangan.biaya_rampung')
             ->sum('laporankeuangan.biaya_rampung');
 
+        // ==========================
+        //   DATA PETA GEOTAGGING (ON PROGRESS)
+        // ==========================
+        $geotagMapData = DB::table('geotagging as g')
+            ->join('perjalanandinas as pd', 'g.id_perjadin', '=', 'pd.id')
+            ->join('users as u', 'g.id_user', '=', 'u.nip')
+            ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
+            ->where('pd.id_status', $statusOnProgress)
+            ->orderBy('g.created_at', 'desc')
+            ->select(
+                'g.latitude',
+                'g.longitude',
+                'g.created_at',
+                'pd.id as id_perjadin',
+                'pd.nomor_surat',
+                'pd.tujuan',
+                'u.nama',
+                'u.nip',
+                't.nama_tipe'
+            )
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'lat'     => (float) $row->latitude,
+                    'lng'     => (float) $row->longitude,
+                    'nama'    => $row->nama,
+                    'nip'     => $row->nip,
+                    'nomor'   => $row->nomor_surat,
+                    'tujuan'  => $row->tujuan,
+                    'waktu'   => Carbon::parse($row->created_at)->format('Y-m-d H:i'),
+                    'tipe'    => $row->nama_tipe,
+                ];
+            });
+
         return view('pimpinan.monitoringPegawai', compact(
             'pegawaiOnProgress',
             'perjalanandinas',
             'barChartData',
             'lineChartData',
             'totalSebulanTerakhir',
-            'anggaranSebulanTerakhir'
+            'anggaranSebulanTerakhir',
+            'geotagMapData'
         ));
     }
 
@@ -104,7 +139,7 @@ class PimpinanController extends Controller
      * - Ringkasan progres
      * - Uraian pelaksanaan (PIC & individu)
      * - Rekap keuangan
-     * - Ringkasan geotagging
+     * - Ringkasan geotagging + peta harian
      */
     public function detail($id)
     {
@@ -240,20 +275,6 @@ class PimpinanController extends Controller
             ->where('id_perjadin', $id)
             ->count();
 
-        $geotagList = DB::table('geotagging as g')
-            ->join('users as u', 'g.id_user', '=', 'u.nip')
-            ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
-            ->where('g.id_perjadin', $id)
-            ->orderBy('g.created_at', 'desc')
-            ->limit(5)
-            ->select(
-                'g.*',
-                'u.nama',
-                'u.nip',
-                't.nama_tipe'
-            )
-            ->get();
-
         $geotagSummary = [
             'total_hari'   => $totalHari,
             'hari_terisi'  => $hariTerisi,
@@ -261,7 +282,34 @@ class PimpinanController extends Controller
         ];
 
         // ==========================
-        // 8. Paketkan data progres untuk view
+        // 8. Data untuk Peta Geotagging (Detail Perjadin)
+        // ==========================
+        $geotagMapData = DB::table('geotagging as g')
+            ->join('users as u', 'g.id_user', '=', 'u.nip')
+            ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
+            ->where('g.id_perjadin', $id)
+            ->orderBy('g.created_at', 'asc')
+            ->select(
+                'g.*',
+                'u.nama',
+                'u.nip',
+                't.nama_tipe'
+            )
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'lat'     => (float) $row->latitude,
+                    'lng'     => (float) $row->longitude,
+                    'nama'    => $row->nama,
+                    'nip'     => $row->nip,
+                    'tipe'    => $row->nama_tipe,
+                    'waktu'   => Carbon::parse($row->created_at)->format('Y-m-d H:i:s'),
+                    'tanggal' => Carbon::parse($row->created_at)->toDateString(),
+                ];
+            });
+
+        // ==========================
+        // 9. Paketkan data progres untuk view
         // ==========================
         $progress = [
             'fase'                     => $fase,
@@ -287,7 +335,7 @@ class PimpinanController extends Controller
             'uraianIndividu',
             'keuangan',
             'geotagSummary',
-            'geotagList'
+            'geotagMapData'
         ));
     }
 }
