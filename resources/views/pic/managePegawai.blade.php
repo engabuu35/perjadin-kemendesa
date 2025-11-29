@@ -183,129 +183,123 @@
 
 @push('scripts')
 <script>
-    // --- LOGIKA BARU: TOGGLE DELETE MODE ---
-    const toggleBtn = document.getElementById('toggleDeleteModeBtn');
-    const cancelBtn = document.getElementById('cancelDeleteModeBtn');
-    const deleteBtnText = document.getElementById('deleteBtnText');
+// ==========================
+// TOMBOL HAPUS (Klik 1 → Tampilkan checkbox)
+// ==========================
+document.getElementById('openBulkModal').addEventListener('click', function () {
+
     const checkboxes = document.querySelectorAll('.select-checkbox');
-    let isDeleteMode = false;
 
-    // Fungsi Toggle Mode
-    toggleBtn.addEventListener('click', function() {
-        if (!isDeleteMode) {
-            // Masuk Mode Hapus
-            isDeleteMode = true;
-            deleteBtnText.textContent = "Hapus Terpilih"; // Ubah teks tombol
-            cancelBtn.classList.remove('hidden'); // Munculkan tombol batal
-            
-            // Munculkan semua checkbox
-            checkboxes.forEach(cb => cb.classList.remove('hidden'));
-        } else {
-            // Jika sudah mode hapus, tombol ini berfungsi sebagai "Eksekusi Hapus" (Open Modal)
-            openBulkModal();
-        }
-    });
+    // Klik pertama → checkbox muncul dulu (tanpa centang otomatis)
+    if (checkboxes[0].classList.contains('opacity-0')) {
 
-    // Fungsi Batal Mode
-    cancelBtn.addEventListener('click', function() {
-        isDeleteMode = false;
-        deleteBtnText.textContent = "Hapus"; // Kembalikan teks tombol
-        cancelBtn.classList.add('hidden'); // Sembunyikan tombol batal
-        
-        // Sembunyikan & Reset checkbox
         checkboxes.forEach(cb => {
-            cb.classList.add('hidden');
-            cb.checked = false;
-        });
-    });
-
-    // --- LOGIKA MODAL BULK DELETE ---
-    function openBulkModal() {
-        const checked = Array.from(document.querySelectorAll('.select-checkbox:checked')).map(i => i.value);
-
-        if (!checked.length) {
-            alert('Pilih minimal satu pegawai untuk dihapus.');
-            return;
-        }
-
-        const form = document.getElementById('bulkDeleteForm');
-
-        // Reset input hidden lama
-        form.querySelectorAll('input[name="nips[]"]').forEach(i => i.remove());
-
-        // Masukkan NIP terpilih ke form hidden
-        checked.forEach(nip => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'nips[]';
-            input.value = nip;
-            form.appendChild(input);
+            cb.classList.remove('opacity-0');
+            cb.classList.add('opacity-100');
         });
 
-        // Update teks jumlah di modal
-        document.getElementById('countSelected').textContent = checked.length;
-
-        // Tampilkan modal
-        const modal = document.getElementById('bulkModal');
-        modal.classList.remove('opacity-0', 'invisible');
+        return; // klik kedua baru proses buka modal
     }
 
-    // Cancel Bulk Modal (Tutup saja, jangan reset mode hapus biar user gak kaget)
-    document.getElementById('cancelBulk').addEventListener('click', function () {
-        const modal = document.getElementById('bulkModal');
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('invisible'), 300);
+    // ==========================
+    // Klik kedua → buka modal bulk
+    // ==========================
+    const form = document.getElementById('bulkDeleteForm');
+
+    // Reset input hidden lama
+    form.querySelectorAll('input[name="nips[]"]').forEach(i => i.remove());
+
+    // Ambil semua yang dicentang
+    const checked = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    if (!checked.length) {
+        alert('Pilih minimal satu pegawai untuk dihapus.');
+        return;
+    }
+
+    // Masukkan data ke hidden input
+    checked.forEach(nip => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'nips[]';
+        input.value = nip;
+        form.appendChild(input);
     });
 
-    // Confirm Bulk Delete -> Submit
-    document.getElementById('confirmBulk').addEventListener('click', function () {
-        document.getElementById('bulkDeleteForm').submit();
-    });
+    // Tampilkan jumlah di modal
+    document.getElementById('countSelected').textContent = checked.length;
 
-    // --- LOGIKA SINGLE DELETE (TETAP SAMA) ---
-    const singleButtons = document.querySelectorAll('.openSingleDeleteModal');
-    singleButtons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const nip = this.getAttribute('data-nip');
-            const nama = this.getAttribute('data-nama');
+    // Tampilkan modal
+    const modal = document.getElementById('bulkModal');
+    modal.classList.remove('opacity-0', 'invisible');
+});
 
-            document.getElementById('singleDeleteMessage').innerHTML =
-            `Apakah Anda yakin ingin menghapus:<br>
-            <span class="text-red-600 font-semibold">${nama}</span><br>
-            <span class="text-red-600 font-semibold">NIP: ${nip}</span><br>
-            Tindakan ini tidak dapat dibatalkan.`;
 
-            const base = "{{ url('pic/pegawai') }}";
-            const action = base + '/' + encodeURIComponent(nip);
-            const form = document.getElementById('singleDeleteForm');
-            form.action = action;
+// ==========================
+// CANCEL BULK MODAL
+// ==========================
+document.getElementById('cancelBulk').addEventListener('click', function () {
+    const modal = document.getElementById('bulkModal');
+    modal.classList.add('opacity-0');
+    setTimeout(() => modal.classList.add('invisible'), 300);
+});
 
-            const modal = document.getElementById('singleDeleteModal');
-            modal.classList.remove('opacity-0', 'invisible');
-        });
-    });
 
-    document.getElementById('cancelSingle').addEventListener('click', function () {
+// ==========================
+// KONFIRMASI BULK DELETE
+// ==========================
+document.getElementById('confirmBulk').addEventListener('click', function () {
+    document.getElementById('bulkDeleteForm').submit();
+});
+
+
+// ==========================
+// SINGLE DELETE
+// ==========================
+document.querySelectorAll('.openSingleDeleteModal').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const nip = this.dataset.nip;
+        const nama = this.dataset.nama;
+
+        document.getElementById('singleDeleteMessage').innerHTML =
+        `Apakah Anda yakin ingin menghapus:<br>
+        <span class="text-red-600 font-semibold">${nama}</span><br>
+        <span class="text-red-600 font-semibold">NIP: ${nip}</span>`;
+
+        const base = "{{ url('pic/pegawai') }}";
+        document.getElementById('singleDeleteForm').action = `${base}/${nip}`;
+
         const modal = document.getElementById('singleDeleteModal');
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('invisible'), 300);
+        modal.classList.remove('opacity-0', 'invisible');
     });
+});
 
-    document.getElementById('confirmSingle').addEventListener('click', function () {
-        document.getElementById('singleDeleteForm').submit();
-    });
+document.getElementById('cancelSingle').addEventListener('click', function () {
+    const modal = document.getElementById('singleDeleteModal');
+    modal.classList.add('opacity-0');
+    setTimeout(() => modal.classList.add('invisible'), 300);
+});
 
-    // Close on ESC
-    document.addEventListener('keydown', function(e){
-        if (e.key === 'Escape') {
-            ['bulkModal', 'singleDeleteModal'].forEach(id => {
-                const modal = document.getElementById(id);
-                if (!modal.classList.contains('invisible')) {
-                    modal.classList.add('opacity-0');
-                    setTimeout(() => modal.classList.add('invisible'), 300);
-                }
-            });
-        }
-    });
+document.getElementById('confirmSingle').addEventListener('click', function () {
+    document.getElementById('singleDeleteForm').submit();
+});
+
+
+// ==========================
+// ESC → TUTUP MODAL
+// ==========================
+document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+        ['bulkModal', 'singleDeleteModal'].forEach(id => {
+            const modal = document.getElementById(id);
+            if (!modal.classList.contains('invisible')) {
+                modal.classList.add('opacity-0');
+                setTimeout(() => modal.classList.add('invisible'), 300);
+            }
+        });
+    }
+});
 </script>
 @endpush
