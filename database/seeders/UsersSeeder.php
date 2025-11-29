@@ -146,44 +146,44 @@ class UsersSeeder extends Seeder
             }
         }
 
-        // --- GRUP 2: 10 USER BARU (BELUM ADA PERJADIN) ---
-        for ($i = 1; $i <= 10; $i++) {
-            $nip = '2000101020301010' . str_pad($i, 2, '0', STR_PAD_LEFT);
-            DB::table('users')->insert([
-                'id_uke' => $allUkes[array_rand($allUkes)],
-                'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
-                'nip' => $nip,
-                'nama' => 'Pegawai Baru ' . $i,
-                'email' => 'pegawai.baru.' . $i . '@example.com',
-                'password_hash' => Hash::make('password'),
-                'is_aktif' => true,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-            // Langsung tugaskan peran
-            DB::table('penugasanperan')->insert([
-                'user_id' => $nip,
-                'role_id' => $roleMap['PEGAWAI'] // <-- Sudah benar (Hanya pegawai)
-            ]);
-        }
+        // // --- GRUP 2: 10 USER BARU (BELUM ADA PERJADIN) ---
+        // for ($i = 1; $i <= 10; $i++) {
+        //     $nip = '2000101020301010' . str_pad($i, 2, '0', STR_PAD_LEFT);
+        //     DB::table('users')->insert([
+        //         'id_uke' => $allUkes[array_rand($allUkes)],
+        //         'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
+        //         'nip' => $nip,
+        //         'nama' => 'Pegawai Baru ' . $i,
+        //         'email' => 'pegawai.baru.' . $i . '@example.com',
+        //         'password_hash' => Hash::make('password'),
+        //         'is_aktif' => true,
+        //         'created_at' => now(), 'updated_at' => now(),
+        //     ]);
+        //     // Langsung tugaskan peran
+        //     DB::table('penugasanperan')->insert([
+        //         'user_id' => $nip,
+        //         'role_id' => $roleMap['PEGAWAI'] // <-- Sudah benar (Hanya pegawai)
+        //     ]);
+        // }
 
-        // --- GRUP 3: 10 USER ON-PROGRESS (UNTUK PERJADIN AKTIF) ---
-        for ($i = 1; $i <= 10; $i++) {
-            $nip = '2001111120311110' . str_pad($i, 2, '0', STR_PAD_LEFT);
-            DB::table('users')->insert([
-                'id_uke' => $allUkes[array_rand($allUkes)],
-                'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
-                'nip' => $nip,
-                'nama' => 'Pegawai Progress ' . $i,
-                'email' => 'pegawai.progress.' . $i . '@example.com',
-                'password_hash' => Hash::make('password'),
-                'is_aktif' => true,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-            // Langsung tugaskan peran
-            DB::table('penugasanperan')->insert([
-                'user_id' => $nip,
-                'role_id' => $roleMap['PEGAWAI'] // <-- Sudah benar (Hanya pegawai)
-            ]);
-        }
+        // // --- GRUP 3: 10 USER ON-PROGRESS (UNTUK PERJADIN AKTIF) ---
+        // for ($i = 1; $i <= 10; $i++) {
+        //     $nip = '2001111120311110' . str_pad($i, 2, '0', STR_PAD_LEFT);
+        //     DB::table('users')->insert([
+        //         'id_uke' => $allUkes[array_rand($allUkes)],
+        //         'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
+        //         'nip' => $nip,
+        //         'nama' => 'Pegawai Progress ' . $i,
+        //         'email' => 'pegawai.progress.' . $i . '@example.com',
+        //         'password_hash' => Hash::make('password'),
+        //         'is_aktif' => true,
+        //         'created_at' => now(), 'updated_at' => now(),
+        //     ]);
+        //     // Langsung tugaskan peran
+        //     DB::table('penugasanperan')->insert([
+        //         'user_id' => $nip,
+        //         'role_id' => $roleMap['PEGAWAI'] // <-- Sudah benar (Hanya pegawai)
+        //     ]);
+        // }
     }
 }
