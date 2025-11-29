@@ -11,36 +11,32 @@
     
     <!-- Header -->
     <div class="mb-4 sm:mb-6">
-        <h2 class="text-gray-800 text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
-            Riwayat Perjalanan Dinas
-        </h2>
+        <x-page-title
+               title="Riwayat Perjalanan Dinas" />
         
         <!-- Info Box -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex items-start gap-2 sm:gap-3 transition-colors hover:bg-blue-100">
-            <i class="fa-solid fa-circle-info text-blue-600 text-base sm:text-lg mt-0.5 flex-shrink-0"></i>
-            <p class="text-blue-800 text-xs sm:text-sm">
-                Riwayat perjalanan dinas yang ditampilkan maksimal untuk 1 tahun terakhir.
-            </p>
-        </div>
+        <x-info-box>
+        Riwayat perjalanan dinas yang ditampilkan maksimal untuk 1 tahun terakhir.
+        </x-info-box>
+
 
         <!-- Tabs -->
-        <div class="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
-            {{-- TAB PRIBADI --}}
-            <a href="{{ route('riwayat', ['tab' => 'pribadi']) }}"
-               class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold
-               {{ $tab === 'pribadi' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-200 text-gray-600 hover:bg-gray-300' }}">
-                Pribadi
-            </a>
+        @if($role === 'PIMPINAN')
+            <div class="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
+                <a href="{{ route('riwayat', ['tab' => 'pribadi']) }}"
+                class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold
+                {{ $tab === 'pribadi' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-200 text-gray-600 hover:bg-gray-300' }}">
+                    Pribadi
+                </a>
 
-            {{-- TAB PEGAWAI (khusus pimpinan) --}}
-            @if($role === 'PIMPINAN')
                 <a href="{{ route('riwayat', ['tab' => 'pegawai']) }}"
-                   class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold
-                   {{ $tab === 'pegawai' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-200 text-gray-600 hover:bg-gray-300' }}">
+                class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold
+                {{ $tab === 'pegawai' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-200 text-gray-600 hover:bg-gray-300' }}">
                     Pegawai
                 </a>
-            @endif
-        </div>
+            </div>
+        @endif
+
 
         <!-- Search Form -->
         <form method="GET" action="{{ route('riwayat') }}" class="relative mb-4 sm:mb-6 group">

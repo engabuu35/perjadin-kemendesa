@@ -37,26 +37,22 @@ class PerjalananDinas extends Model
         'updated_at'     => 'datetime',
     ];
 
-    public function pembuat()
+    // cache mapping nama_status -> id untuk mengurangi query berulang
+    protected static array $statusCache = [];
+
+    protected static function statusId(string $name): ?int
     {
-        return $this->belongsTo(User::class, 'id_pembuat', 'nip');
+        if (empty(self::$statusCache)) {
+            self::$statusCache = DB::table('statusperjadin')->pluck('id', 'nama_status')->toArray();
+        }
+        return isset(self::$statusCache[$name]) ? intval(self::$statusCache[$name]) : null;
     }
 
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approved_by', 'nip');
-    }
-
-    public function status()
-    {
-        return $this->belongsTo(StatusPerjadin::class, 'id_status', 'id');
-    }
-
-    public function laporanKeuangan()
-    {
-        return $this->hasOne(LaporanKeuangan::class, 'id_perjadin', 'id');
-    }
-
+    // relations (pembuat, approver, status, laporanKeuangan, pegawai) tetap sama...
+    public function pembuat() { return $this->belongsTo(User::class, 'id_pembuat', 'nip'); }
+    public function approver() { return $this->belongsTo(User::class, 'approved_by', 'nip'); }
+    public function status() { return $this->belongsTo(StatusPerjadin::class, 'id_status', 'id'); }
+    public function laporanKeuangan() { return $this->hasOne(LaporanKeuangan::class, 'id_perjadin', 'id'); }
     public function pegawai()
     {
         return $this->belongsToMany(
@@ -66,162 +62,120 @@ class PerjalananDinas extends Model
             'id_user',
             'id',
             'nip'
-        )->withPivot('role_perjadin', 'is_lead', 'laporan_individu');
+        )->withPivot('role_perjadin', 'is_lead', 'laporan_individu', 'is_finished');
     }
 
-    public function getStatusNameAttribute()
-    {
-        return $this->status->nama_status ?? null;
+    public function getStatusNameAttribute() 
+    { 
+        return $this->status->nama_status ?? null; 
     }
 
     public function getStatusClassAttribute()
     {
         $map = [
             1 => 'bg-blue-500',
-            2 => 'bg-yellow-500',
+            2 => 'bg-yellow-400',
             3 => 'bg-yellow-600',
-            4 => 'bg-green-600',
+            4 => 'bg-yellow-700',
+            5 => 'bg-green-600',
+            6 => 'bg-red-500',
+            7 => 'bg-gray-600',
+            8 => 'bg-gray-600',
         ];
-
         return $map[intval($this->id_status)] ?? 'bg-gray-500';
     }
 
-    /**
-     * - Status 7 & 8 tidak boleh berubah.
-     * - Jika tanggal diubah → status = 1.
-     * - Sisanya mengikuti flow laporan & perjalanan.
-     */
+    protected static function booted()
+    {
+        // capture perubahan tanggal sebelum disimpan
+        static::updating(function ($model) {
+            $final1 = self::statusId('Diselesaikan Manual');
+            $final2 = self::statusId('Dibatalkan');
+            if (in_array(intval($model->id_status), array_filter([$final1, $final2]))) {
+                return;
+            }
+
+            if ($model->isDirty(['tgl_mulai', 'tgl_selesai'])) {
+                $belum = self::statusId('Belum Berlangsung');
+                if ($belum) {
+                    $model->id_status = $belum;
+                }
+            }
+        });
+
+        // setelah tersimpan, evaluasi status lain
+        static::saved(function ($model) {
+            $model->updateStatus();
+        });
+    }
+
     public function updateStatus(): bool
     {
-        $statusPerjadin = DB::table('statusperjadin')->pluck('id', 'nama_status')->toArray();
-        $statusLaporan  = DB::table('statuslaporan')->pluck('id', 'nama_status')->toArray();
-        $now = now()->startOfDay();
+        $belum     = self::statusId('Belum Berlangsung');
+        $sedang    = self::statusId('Sedang Berlangsung');
+        $pembuatan = self::statusId('Pembuatan Laporan');
+        $menunggu  = self::statusId('Menunggu Validasi PPK');
+        $selesai   = self::statusId('Selesai');
+        $perlu     = self::statusId('Perlu Tindakan');
+        $final1    = self::statusId('Diselesaikan Manual');
+        $final2    = self::statusId('Dibatalkan');
 
-        // FINAL STATES — tidak boleh berubah
-        if (in_array($this->id_status, [7, 8])) {
+        if (in_array(intval($this->id_status), array_filter([$final1, $final2]))) {
             return false;
         }
 
-        // RESET KE STATUS 1 JIKA TANGGAL DIUBAH
-        if ($this->isDirty(['tgl_mulai', 'tgl_selesai'])) {
-            if (isset($statusPerjadin['Belum Berlangsung'])) {
-                $this->id_status = $statusPerjadin['Belum Berlangsung'];
-                $this->save();
-                return true;
-            }
+        $now = now()->startOfDay();
+
+        // 1) Belum -> Sedang berdasarkan tanggal
+        if ($belum && intval($this->id_status) === $belum && $this->tgl_mulai && $this->tgl_mulai->startOfDay()->lte($now)) {
+            if ($sedang) { $this->id_status = $sedang; $this->saveQuietly(); return true; }
         }
 
-        $exists = fn($arr, $key) => array_key_exists($key, $arr);
+        // gunakan relasi pegawai untuk hitung cepat
+        $totalPegawai = $this->pegawai()->count();
+        $totalSelesai = $this->pegawai()->wherePivot('is_finished', 1)->count();
 
-        /* ============================================================
-         * 1. Belum Berlangsung → Sedang Berlangsung
-         * ============================================================ */
-        if ($exists($statusPerjadin, 'Belum Berlangsung')
-            && intval($this->id_status) === intval($statusPerjadin['Belum Berlangsung'])
-            && $this->tgl_mulai
-            && $this->tgl_mulai->startOfDay()->lte($now)
-        ) {
-            if ($exists($statusPerjadin, 'Sedang Berlangsung')) {
-                $this->id_status = $statusPerjadin['Sedang Berlangsung'];
-                $this->save();
-                return true;
-            }
-        }
-
-        /* ============================================================
-         * DATA PEGAWAI & LAPORAN INDIVIDU
-         * ============================================================ */
-        $pegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $this->id)->get();
-        $totalPegawai = $pegawai->count();
-        $totalSelesai = $pegawai->where('is_finished', 1)->count();
-
-        $laporanLengkap = DB::table('pegawaiperjadin')
-            ->where('id_perjadin', $this->id)
+        // hitung laporan lengkap di PHP untuk portabilitas
+        $laporanLengkap = $this->pegawai()
             ->whereNotNull('laporan_individu')
-            ->whereRaw("CHAR_LENGTH(TRIM(laporan_individu)) >= 100")
+            ->get()
+            ->filter(function($p){ return mb_strlen(trim($p->pivot->laporan_individu)) >= 100; })
             ->count();
 
-        /* ============================================================
-         * 2. Sedang Berlangsung → Pembuatan Laporan
-         * ============================================================ */
-        if ($exists($statusPerjadin, 'Sedang Berlangsung')
-            && intval($this->id_status) === intval($statusPerjadin['Sedang Berlangsung'])
-        ) {
-            // Semua pegawai selesai
-            if ($totalPegawai > 0 && $totalSelesai === $totalPegawai) {
-                $this->id_status = $statusPerjadin['Pembuatan Laporan'];
-                $this->save();
-                return true;
-            }
-
-            // Semua uraian sudah lengkap min 100 karakter
-            if ($totalPegawai > 0 && $laporanLengkap === $totalPegawai) {
-                $this->id_status = $statusPerjadin['Pembuatan Laporan'];
-                $this->save();
-                return true;
+        if ($sedang && intval($this->id_status) === $sedang) {
+            if ($totalPegawai > 0 && ($totalSelesai === $totalPegawai || $laporanLengkap === $totalPegawai)) {
+                if ($pembuatan) { $this->id_status = $pembuatan; $this->saveQuietly(); return true; }
             }
         }
 
-        /* ============================================================
-         * AMBIL LAPORAN KEUANGAN
-         * ============================================================ */
-        $lapKeu = DB::table('laporankeuangan')->where('id_perjadin', $this->id)->first();
+        $lapKeu = $this->laporanKeuangan()->first();
+        $statusLaporan = DB::table('statuslaporan')->pluck('id', 'nama_status')->toArray();
 
-        /* ============================================================
-         * 3. Pembuatan Laporan → Menunggu Validasi PPK
-         * ============================================================ */
-        if ($exists($statusPerjadin, 'Pembuatan Laporan')
-            && intval($this->id_status) === intval($statusPerjadin['Pembuatan Laporan'])
-            && $lapKeu
-            && intval($lapKeu->id_status) === intval($statusLaporan['Menunggu Verifikasi'] ?? -1)
-        ) {
-            if ($exists($statusPerjadin, 'Menunggu Validasi PPK')) {
-                $this->id_status = $statusPerjadin['Menunggu Validasi PPK'];
-                $this->save();
-                return true;
-            }
-        }
-
-        /* ============================================================
-         * 4. Menunggu Validasi PPK → Selesai / Perlu Tindakan
-         * ============================================================ */
-        if ($exists($statusPerjadin, 'Menunggu Validasi PPK')
-            && intval($this->id_status) === intval($statusPerjadin['Menunggu Validasi PPK'])
-            && $lapKeu
-        ) {
-            if (intval($lapKeu->id_status) === intval($statusLaporan['Disetujui'] ?? -1)) {
-                $this->id_status = $statusPerjadin['Selesai'] ?? $this->id_status;
-                $this->save();
-                return true;
-            }
-
-            if (intval($lapKeu->id_status) === intval($statusLaporan['Perlu Tindakan'] ?? -1)) {
-                $this->id_status = $statusPerjadin['Perlu Tindakan'] ?? $this->id_status;
-                $this->save();
-                return true;
-            }
-        }
-
-        /* ============================================================
-         * 5. Perlu Tindakan → Menunggu Validasi / Selesai
-         * ============================================================ */
-        if ($exists($statusPerjadin, 'Perlu Tindakan')
-            && intval($this->id_status) === intval($statusPerjadin['Perlu Tindakan'])
-            && $lapKeu
-        ) {
+        if ($pembuatan && intval($this->id_status) === $pembuatan && $lapKeu) {
             if (intval($lapKeu->id_status) === intval($statusLaporan['Menunggu Verifikasi'] ?? -1)) {
-                $this->id_status = $statusPerjadin['Menunggu Validasi PPK'];
-                $this->save();
-                return true;
+                if ($menunggu) { $this->id_status = $menunggu; $this->saveQuietly(); return true; }
             }
+        }
 
+        if ($menunggu && intval($this->id_status) === $menunggu && $lapKeu) {
             if (intval($lapKeu->id_status) === intval($statusLaporan['Disetujui'] ?? -1)) {
-                $this->id_status = $statusPerjadin['Selesai'];
-                $this->save();
-                return true;
+                if ($selesai) { $this->id_status = $selesai; $this->saveQuietly(); return true; }
+            }
+            if (intval($lapKeu->id_status) === intval($statusLaporan['Perlu Tindakan'] ?? -1)) {
+                if ($perlu) { $this->id_status = $perlu; $this->saveQuietly(); return true; }
+            }
+        }
+
+        if ($perlu && intval($this->id_status) === $perlu && $lapKeu) {
+            if (intval($lapKeu->id_status) === intval($statusLaporan['Menunggu Verifikasi'] ?? -1)) {
+                if ($menunggu) { $this->id_status = $menunggu; $this->saveQuietly(); return true; }
+            }
+            if (intval($lapKeu->id_status) === intval($statusLaporan['Disetujui'] ?? -1)) {
+                if ($selesai) { $this->id_status = $selesai; $this->saveQuietly(); return true; }
             }
         }
 
         return false;
     }
+
 }

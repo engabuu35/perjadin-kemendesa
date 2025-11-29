@@ -9,8 +9,8 @@
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-               <x-page-title 
-    title="Pelaksanaan Tugas" />
+               <x-page-title
+               title="Pelaksanaan Tugas" />
             <p class="text-gray-500 mt-1">Surat Tugas: <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span></p>
             
             @if($isMyTaskFinished)
@@ -83,7 +83,7 @@
                         <span class="bg-white/20 px-3 py-1 rounded text-yellow-300 font-bold border border-white/30 block mb-2">
                              Tombol Belum Aktif
                         </span>
-                        {{ $finishMessage }}
+                        {{ $finishMessage ?? '' }}
                     @else
                         Jika Anda sudah kembali dan menyelesaikan semua kegiatan, silakan klik tombol di bawah. <br>
                         <span class="text-yellow-300 font-semibold">Data tidak bisa diubah setelah ini.</span>
