@@ -86,13 +86,12 @@ class PPKController extends Controller
         return view('ppk.verifikasi.detail', compact('perjalanan', 'rekapData', 'statusText', 'isSelesai', 'totalSeluruhnya', 'laporanKeuangan'));    
     }
 
-    // --- PERBAIKAN: GANTI NAMA FUNGSI JADI approve() ---
     public function approve(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
 
         // Status Laporan (Keuangan) -> 'Selesai'
-        // Gunakan fallback '5' jika ID tidak ditemukan (biasanya ID Selesai = 5)
+        // Gunakan fallback '5' jika ID tidak ditemukan
         $idLapSelesai = DB::table('statuslaporan')->where('nama_status', 'Selesai')->value('id') ?? 5;
         
         LaporanKeuangan::updateOrCreate(['id_perjadin' => $id], [
@@ -130,9 +129,13 @@ class PPKController extends Controller
     }
 
     public function tabelRekap(Request $request) {
+        // --- LOGIKA FILTERING RANGE BULAN ---
+        
+        $bulanMulai = $request->input('bulan_mulai');
+        $bulanSelesai = $request->input('bulan_selesai');
         $tahun = $request->input('tahun');
-        $bulan = $request->input('bulan');
 
+        // Query Utama
         $query = DB::table('laporankeuangan')
             ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
             ->join('pegawaiperjadin', 'pegawaiperjadin.id_perjadin', '=', 'perjalanandinas.id')
@@ -143,16 +146,27 @@ class PPKController extends Controller
             ->select('laporankeuangan.*', 'perjalanandinas.tujuan', 'perjalanandinas.tgl_mulai', 'perjalanandinas.tgl_selesai', 'users.nama as nama_pegawai', 'users.nip', 'pangkatgolongan.nama_pangkat', 'unitkerja.nama_uke', 'statuslaporan.nama_status as status_laporan')
             ->where('statuslaporan.nama_status', 'Selesai'); 
 
-        if ($tahun) $query->whereYear('perjalanandinas.tgl_mulai', $tahun);
-        if ($bulan) $query->whereMonth('perjalanandinas.tgl_mulai', $bulan);
+        // Filter Tahun (Wajib ada jika mau filter bulan)
+        if ($tahun) {
+            $query->whereYear('perjalanandinas.tgl_mulai', $tahun);
+        }
+
+        // Filter Range Bulan
+        if ($bulanMulai && $bulanSelesai) {
+            $query->whereMonth('perjalanandinas.tgl_mulai', '>=', $bulanMulai)
+                  ->whereMonth('perjalanandinas.tgl_mulai', '<=', $bulanSelesai);
+        }
 
         $rekap = $query->orderBy('perjalanandinas.tgl_mulai')->orderBy('users.nama')->get();
         $totalDibayarkan = $rekap->sum('biaya_rampung');
 
-        return view('ppk.tabelRekap', compact('rekap', 'totalDibayarkan', 'tahun', 'bulan'));
+        return view('ppk.tabelRekap', compact(
+            'rekap', 'totalDibayarkan', 
+            'bulanMulai', 'bulanSelesai', 'tahun'
+        ));
     }
 
     public function exportRekap(Request $request) {
-        return Excel::download(new RekapPerjadinExport($request->tahun, $request->bulan), 'rekap.xlsx');
+        return Excel::download(new RekapPerjadinExport($request->tahun, $request->bulan_mulai, $request->bulan_selesai), 'rekap.xlsx');
     }
 }
