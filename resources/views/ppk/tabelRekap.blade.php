@@ -17,29 +17,76 @@
         </div>
     </div>
 
-    {{-- (OPSIONAL) FILTER TAHUN / BULAN --}}
-    {{--
-    <form method="GET" class="mb-4 flex flex-wrap gap-4">
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Tahun</label>
-            <input type="number" name="tahun"
-                   value="{{ $filterTahun }}"
-                   class="mt-1 border rounded px-2 py-1 w-32">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Bulan</label>
-            <input type="number" name="bulan" min="1" max="12"
-                   value="{{ $filterBulan }}"
-                   class="mt-1 border rounded px-2 py-1 w-24">
-        </div>
-        <div class="flex items-end">
-            <button type="submit"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold">
-                Terapkan Filter
-            </button>
-        </div>
-    </form>
+    {{-- 
+       DEFINISI BULAN INDONESIA 
+       Kita buat variabel array sederhana di sini agar pasti Bahasa Indonesia
+       tanpa tergantung settingan locale server/laravel.
     --}}
+    @php
+        $namaBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
+            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+    @endphp
+
+    {{-- KOTAK FILTERING SIMPEL --}}
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 mb-6">
+        <div class="flex items-center gap-2 mb-4">
+            <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                <i class="fa-solid fa-filter"></i>
+            </div>
+            <h2 class="text-lg font-bold text-gray-700">Filter Periode</h2>
+        </div>
+
+        <form method="GET" action="{{ route('ppk.tabelrekap') }}">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                
+                {{-- DARI BULAN --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Dari Bulan</label>
+                    <select name="bulan_mulai" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">-- Pilih --</option>
+                        @for($i=1; $i<=12; $i++)
+                            <option value="{{ $i }}" {{ $bulanMulai == $i ? 'selected' : '' }}>
+                                {{ $namaBulan[$i] }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+
+                {{-- SAMPAI BULAN --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Sampai Bulan</label>
+                    <select name="bulan_selesai" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">-- Pilih --</option>
+                        @for($i=1; $i<=12; $i++)
+                            <option value="{{ $i }}" {{ $bulanSelesai == $i ? 'selected' : '' }}>
+                                {{ $namaBulan[$i] }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+
+                {{-- TAHUN --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun</label>
+                    <input type="number" name="tahun" value="{{ $tahun ?? date('Y') }}" 
+                           class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                           placeholder="Cth: 2025">
+                </div>
+
+                {{-- TOMBOL FILTER --}}
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold shadow-md transition">
+                        Terapkan
+                    </button>
+                    <a href="{{ route('ppk.tabelrekap') }}" class="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition flex items-center justify-center">
+                        Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
 
     {{-- KARTU TABEL + TOMBOL EXPORT --}}
     <div class="bg-white rounded-2xl shadow border border-gray-200 p-4 sm:p-6">
@@ -133,7 +180,7 @@
 
         {{-- BARIS BAWAH: TOMBOL EXPORT KANAN BAWAH --}}
         <div class="mt-4 flex justify-end">
-            <a href="{{ route('ppk.tabelrekap.export', ['tahun' => $filterTahun ?? null, 'bulan' => $filterBulan ?? null]) }}"
+            <a href="{{ route('ppk.tabelrekap.export', ['tahun' => $tahun ?? null, 'bulan_mulai' => $bulanMulai ?? null, 'bulan_selesai' => $bulanSelesai ?? null]) }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700
                       text-white text-sm font-semibold rounded-lg shadow-sm transition">
                 <i class="fa-solid fa-file-excel"></i>
