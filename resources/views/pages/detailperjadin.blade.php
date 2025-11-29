@@ -83,7 +83,7 @@
                         <span class="bg-white/20 px-3 py-1 rounded text-yellow-300 font-bold border border-white/30 block mb-2">
                              Tombol Belum Aktif
                         </span>
-                        {{ $finishMessage }}
+                        {{ $finishMessage ?? '' }}
                     @else
                         Jika Anda sudah kembali dan menyelesaikan semua kegiatan, silakan klik tombol di bawah. <br>
                         <span class="text-yellow-300 font-semibold">Data tidak bisa diubah setelah ini.</span>
