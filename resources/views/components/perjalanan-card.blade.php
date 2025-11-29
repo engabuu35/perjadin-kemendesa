@@ -1,80 +1,99 @@
+@props(['perjalanan'])
+
 @php
-    $badge_class = $bg_catatan = $text_catatan = '';
+    $statusClass = $perjalanan->status_class;
+    $statusText  = $perjalanan->status;
 
-    // Warna komponen
-    $badge_class = match($perjalanan->status_color) {
-        'red' => 'bg-red-500',
-        'yellow' => 'bg-yellow-500',
-        'green' => 'bg-green-600',
-        'blue' => 'bg-blue-500',
-        default => 'bg-gray-500'
+    $badgeIcon = match (true) {
+        str_contains($statusClass, 'red')    => 'fa-circle-exclamation',
+        str_contains($statusClass, 'yellow') => 'fa-spinner animate-pulse',
+        str_contains($statusClass, 'green')  => 'fa-circle-check',
+        default                              => 'fa-circle',
     };
 
-    $bg_catatan = match($perjalanan->status_color) {
-        'red' => 'bg-red-50',
-        'yellow' => 'bg-yellow-50',
-        'green' => 'bg-green-50',
-        'blue' => 'bg-blue-50',
-        default => 'bg-gray-50'
-    };
+    // flag dari controller
+    $uraianMissing = (bool) ($perjalanan->uraian_missing ?? false);
+    $geotagMissing = (bool) ($perjalanan->geotag_missing_today ?? false);
 
-    $text_catatan = match($perjalanan->status_color) {
-        'red' => 'text-red-700',
-        'yellow' => 'text-yellow-700',
-        'green' => 'text-green-700',
-        'blue' => 'text-blue-700',
-        default => 'text-gray-700'
-    };
+    // pesan jika semua sudah lengkap
+    $positiveText = "Terima kasih atas kerja kerasnya, sampai jumpa di perjalanan dinas selanjutnya.";
+
+    $detailRoute = route('perjalanan.detail', $perjalanan->id);
 @endphp
 
-<div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
+<div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100 relative">
 
-    <!-- Atas -->
-    <div class="border-l-[6px] border-blue-500 p-6">
+    <!-- Garis status kiri -->
+    <div class="absolute left-0 top-0 bottom-0 w-1 {{ $statusClass }}"></div>
+
+    <!-- Konten utama -->
+    <div class="p-6 pl-8">
         <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
 
             <!-- Kiri -->
             <div class="flex-1 space-y-3 min-w-0">
-                <h3 class="text-blue-800 font-bold text-xl tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-200 pb-2 truncate">
+                <h3 class="text-blue-800 font-bold text-xl tracking-wide border-b-2 border-blue-200 pb-2 truncate">
                     {{ $perjalanan->nomor_surat }}
                 </h3>
 
                 <div class="space-y-2">
-                    <p class="flex items-start gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
-                        <i class="fa-solid fa-location-dot w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                    <p class="flex items-start gap-3 text-gray-700 text-base">
+                        <i class="fa-solid fa-location-dot w-5 mt-0.5 text-gray-400"></i>
                         <span class="font-medium break-words">{{ $perjalanan->lokasi }}</span>
                     </p>
-                    <p class="flex items-start gap-3 text-gray-600 text-sm group-hover:translate-x-1 transition-transform duration-300 delay-100">
-                        <i class="fa-regular fa-calendar w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
-                        <span class="break-words">{{ $perjalanan->tanggal }}</span>
+                    <p class="flex items-start gap-3 text-gray-600 text-sm">
+                        <i class="fa-regular fa-calendar w-5 mt-0.5 text-gray-400"></i>
+                        <span>{{ $perjalanan->tanggal }}</span>
                     </p>
                 </div>
             </div>
 
             <!-- Kanan -->
-            <div class="flex flex-col items-center sm:items-center gap-3 sm:min-w-[150px]">
+            <div class="flex flex-col items-center gap-3 sm:min-w-[150px]">
 
-                <!-- Badge (gunakan komponen) -->
-                <x-status-badge 
-                    :statusColor="$perjalanan->status_color"
-                    :status="$perjalanan->status" 
-                />
+                <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
+                    <i class="fa-solid {{ $badgeIcon }} text-xs"></i>
+                    <span>{{ $statusText }}</span>
+                </span>
 
-                <!-- Link -->
-                <a href="{{ route('perjalanan.detail', $perjalanan->id) }}" 
-                    class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold transition-all duration-200 flex items-center gap-2 group/link px-2 py-1 rounded hover:bg-blue-50">
+                <a href="{{ $detailRoute }}" class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold flex items-center gap-2 px-2 py-1 rounded hover:bg-blue-50">
                     <span>Lihat Detail</span>
-                    <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
                 </a>
             </div>
 
         </div>
     </div>
 
-    <!-- Banner bawah -->
-    <x-catatan-banner 
-        :color="$perjalanan->status_color"
-        :text="$perjalanan->catatan"
-    />
+    <!-- Bagian peringatan/info di bawah card -->
+    @if($uraianMissing || $geotagMissing)
+        <div class="bg-red-50 px-5 py-3 border-t border-red-200">
+            <p class="text-red-700 font-semibold flex items-center gap-2 mb-1 text-sm">
+                <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                <span>Peringatan</span>
+            </p>
+
+            <ul class="text-red-700 text-xs list-disc ml-4 space-y-1">
+                @if($uraianMissing)
+                    <li>Harap isi uraian hasil perjalanan dinas Anda. Anda tidak bisa mengakhiri perjalanan dinas sebelum mengisi uraian.</li>
+                @endif
+
+                @if($geotagMissing)
+                    <li>Geotagging hari ini belum dilakukan. Harap segera lakukan geotagging.</li>
+                @endif
+            </ul>
+        </div>
+    @else
+        <div class="bg-green-50 px-5 py-3 border-t border-green-200">
+            <p class="text-green-700 font-semibold flex items-center gap-2 mb-2 text-sm">
+                <i class="fa-solid fa-circle-check text-xs"></i>
+                <span>Info</span>
+            </p>
+
+            <ul class="text-green-700 text-xs list-disc ml-4 space-y-1">
+                <li>{{ $positiveText }}</li>
+            </ul>
+        </div>
+    @endif
 
 </div>

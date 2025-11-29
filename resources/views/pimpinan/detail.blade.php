@@ -280,142 +280,175 @@
         </div>
     </div>
 
-    {{-- ================= REKAP KEUANGAN & GEOTAG ================= --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        {{-- REKAP KEUANGAN --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-coins text-green-500"></i>
-                Rekapitulasi Keuangan
-            </h2>
+        {{-- ================= REKAP KEUANGAN & GEOTAG ================= --}}
 
-            @if(!$keuangan['ada_laporan'])
-                <p class="text-sm text-gray-400 italic">
-                    Belum ada laporan keuangan untuk perjalanan dinas ini.
-                </p>
-            @else
-                <div class="mb-4">
-                    <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                        Total Biaya Rampung
-                    </p>
-                    <p class="text-2xl font-bold text-gray-800">
-                        Rp {{ number_format($keuangan['total_biaya_rampung'], 0, ',', '.') }}
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                        Status: {{ $keuangan['status_laporan'] }}
-                    </p>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+            {{-- REKAP KEUANGAN --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-coins text-green-500"></i>
+                    Rekapitulasi Keuangan
+                </h2>
 
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-                        Rincian Biaya
-                    </p>
-                    @if($keuangan['rincian']->isEmpty())
-                        <p class="text-sm text-gray-400 italic">
-                            Rincian biaya belum diinput.
-                        </p>
-                    @else
-                        <div class="border border-gray-100 rounded-xl overflow-hidden">
-                            <table class="min-w-full text-xs">
-                                <thead class="bg-gray-50 text-gray-600 uppercase tracking-wide">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left">Kategori</th>
-                                        <th class="px-3 py-2 text-right">Jumlah</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    @foreach($keuangan['rincian'] as $row)
-                                        @php
-                                            // fallback total: kalau kolom total_biaya tidak ada, pakai biaya_rincian/biaya dll
-                                            $nominal = $row->total_biaya
-                                                ?? $row->biaya_rincian
-                                                ?? $row->biaya
-                                                ?? 0;
-                                        @endphp
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2 text-gray-700">
-                                                {{ $row->nama_kategori }}
-                                            </td>
-                                            <td class="px-3 py-2 text-right text-gray-800">
-                                                Rp {{ number_format($nominal, 0, ',', '.') }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
-            @endif
-        </div>
-
-        {{-- RINGKASAN GEOTAGGING --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-location-dot text-rose-500"></i>
-                Ringkasan Geotagging
-            </h2>
-
-            @if($geotagSummary['total_hari'] === 0)
-                <p class="text-sm text-gray-400 italic">
-                    Periode perjalanan belum lengkap, ringkasan geotagging tidak tersedia.
-                </p>
-            @else
-                <div class="grid grid-cols-3 gap-3 mb-4 text-center">
-                    <div class="bg-gray-50 rounded-xl px-3 py-2">
-                        <p class="text-xs text-gray-500">Total Hari</p>
-                        <p class="text-lg font-bold text-gray-800">
-                            {{ $geotagSummary['total_hari'] }}
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl px-3 py-2">
-                        <p class="text-xs text-gray-500">Hari Terisi</p>
-                        <p class="text-lg font-bold text-emerald-600">
-                            {{ $geotagSummary['hari_terisi'] }}
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl px-3 py-2">
-                        <p class="text-xs text-gray-500">Total Titik</p>
-                        <p class="text-lg font-bold text-blue-600">
-                            {{ $geotagSummary['total_record'] }}
-                        </p>
-                    </div>
-                </div>
-
-                <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-                    Log Geotagging Terbaru
-                </p>
-
-                @if($geotagList->isEmpty())
+                @if(!$keuangan['ada_laporan'])
                     <p class="text-sm text-gray-400 italic">
-                        Belum ada data geotagging yang terekam.
+                        Belum ada laporan keuangan untuk perjalanan dinas ini.
                     </p>
                 @else
-                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1 text-xs">
-                        @foreach($geotagList as $gt)
-                            <div class="flex items-start justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
-                                <div class="space-y-0.5">
-                                    <p class="font-semibold text-gray-800">
-                                        {{ $gt->nama }}
-                                        @if($gt->nama_tipe)
-                                            <span class="text-[10px] font-normal text-gray-500">
-                                                &mdash; {{ $gt->nama_tipe }}
-                                            </span>
-                                        @endif
-                                    </p>
-                                    <p class="text-gray-500">
-                                        Lat: {{ $gt->latitude }}, Long: {{ $gt->longitude }}
-                                    </p>
-                                </div>
-                                <p class="text-[10px] text-gray-400 text-right">
-                                    {{ Carbon::parse($gt->created_at)->format('d M Y H:i') }}
-                                </p>
-                            </div>
-                        @endforeach
+                    <div class="mb-4">
+                        <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                            Total Biaya Rampung
+                        </p>
+                        <p class="text-2xl font-bold text-gray-800">
+                            Rp {{ number_format($keuangan['total_biaya_rampung'], 0, ',', '.') }}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Status: {{ $keuangan['status_laporan'] }}
+                        </p>
                     </div>
                 @endif
-            @endif
+            </div>
+
+            {{-- RINGKASAN GEOTAGGING --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-rose-500"></i>
+                    Ringkasan Geotagging
+                </h2>
+
+                @if($geotagSummary['total_hari'] === 0)
+                    <p class="text-sm text-gray-400 italic">
+                        Periode perjalanan belum lengkap, ringkasan geotagging tidak tersedia.
+                    </p>
+                @else
+                    <div class="grid grid-cols-3 gap-3 mb-2 text-center">
+                        <div class="bg-gray-50 rounded-xl px-3 py-2">
+                            <p class="text-xs text-gray-500">Total Hari</p>
+                            <p class="text-lg font-bold text-gray-800">
+                                {{ $geotagSummary['total_hari'] }}
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl px-3 py-2">
+                            <p class="text-xs text-gray-500">Hari Terisi</p>
+                            <p class="text-lg font-bold text-emerald-600">
+                                {{ $geotagSummary['hari_terisi'] }}
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl px-3 py-2">
+                            <p class="text-xs text-gray-500">Total Titik</p>
+                            <p class="text-lg font-bold text-blue-600">
+                                {{ $geotagSummary['total_record'] }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="text-[11px] text-gray-400">
+                        Ringkasan di atas dihitung dari seluruh data geotagging untuk perjalanan dinas ini.
+                    </p>
+                @endif
+            </div>
         </div>
+
+        {{-- ============================ PETA GEOTAGGING (CARD TERPISAH) =============================== --}}
+        @if($geotagSummary['total_record'] > 0)
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-10">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-blue-500"></i>
+                        Peta Geotagging Harian
+                    </h2>
+
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-gray-500">Pilih Tanggal:</label>
+                        <select id="geotagFilterDate"
+                                class="border border-gray-300 rounded-lg text-xs px-2 py-1">
+                        </select>
+                    </div>
+                </div>
+
+                <div id="mapPimpinan"
+                    class="rounded-xl border border-gray-200 w-full h-80">
+                </div>
+
+                <p id="mapInfo" class="mt-2 text-xs text-gray-500"></p>
+            </div>
+        @endif
     </div>
-</div>
+
+    {{-- ================================== SCRIPT PETA ================================== --}}
+    @if($geotagSummary['total_record'] > 0)
+        <link rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const geoData = @json($geotagMapData ?? []);
+            if (!geoData.length) return;
+
+            const mapEl    = document.getElementById('mapPimpinan');
+            const filterEl = document.getElementById('geotagFilterDate');
+            const infoEl   = document.getElementById('mapInfo');
+
+            // 1. Ambil daftar tanggal unik dari data
+            const dates = [...new Set(geoData.map(g => g.tanggal))].sort();
+            filterEl.innerHTML = '';
+            dates.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                filterEl.appendChild(opt);
+            });
+
+            // 2. Inisialisasi peta
+            const map = L.map('mapPimpinan').setView([-2.548926, 118.0148634], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            const markersLayer = L.layerGroup().addTo(map);
+
+            // 3. Render marker untuk tanggal tertentu
+            function renderMap(date) {
+                markersLayer.clearLayers();
+                const subset = geoData.filter(g => g.tanggal === date);
+
+                if (!subset.length) {
+                    infoEl.textContent = 'Belum ada geotagging pada tanggal ' + date + '.';
+                    return;
+                }
+
+                const bounds = [];
+                subset.forEach(p => {
+                    const m = L.marker([p.lat, p.lng]).addTo(markersLayer);
+                    m.bindPopup(`
+                        <div class="text-xs">
+                            <strong>${p.nama}</strong><br>
+                            NIP: ${p.nip}<br>
+                            Waktu: ${p.waktu}<br>
+                            Tipe: ${p.tipe ?? '-'}
+                        </div>
+                    `);
+                    bounds.push([p.lat, p.lng]);
+                });
+
+                if (bounds.length) {
+                    map.fitBounds(bounds, { padding: [24, 24] });
+                }
+
+                infoEl.textContent = subset.length + ' titik geotagging pada tanggal ' + date + '.';
+            }
+
+            // 4. Render awal & event perubahan filter
+            if (dates.length) {
+                filterEl.value = dates[0];      // atau dates[dates.length-1] kalau mau hari terakhir
+                renderMap(dates[0]);
+            }
+
+            filterEl.addEventListener('change', function () {
+                renderMap(this.value);
+            });
+        });
+        </script>
+@endif
 @endsection

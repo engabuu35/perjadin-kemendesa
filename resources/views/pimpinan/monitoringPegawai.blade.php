@@ -6,7 +6,7 @@
 <style>
     /* Custom Scrollbar */
     .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
         background: #f1f1f1;
@@ -22,45 +22,166 @@
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[90px] px-6 pb-10 min-h-screen">
+<div class="ml-[80px] mt-[70px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
-        <div class="mb-8">
-            <h2 class="text-gray-700 text-4xl font-bold pb-3 relative">
+        <div class="mb-3">
+            <h2 class="text-gray-700 text-2xl font-bold pb-1.5 relative">
                 Monitoring Pegawai
-                <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+                <span class="absolute bottom-0 left-0 w-32 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
             </h2>
-            <p class="text-gray-700 text-xl mt-4">
+            <p class="text-gray-700 text-sm mt-2">
                 Dashboard monitoring perjalanan dinas pegawai
             </p>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-4 items-start">
 
             {{-- LEFT COLUMN: Map + Bar + Line --}}
-            <div class="space-y-6" id="leftColumn">
+            <div class="space-y-4" id="leftColumn">
                 {{-- Map --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-8 flex items-center justify-center border border-gray-200 h-[292px]">
+                    <div class="p-4 flex items-center justify-center border border-gray-200 h-[250px]">
                         <div class="text-center">
-                            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
                                 </path>
                             </svg>
-                            <h2 class="text-2xl font-bold text-gray-400">PETA</h2>
-                            <p class="text-gray-500 text-sm mt-2">
-                                Lokasi perjalanan dinas akan ditampilkan di sini
+                            <h2 class="text-lg font-bold text-gray-400">PETA</h2>
+                            <p class="text-gray-500 text-[10px] mt-1">
+                                {{-- ======================= CARD PETA ======================= --}}
+                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+
+                                    <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <i class="fa-solid fa-map-location-dot text-blue-500"></i>
+                                        Peta Perjalanan Dinas Aktif
+                                    </h2>
+
+                                    @if($geotagMapData->isEmpty())
+                                        <p class="text-sm text-gray-400 italic">
+                                            Belum ada titik geotagging dari perjalanan dinas yang sedang berlangsung.
+                                        </p>
+                                    @else
+                                        <div id="mapMonitoring"
+                                            class="w-full h-80 rounded-xl border border-gray-200 overflow-hidden">
+                                        </div>
+                                        <p class="mt-2 text-xs text-gray-500">
+                                            Menampilkan {{ $geotagMapData->count() }} titik geotagging dari perjalanan dinas aktif.
+                                        </p>
+
+                                        <div id="mapLegend" class="mt-3 text-xs text-gray-600"></div> 
+                                    @endif
+                                    @if(!$geotagMapData->isEmpty())
+                                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+                                        <script>
+                                        document.addEventListener("DOMContentLoaded", function () {
+                                            const geoData = @json($geotagMapData);
+
+                                            // Inisialisasi peta (view awal kira-kira di Indonesia)
+                                            const map = L.map('mapMonitoring').setView([-2.548926, 118.0148634], 5);
+
+                                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                maxZoom: 19
+                                            }).addTo(map);
+
+                                            const layer  = L.layerGroup().addTo(map);
+                                            const bounds = [];
+
+                                            // Palet warna untuk perjadin
+                                            const palette = [
+                                                '#2563eb', // biru
+                                                '#16a34a', // hijau
+                                                '#f97316', // oranye
+                                                '#e11d48', '#a855f7',
+                                                '#0ea5e9', '#facc15'
+                                            ];
+
+                                            // Map: id_perjadin -> warna
+                                            const colorByPerjadin = {};
+                                            let colorIndex = 0;
+
+                                            geoData.forEach(point => {
+                                                if (!colorByPerjadin[point.id_perjadin]) {
+                                                    colorByPerjadin[point.id_perjadin] =
+                                                        palette[colorIndex % palette.length];
+                                                    colorIndex++;
+                                                }
+                                            });
+
+                                            // Tambah marker
+                                            geoData.forEach(point => {
+                                                const color = colorByPerjadin[point.id_perjadin];
+
+                                                // Circle marker berwarna (beda per perjadin)
+                                                const marker = L.circleMarker([point.lat, point.lng], {
+                                                    radius: 7,
+                                                    weight: 2,
+                                                    color: color,
+                                                    fillColor: color,
+                                                    fillOpacity: 0.85
+                                                }).addTo(layer);
+
+                                                marker.bindPopup(`
+                                                    <div class="text-xs">
+                                                        <strong>${point.nama}</strong> (${point.nip})<br>
+                                                        <span class="text-gray-600">${point.nomor}</span><br>
+                                                        Tujuan: ${point.tujuan}<br>
+                                                        Waktu: ${point.waktu}<br>
+                                                        Tipe: ${point.tipe ?? '-'}
+                                                    </div>
+                                                `);
+
+                                                bounds.push([point.lat, point.lng]);
+                                            });
+
+                                            // Auto zoom ke semua titik, tapi kalau cuma 1 titik jangan terlalu dekat
+                                            if (bounds.length === 1) {
+                                                map.setView(bounds[0], 13); // zoom 13 biar gak terlalu nge-zoom ke bangunan
+                                            } else if (bounds.length > 1) {
+                                                map.fitBounds(bounds, { padding: [25, 25] });
+                                            }
+
+                                            // Buat legenda warna per perjadin
+                                            const legendEl = document.getElementById('mapLegend');
+                                            if (legendEl) {
+                                                const entries = Object.entries(colorByPerjadin).map(([id, color]) => {
+                                                    const anyPoint = geoData.find(p => p.id_perjadin === parseInt(id));
+                                                    const label    = anyPoint
+                                                        ? `${anyPoint.nomor} – ${anyPoint.tujuan}`
+                                                        : `Perjalanan dinas ${id}`;
+
+                                                    return `
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <span style="
+                                                                width:12px;height:12px;border-radius:9999px;
+                                                                display:inline-block;background:${color};
+                                                            "></span>
+                                                            <span>${label}</span>
+                                                        </div>
+                                                    `;
+                                                }).join('');
+
+                                                legendEl.innerHTML =
+                                                    '<p class="mb-1 font-semibold">Keterangan warna per perjalanan dinas:</p>'
+                                                    + entries;
+                                            }
+                                        });
+                                        </script>
+                                    @endif
+                                </div>
                             </p>
                         </div>
                     </div>
 
-                    <div class="bg-orange-500 text-white px-6 py-3">
+                    <div class="bg-orange-500 text-white px-4 py-2">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">
+                            <p class="text-sm font-semibold">
                                 Pegawai dalam Perjalanan Dinas Saat Ini :
-                                <span class="bg-white text-orange-500 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                <span class="bg-white text-orange-500 px-2 py-0.5 rounded-full text-sm font-bold ml-1.5">
                                     {{ $pegawaiOnProgress }}
                                 </span>
                             </p>
@@ -70,20 +191,20 @@
 
                 {{-- Bar chart --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                    <div class="p-4">
+                        <h3 class="text-base font-semibold text-gray-700 mb-2">
                             Grafik Perjalanan Dinas per Bulan
                         </h3>
-                        <div class="h-64">
+                        <div class="h-44">
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-green-600 text-white px-6 py-3">
+                    <div class="bg-green-600 text-white px-4 py-2">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">
+                            <p class="text-sm font-semibold">
                                 Total Perjalanan Dinas Sebulan Terakhir :
-                                <span class="bg-white text-green-600 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                <span class="bg-white text-green-600 px-2 py-0.5 rounded-full text-sm font-bold ml-1.5">
                                     {{ $totalSebulanTerakhir }}
                                 </span>
                             </p>
@@ -93,20 +214,20 @@
 
                 {{-- Line chart --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                    <div class="p-4">
+                        <h3 class="text-base font-semibold text-gray-700 mb-2">
                             Grafik Anggaran Perjalanan Dinas per Bulan
                         </h3>
-                        <div class="h-64">
+                        <div class="h-44">
                             <canvas id="lineChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-red-500 text-white px-6 py-3">
+                    <div class="bg-red-500 text-white px-4 py-2">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">
-                                Total Anggaran Sebulan Terakhir :
-                                <span class="bg-white text-red-500 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                            <p class="text-sm font-semibold flex items-center flex-wrap">
+                                <span>Total Anggaran Sebulan Terakhir :</span>
+                                <span class="bg-white text-red-500 px-2.5 py-0.5 rounded-full text-sm font-bold ml-1.5 whitespace-nowrap">
                                     Rp {{ number_format($anggaranSebulanTerakhir, 0, ',', '.') }}
                                 </span>
                             </p>
@@ -118,18 +239,46 @@
             {{-- RIGHT COLUMN: daftar perjalanan aktif --}}
             <div class="flex flex-col h-full" id="rightColumnWrapper">
                 {{-- header box --}}
-                <div class="bg-white rounded-2xl shadow-md p-4 mb-4 flex-shrink-0">
-                    <h2 class="text-xl font-bold text-gray-800">Perjalanan Dinas Aktif</h2>
-                    <p class="text-gray-600 text-sm">
+                <div class="bg-white rounded-xl shadow-md p-2.5 mb-2.5 flex-shrink-0">
+                    <h2 class="text-base font-bold text-gray-800">Perjalanan Dinas Aktif</h2>
+                    <p class="text-gray-600 text-[10px] mb-2">
                         Daftar perjalanan dinas yang sedang berlangsung
                     </p>
+                    
+                    {{-- Search & Filter --}}
+                    <div class="flex gap-2 mt-2">
+                        {{-- Search Input --}}
+                        <div class="flex-1 relative">
+                            <input 
+                                type="text" 
+                                id="searchInput"
+                                placeholder="Cari nomor surat atau tujuan..."
+                                class="w-full px-3 py-1.5 pl-8 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+                            <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                        </div>
+                        
+                        {{-- Filter Dropdown --}}
+                        <div class="relative">
+                            <select 
+                                id="filterStatus"
+                                class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent appearance-none pr-8 bg-white cursor-pointer">
+                                <option value="all">Semua Status</option>
+                                <option value="onprogress">On Progress</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[8px] pointer-events-none"></i>
+                        </div>
+                    </div>
+                    
+                    {{-- Result Count --}}
+                    <div class="mt-2 text-[10px] text-gray-500">
+                        Menampilkan <span id="resultCount" class="font-semibold text-blue-600">{{ count($perjalanandinas) }}</span> perjalanan dinas
+                    </div>
                 </div>
 
-                {{-- scrollable cards --}}
+                {{-- scrollable cards container --}}
                 <div
                     id="rightColumn"
-                    class="space-y-4 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-4 flex-1
-                           max-h-[calc(100vh-260px)]">
+                    class="space-y-2.5 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-2.5 flex-1">
 
                     @forelse($perjalanandinas as $perjadin)
                         @php
@@ -138,60 +287,79 @@
                             $tanggal    = $tglMulai . ' - ' . $tglSelesai;
                             $status     = 'On Progress';
                             $badge_class = 'bg-yellow-500';
+                            $status_value = 'onprogress';
                         @endphp
 
-                        <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
-                            <div class="border-l-[6px] border-blue-500 p-6">
-                                <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                    <div class="flex-1 space-y-3 min-w-0">
-                                        <h3 class="text-blue-800 font-bold text-xl tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-200 pb-2 truncate">
+                        <div class="perjadin-card bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100"
+                             data-nomor="{{ strtolower($perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia') }}"
+                             data-tujuan="{{ strtolower($perjadin->tujuan ?? 'Tidak ada tujuan') }}"
+                             data-status="{{ $status_value }}">
+                            <div class="border-l-[5px] border-blue-500 p-3">
+                                <div class="flex flex-col sm:flex-row justify-between items-start gap-2.5">
+                                    <div class="flex-1 space-y-1.5 min-w-0">
+                                        <h3 class="text-blue-800 font-bold text-sm tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b border-blue-200 pb-1 truncate">
                                             {{ $perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia' }}
                                         </h3>
 
-                                        <div class="space-y-2">
-                                            <p class="flex items-start gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
-                                                <i class="fa-solid fa-location-dot w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                                        <div class="space-y-1">
+                                            <p class="flex items-start gap-1.5 text-gray-700 text-xs group-hover:translate-x-1 transition-transform duration-300 delay-75">
+                                                <i class="fa-solid fa-location-dot w-3.5 mt-0.5 flex-shrink-0 text-gray-400 text-[10px]"></i>
                                                 <span class="font-medium break-words">
                                                     {{ $perjadin->tujuan ?? 'Tidak ada tujuan' }}
                                                 </span>
                                             </p>
-                                            <p class="flex items-start gap-3 text-gray-600 text-sm group-hover:translate-x-1 transition-transform duration-300 delay-100">
-                                                <i class="fa-regular fa-calendar w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                                            <p class="flex items-start gap-1.5 text-gray-600 text-[10px] group-hover:translate-x-1 transition-transform duration-300 delay-100">
+                                                <i class="fa-regular fa-calendar w-3.5 mt-0.5 flex-shrink-0 text-gray-400 text-[10px]"></i>
                                                 <span class="break-words">{{ $tanggal }}</span>
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div class="flex flex-col items-center gap-3 sm:min-w-[150px]">
-                                        <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-2 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
-                                            <span class="w-2 h-2 bg-white rounded-full"></span>
+                                    <div class="flex flex-col items-center gap-1.5 sm:min-w-[100px]">
+                                        <span class="px-2.5 py-1 text-[10px] font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-1 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
+                                            <span class="w-1 h-1 bg-white rounded-full"></span>
                                             {{ $status }}
                                         </span>
 
                                         <a href="{{ route('pimpinan.detail', $perjadin->id) }}"
-                                           class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold transition-all duration-200 flex items-center gap-2 group/link px-2 py-1 rounded hover:bg-blue-50">
+                                           class="text-blue-600 hover:text-blue-800 hover:underline text-[10px] font-semibold transition-all duration-200 flex items-center gap-1 group/link px-1 py-0.5 rounded hover:bg-blue-50">
                                             <span>Lihat Detail</span>
-                                            <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
+                                            <i class="fa-solid fa-arrow-right text-[8px] group-hover/link:translate-x-1 transition-transform duration-200"></i>
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="bg-white rounded-lg shadow-md p-8 text-center">
-                            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div id="emptyState" class="bg-white rounded-lg shadow-md p-6 text-center">
+                            <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
                                 </path>
                             </svg>
-                            <h3 class="text-lg font-semibold text-gray-600 mb-2">
+                            <h3 class="text-base font-semibold text-gray-600 mb-1.5">
                                 Tidak Ada Perjalanan Dinas Aktif
                             </h3>
-                            <p class="text-gray-500 text-sm">
+                            <p class="text-gray-500 text-xs">
                                 Saat ini tidak ada pegawai yang sedang melakukan perjalanan dinas
                             </p>
                         </div>
                     @endforelse
+                    
+                    {{-- No Results Message --}}
+                    <div id="noResults" class="hidden bg-white rounded-lg shadow-md p-6 text-center">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+                            </path>
+                        </svg>
+                        <h3 class="text-base font-semibold text-gray-600 mb-1.5">
+                            Tidak Ada Hasil
+                        </h3>
+                        <p class="text-gray-500 text-xs">
+                            Tidak ditemukan perjalanan dinas yang sesuai dengan pencarian atau filter Anda
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -202,17 +370,110 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Search and Filter Functionality
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const resultCount = document.getElementById('resultCount');
+    const perjadinCards = document.querySelectorAll('.perjadin-card');
+    const noResults = document.getElementById('noResults');
+    
+    function filterCards() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const statusFilter = filterStatus.value;
+        let visibleCount = 0;
+        
+        perjadinCards.forEach(card => {
+            const nomor = card.getAttribute('data-nomor').toLowerCase();
+            const tujuan = card.getAttribute('data-tujuan').toLowerCase();
+            const status = card.getAttribute('data-status');
+            
+            // Check search match
+            const matchSearch = searchTerm === '' || 
+                                nomor.includes(searchTerm) || 
+                                tujuan.includes(searchTerm);
+            
+            // Check status filter
+            const matchStatus = statusFilter === 'all' || status === statusFilter;
+            
+            // Show/hide card
+            if (matchSearch && matchStatus) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update result count
+        resultCount.textContent = visibleCount;
+        
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            noResults.classList.remove('hidden');
+        } else {
+            noResults.classList.add('hidden');
+        }
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterCards);
+    filterStatus.addEventListener('change', filterCards);
+    
+    // Sync height between columns
+    function syncColumnHeights() {
+        const leftColumn = document.getElementById('leftColumn');
+        const rightWrapper = document.getElementById('rightColumnWrapper');
+        const rightColumn = document.getElementById('rightColumn');
+        
+        if (leftColumn && rightColumn && rightWrapper) {
+            // Reset inline styles
+            rightWrapper.style.height = '';
+            rightColumn.style.maxHeight = '';
+            
+            // Force layout calculation
+            void leftColumn.offsetHeight;
+            
+            // Get actual rendered height of left column
+            const leftHeight = leftColumn.getBoundingClientRect().height;
+            
+            // Set right wrapper to exact same height
+            rightWrapper.style.height = leftHeight + 'px';
+            
+            // Calculate scrollable area height
+            const headerBox = rightWrapper.querySelector('.bg-white.rounded-xl');
+            const headerHeight = headerBox ? headerBox.getBoundingClientRect().height : 0;
+            const gap = 10; // mb-2.5 = 10px
+            
+            // Set max-height for scrollable area
+            const scrollableHeight = leftHeight - headerHeight - gap;
+            rightColumn.style.maxHeight = scrollableHeight + 'px';
+        }
+    }
+    
+    // Run on page load
+    syncColumnHeights();
+    
+    // Run on window resize with debounce
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(syncColumnHeights, 100);
+    });
+    
+    // Run after charts are fully loaded
+    setTimeout(syncColumnHeights, 200);
+
     const barData  = @json($barChartData);
     const lineData = @json($lineChartData);
 
     console.log('Bar Chart Data:', barData);
     console.log('Line Chart Data:', lineData);
 
-    // BAR
+    // BAR CHART
     const barCanvas = document.getElementById('barChart');
     if (barCanvas) {
         const barCtx = barCanvas.getContext('2d');
-        new Chart(barCtx, {
+        const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
@@ -231,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         display: true,
                         position: 'top',
-                        labels: { font: { size: 12 } }
+                        labels: { font: { size: 10 } }
                     },
                     tooltip: {
                         callbacks: {
@@ -244,21 +505,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         beginAtZero: true,
                         ticks: {
                             stepSize: 1,
+                            font: { size: 10 },
                             callback: value => Number.isInteger(value) ? value : null
                         },
                         grid: { color: '#f3f4f6' }
                     },
-                    x: { grid: { display: false } }
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 10 } }
+                    }
                 }
             }
         });
+        
+        // Sync heights after chart animation completes
+        barChart.options.animation.onComplete = syncColumnHeights;
     }
 
-    // LINE
+    // LINE CHART
     const lineCanvas = document.getElementById('lineChart');
     if (lineCanvas) {
         const lineCtx = lineCanvas.getContext('2d');
-        new Chart(lineCtx, {
+        const lineChart = new Chart(lineCtx, {
             type: 'line',
             data: {
                 labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
@@ -271,8 +539,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     pointBackgroundColor: '#ef4444',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                     fill: true
                 }]
             },
@@ -283,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         display: true,
                         position: 'top',
-                        labels: { font: { size: 12 } }
+                        labels: { font: { size: 10 } }
                     },
                     tooltip: {
                         callbacks: {
@@ -295,6 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
+                            font: { size: 10 },
                             callback: value => {
                                 if (value >= 1_000_000) return 'Rp ' + (value / 1_000_000).toFixed(1) + 'jt';
                                 if (value >= 1_000)    return 'Rp ' + (value / 1_000).toFixed(0) + 'k';
@@ -303,10 +572,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         },
                         grid: { color: '#f3f4f6' }
                     },
-                    x: { grid: { display: false } }
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 10 } }
+                    }
                 }
             }
         });
+        
+        // Sync heights after chart animation completes
+        lineChart.options.animation.onComplete = syncColumnHeights;
     }
 });
 </script>

@@ -10,9 +10,8 @@
 
     <!-- Header -->
     <div class="mb-6">
-        <h2 class="text-gray-800 text-2xl sm:text-3xl font-bold mb-3">
-            Riwayat Perjalanan Dinas
-        </h2>
+        <x-page-title
+               title="Riwayat Perjalanan Dinas" />
 
         <!-- Info Box -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-5 flex items-start gap-3 hover:bg-blue-100 transition-colors">

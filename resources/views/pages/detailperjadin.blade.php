@@ -9,8 +9,8 @@
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-               <x-page-title 
-    title="Pelaksanaan Tugas" />
+               <x-page-title
+               title="Pelaksanaan Tugas" />
             <p class="text-gray-500 mt-1">Surat Tugas: <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span></p>
             
             @if($isMyTaskFinished)
