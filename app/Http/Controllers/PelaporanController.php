@@ -23,12 +23,13 @@ class PelaporanController extends Controller
                   'laporankeuangan.id as id_keuangan'
                );
 
-        // Filter status agar mencakup "Menunggu Validasi PPK"
+        // Filter: Mengambil semua data yang relevan bagi PIC
         $query->whereIn('statusperjadin.nama_status', [
-            'Menunggu Verifikasi Laporan',
+            'Pembuatan Laporan',           // Status Awal
+            'Menunggu Verifikasi Laporan', // Status Alternatif
             'Perlu Revisi',
             'Menunggu Verifikasi',
-            'Menunggu Validasi PPK' // <--- Sesuai Database Anda
+            'Menunggu Validasi PPK'
         ]);
 
         if ($request->has('q')) {
@@ -42,21 +43,19 @@ class PelaporanController extends Controller
         $laporanList = $query->orderBy('updated_at', 'desc')->paginate(10);
         
         $laporanList->getCollection()->transform(function ($item) {
-            
-            // 1. STATUS: PERLU REVISI (Ditolak PPK)
+            // Status Merah (Revisi)
             if ($item->nama_status == 'Perlu Revisi') {
                 $item->custom_status = 'Perlu Revisi';
                 $item->status_color  = 'red'; 
                 $item->status_icon   = '⚠️';
             } 
-            // 2. STATUS: SUDAH DIKIRIM KE PPK (Tunggu)
-            // PERBAIKAN: Tambahkan cek untuk 'Menunggu Validasi PPK'
+            // Status Kuning (Sudah di PPK)
             elseif (in_array($item->nama_status, ['Menunggu Verifikasi', 'Menunggu Validasi PPK'])) {
                 $item->custom_status = 'Menunggu PPK';
                 $item->status_color  = 'yellow'; 
                 $item->status_icon   = '⏳';
             }
-            // 3. STATUS: MENUNGGU VERIFIKASI LAPORAN (Baru masuk / Draft PIC)
+            // Status Biru (Baru Masuk / Draft PIC)
             else {
                 if (!$item->id_keuangan) {
                     $item->custom_status = 'Perlu Tindakan';
@@ -79,8 +78,9 @@ class PelaporanController extends Controller
         $perjalanan = PerjalananDinas::findOrFail($id);
         $statusText = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
-        // Read Only jika statusnya sudah di PPK
-        $isReadOnly = !in_array($statusText, ['Menunggu Verifikasi Laporan', 'Perlu Revisi']);
+        // Hanya bisa diedit jika statusnya belum masuk PPK
+        $editableStatuses = ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi'];
+        $isReadOnly = !in_array($statusText, $editableStatuses);
 
         $allPeserta = DB::table('pegawaiperjadin')
             ->join('users', 'users.nip', '=', 'pegawaiperjadin.id_user')
@@ -103,8 +103,9 @@ class PelaporanController extends Controller
         $perjalanan = PerjalananDinas::findOrFail($id);
         $statusName = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
-        if (!in_array($statusName, ['Menunggu Verifikasi Laporan', 'Perlu Revisi'])) {
-            return back()->with('error', 'Data status tidak valid atau sudah dikirim.');
+        $allowed = ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi'];
+        if (!in_array($statusName, $allowed)) {
+            return back()->with('error', 'Data sudah dikirim ke PPK. Tidak bisa diedit.');
         }
 
         $request->validate(['target_nip'=>'required', 'kategori'=>'required']);
@@ -130,8 +131,9 @@ class PelaporanController extends Controller
         }
         BuktiLaporan::create($dataToSave);
         
-        $statusAwal = DB::table('statuslaporan')->where('nama_status', 'Perlu Tindakan')->value('id');
-        LaporanKeuangan::firstOrCreate(['id_perjadin' => $id], ['id_status' => $statusAwal ?? 1, 'created_at' => now()]);
+        // Pastikan status laporan keuangan 'Perlu Tindakan' (ID 2) ada
+        $statusAwal = DB::table('statuslaporan')->where('nama_status', 'Perlu Tindakan')->value('id') ?? 2;
+        LaporanKeuangan::firstOrCreate(['id_perjadin' => $id], ['id_status' => $statusAwal, 'created_at' => now()]);
 
         return back()->with('success', 'Data tersimpan.');
     }
@@ -142,25 +144,29 @@ class PelaporanController extends Controller
         return back();
     }
 
+    // --- PERBAIKAN PENTING: KONSISTENSI STATUS KE PPK ---
     public function submitToPPK($id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
         
-        // PERBAIKAN: Cari ID untuk 'Menunggu Validasi PPK' (Sesuai database Anda)
-        // Gunakan whereIn atau urutan prioritas agar fallback aman
+        // Target: "Menunggu Validasi PPK"
         $idPPK = DB::table('statusperjadin')->where('nama_status', 'Menunggu Validasi PPK')->value('id');
         
-        if (!$idPPK) {
-             // Fallback jika nama beda
-             $idPPK = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi')->value('id');
-        }
+        // Fallback: Jika tidak ketemu, cari "Menunggu Verifikasi"
+        // if (!$idPPK) {
+        //      $idPPK = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi')->value('id');
+        // }
 
         if ($idPPK) {
             $perjalanan->update(['id_status' => $idPPK, 'catatan_penolakan' => null]);
+        } else {
+            return back()->with('error', 'Status PPK (Menunggu Validasi PPK) tidak ditemukan di database.');
         }
 
-        // Status Laporan Keuangan (Tetap 'Menunggu Verifikasi' karena tabelnya beda)
+        // Status Laporan Keuangan: "Menunggu Verifikasi"
         $idLapPPK = DB::table('statuslaporan')->where('nama_status', 'Menunggu Verifikasi')->value('id');
+        if (!$idLapPPK) $idLapPPK = 3; // Fallback ID
+
         LaporanKeuangan::updateOrCreate(['id_perjadin' => $id], ['id_status' => $idLapPPK, 'updated_at' => now()]);
 
         return redirect()->route('pic.pelaporan.index')->with('success', 'Laporan berhasil dikirim ke PPK.');

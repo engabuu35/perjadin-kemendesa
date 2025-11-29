@@ -201,31 +201,55 @@ class PerjadinController extends Controller
     {
         $userNip = Auth::user()->nip;
         $perjalanan = PerjalananDinas::findOrFail($id);
-
         $today = Carbon::today();
 
+        // 1. Validasi Waktu
         if (!$today->isSameDay($perjalanan->tgl_selesai) && !$today->gt($perjalanan->tgl_selesai)) {
             return back()->with('error', 'Hanya bisa diselesaikan pada atau setelah tanggal selesai.');
         }
 
-        $sudahAbsen = Geotagging::where('id_perjadin', $id)
-            ->where('id_user', $userNip)
-            ->whereDate('created_at', $today)
-            ->exists();
-
-        if (!$sudahAbsen && !$today->gt($perjalanan->tgl_selesai)) {
-            return back()->with('error', 'Anda belum melakukan geotagging hari ini.');
+        // 2. Validasi Uraian Kegiatan
+        $laporan = LaporanPerjadin::where('id_perjadin', $id)->where('id_user', $userNip)->first();
+        
+        if (!$laporan || empty($laporan->uraian)) {
+            return back()->with('error', 'Anda belum mengisi uraian kegiatan. Silakan isi terlebih dahulu.');
         }
 
+        $jumlahKata = str_word_count(strip_tags($laporan->uraian));
+        if ($jumlahKata < 100) {
+            $kurang = 100 - $jumlahKata;
+            return back()->with('error', "Uraian kegiatan belum cukup detail. Minimal 100 kata. Anda menulis {$jumlahKata} kata (kurang {$kurang} kata lagi).");
+        }
+
+        // 3. Update status pegawai ini jadi finished
         DB::table('pegawaiperjadin')
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->update(['is_finished' => 1]);
 
-        $perjalanan->refresh();
-        $perjalanan->updateStatus();
+        // 4. Cek apakah SEMUA pegawai dalam tim sudah selesai?
+        $totalPegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->count();
+        $totalSelesai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('is_finished', 1)->count();
 
-        return back()->with('success', 'Tugas Anda selesai.');
+        if ($totalPegawai == $totalSelesai) {
+            // JIKA SEMUA SELESAI -> Masuk ke Dashboard PIC
+            
+            // PERBAIKAN DI SINI:
+            // Prioritas 1: Cari 'Pembuatan Laporan' (Agar statusnya jadi ID 3)
+            $statusNext = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
+            
+            // Prioritas 2: Fallback ke 'Menunggu Verifikasi Laporan' jika yang atas tidak ada
+            // if (!$statusNext) {
+            //     $statusNext = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
+            // }
+
+            if ($statusNext) {
+                $perjalanan->update(['id_status' => $statusNext]);
+                return back()->with('success', 'Tugas Anda selesai! Laporan diteruskan ke PIC (Status: Pembuatan Laporan).');
+            }
+        }
+
+        return back()->with('success', 'Tugas Anda selesai. Menunggu rekan tim lain.');
     }
 
     /**

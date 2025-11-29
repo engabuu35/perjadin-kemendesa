@@ -41,7 +41,7 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
 
             // PERBAIKAN UTAMA: Tambahkan Status PIC
             $idStatusPic = $statusPerjadin['Menunggu Verifikasi Laporan'] ?? 
-                           DB::table('statusperjadin')->insertGetId(['nama_status' => 'Menunggu Verifikasi Laporan']);
+                            $statusPerjadin['Menunggu Verifikasi Laporan'] ?? 4;
 
             $idStatusLapSelesai = $statusLaporan['Selesai Dibayar'] ?? 
                                   $statusLaporan['Selesai'] ?? 6;

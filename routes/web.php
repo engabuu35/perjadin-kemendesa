@@ -66,7 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/bukti', [PerjadinController::class, 'storeBukti'])->name('storeBukti');
         
         // Route Selesaikan (Finalisasi)
-        Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanPerjadin'])->name('selesaikan');
+        Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanTugasSaya'])->name('selesaikan');
     });
 
     Route::get('/bukti/delete/{id}', [PerjadinController::class, 'deleteBukti'])->name('bukti.delete');
