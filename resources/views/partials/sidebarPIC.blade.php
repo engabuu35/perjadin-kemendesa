@@ -457,7 +457,54 @@
 
         // Logout sesungguhnya saat klik Logout
         confirmLogout.addEventListener('click', () => {
-            logoutForm.submit();
+            // Tutup modal logout
+            logoutModal.classList.add('opacity-0', 'invisible');
+            logoutModal.classList.remove('opacity-100', 'visible');
+
+            // === Buat modal sukses yang bentuknya sama dengan konfirmasi ===
+            const successDiv = document.createElement("div");
+
+            successDiv.innerHTML = `
+                <div class="fixed inset-0 bg-black/50 flex items-center justify-center 
+                    opacity-0 transition-opacity duration-300 z-[9999]" id="logoutSuccess">
+                    
+                    <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-6 text-center">
+                        
+                        <!-- Animasi Centang -->
+                        <svg class="w-16 h-16 mx-auto text-green-600 animate-check" fill="none" 
+                            stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7" />
+                        </svg>
+
+                        <h3 class="text-lg font-bold mt-4 text-gray-800">Logout Berhasil</h3>
+                        <p class="text-gray-600 mt-1">Kamu telah keluar dari akun.</p>
+                    </div>
+                </div>
+
+                <style>
+                @keyframes checkAnimation {
+                    0% { stroke-dashoffset: 50; }
+                    100% { stroke-dashoffset: 0; }
+                }
+                .animate-check path {
+                    stroke-dasharray: 50;
+                    stroke-dashoffset: 50;
+                    animation: checkAnimation .6s ease forwards;
+                }
+                </style>
+            `;
+
+            document.body.appendChild(successDiv);
+
+            // Tampilkan modal sukses (fade-in)
+            setTimeout(() => {
+                document.getElementById("logoutSuccess").classList.remove("opacity-0");
+            }, 50);
+
+            // Kirim form logout setelah animasi selesai
+            setTimeout(() => {
+                logoutForm.submit();
+            }, 1300);
         });
 
         // tutup modal jika klik di luar dialog (di overlay modal)
