@@ -6,7 +6,7 @@
 <style>
     /* Custom Scrollbar */
     .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
         background: #f1f1f1;
@@ -22,45 +22,45 @@
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[90px] px-6 pb-10 min-h-screen">
+<div class="ml-[80px] mt-[25px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
-        <div class="mb-8">
-            <h2 class="text-gray-700 text-4xl font-bold pb-3 relative">
+        <div class="mb-3">
+            <h2 class="text-gray-700 text-2xl font-bold pb-1.5 relative">
                 Monitoring Pegawai
-                <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
+                <span class="absolute bottom-0 left-0 w-32 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
             </h2>
-            <p class="text-gray-700 text-xl mt-4">
+            <p class="text-gray-700 text-sm mt-2">
                 Dashboard monitoring perjalanan dinas pegawai
             </p>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-4 items-start">
 
             {{-- LEFT COLUMN: Map + Bar + Line --}}
-            <div class="space-y-6" id="leftColumn">
+            <div class="space-y-4" id="leftColumn">
                 {{-- Map --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-8 flex items-center justify-center border border-gray-200 h-[292px]">
+                    <div class="p-4 flex items-center justify-center border border-gray-200 h-[180px]">
                         <div class="text-center">
-                            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
                                 </path>
                             </svg>
-                            <h2 class="text-2xl font-bold text-gray-400">PETA</h2>
-                            <p class="text-gray-500 text-sm mt-2">
+                            <h2 class="text-lg font-bold text-gray-400">PETA</h2>
+                            <p class="text-gray-500 text-[10px] mt-1">
                                 Lokasi perjalanan dinas akan ditampilkan di sini
                             </p>
                         </div>
                     </div>
 
-                    <div class="bg-orange-500 text-white px-6 py-3">
+                    <div class="bg-orange-500 text-white px-4 py-2">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">
+                            <p class="text-sm font-semibold">
                                 Pegawai dalam Perjalanan Dinas Saat Ini :
-                                <span class="bg-white text-orange-500 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                <span class="bg-white text-orange-500 px-2 py-0.5 rounded-full text-sm font-bold ml-1.5">
                                     {{ $pegawaiOnProgress }}
                                 </span>
                             </p>
@@ -70,20 +70,20 @@
 
                 {{-- Bar chart --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                    <div class="p-4">
+                        <h3 class="text-base font-semibold text-gray-700 mb-2">
                             Grafik Perjalanan Dinas per Bulan
                         </h3>
-                        <div class="h-64">
+                        <div class="h-44">
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-green-600 text-white px-6 py-3">
+                    <div class="bg-green-600 text-white px-4 py-2">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">
+                            <p class="text-sm font-semibold">
                                 Total Perjalanan Dinas Sebulan Terakhir :
-                                <span class="bg-white text-green-600 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                                <span class="bg-white text-green-600 px-2 py-0.5 rounded-full text-sm font-bold ml-1.5">
                                     {{ $totalSebulanTerakhir }}
                                 </span>
                             </p>
@@ -93,20 +93,20 @@
 
                 {{-- Line chart --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                    <div class="p-4">
+                        <h3 class="text-base font-semibold text-gray-700 mb-2">
                             Grafik Anggaran Perjalanan Dinas per Bulan
                         </h3>
-                        <div class="h-64">
+                        <div class="h-44">
                             <canvas id="lineChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-red-500 text-white px-6 py-3">
+                    <div class="bg-red-500 text-white px-4 py-2">
                         <div class="flex items-center justify-between">
-                            <p class="text-lg font-semibold">
-                                Total Anggaran Sebulan Terakhir :
-                                <span class="bg-white text-red-500 px-3 py-1 rounded-full text-lg font-bold ml-3">
+                            <p class="text-sm font-semibold flex items-center flex-wrap">
+                                <span>Total Anggaran Sebulan Terakhir :</span>
+                                <span class="bg-white text-red-500 px-2.5 py-0.5 rounded-full text-sm font-bold ml-1.5 whitespace-nowrap">
                                     Rp {{ number_format($anggaranSebulanTerakhir, 0, ',', '.') }}
                                 </span>
                             </p>
@@ -116,11 +116,11 @@
             </div>
 
             {{-- RIGHT COLUMN: daftar perjalanan aktif --}}
-            <div class="flex flex-col h-full" id="rightColumnWrapper">
+            <div class="flex flex-col" id="rightColumnWrapper">
                 {{-- header box --}}
-                <div class="bg-white rounded-2xl shadow-md p-4 mb-4 flex-shrink-0">
-                    <h2 class="text-xl font-bold text-gray-800">Perjalanan Dinas Aktif</h2>
-                    <p class="text-gray-600 text-sm">
+                <div class="bg-white rounded-xl shadow-md p-2.5 mb-2.5 flex-shrink-0">
+                    <h2 class="text-base font-bold text-gray-800">Perjalanan Dinas Aktif</h2>
+                    <p class="text-gray-600 text-[10px]">
                         Daftar perjalanan dinas yang sedang berlangsung
                     </p>
                 </div>
@@ -128,8 +128,7 @@
                 {{-- scrollable cards --}}
                 <div
                     id="rightColumn"
-                    class="space-y-4 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-4 flex-1
-                           max-h-[calc(100vh-260px)]">
+                    class="space-y-2.5 custom-scrollbar overflow-y-auto bg-gray-50 rounded-lg p-2.5 flex-1">
 
                     @forelse($perjalanandinas as $perjadin)
                         @php
@@ -140,54 +139,54 @@
                             $badge_class = 'bg-yellow-500';
                         @endphp
 
-                        <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
-                            <div class="border-l-[6px] border-blue-500 p-6">
-                                <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                    <div class="flex-1 space-y-3 min-w-0">
-                                        <h3 class="text-blue-800 font-bold text-xl tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b-2 border-blue-200 pb-2 truncate">
+                        <div class="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100">
+                            <div class="border-l-[5px] border-blue-500 p-3">
+                                <div class="flex flex-col sm:flex-row justify-between items-start gap-2.5">
+                                    <div class="flex-1 space-y-1.5 min-w-0">
+                                        <h3 class="text-blue-800 font-bold text-sm tracking-wide group-hover:translate-x-1 transition-transform duration-300 border-b border-blue-200 pb-1 truncate">
                                             {{ $perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia' }}
                                         </h3>
 
-                                        <div class="space-y-2">
-                                            <p class="flex items-start gap-3 text-gray-700 text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
-                                                <i class="fa-solid fa-location-dot w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                                        <div class="space-y-1">
+                                            <p class="flex items-start gap-1.5 text-gray-700 text-xs group-hover:translate-x-1 transition-transform duration-300 delay-75">
+                                                <i class="fa-solid fa-location-dot w-3.5 mt-0.5 flex-shrink-0 text-gray-400 text-[10px]"></i>
                                                 <span class="font-medium break-words">
                                                     {{ $perjadin->tujuan ?? 'Tidak ada tujuan' }}
                                                 </span>
                                             </p>
-                                            <p class="flex items-start gap-3 text-gray-600 text-sm group-hover:translate-x-1 transition-transform duration-300 delay-100">
-                                                <i class="fa-regular fa-calendar w-5 mt-0.5 flex-shrink-0 text-gray-400"></i>
+                                            <p class="flex items-start gap-1.5 text-gray-600 text-[10px] group-hover:translate-x-1 transition-transform duration-300 delay-100">
+                                                <i class="fa-regular fa-calendar w-3.5 mt-0.5 flex-shrink-0 text-gray-400 text-[10px]"></i>
                                                 <span class="break-words">{{ $tanggal }}</span>
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div class="flex flex-col items-center gap-3 sm:min-w-[150px]">
-                                        <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-2 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
-                                            <span class="w-2 h-2 bg-white rounded-full"></span>
+                                    <div class="flex flex-col items-center gap-1.5 sm:min-w-[100px]">
+                                        <span class="px-2.5 py-1 text-[10px] font-bold text-white rounded-full shadow-md {{ $badge_class }} flex items-center gap-1 hover:brightness-110 hover:scale-105 transition-all duration-200 whitespace-nowrap">
+                                            <span class="w-1 h-1 bg-white rounded-full"></span>
                                             {{ $status }}
                                         </span>
 
                                         <a href="{{ route('pimpinan.detail', $perjadin->id) }}"
-                                           class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold transition-all duration-200 flex items-center gap-2 group/link px-2 py-1 rounded hover:bg-blue-50">
+                                           class="text-blue-600 hover:text-blue-800 hover:underline text-[10px] font-semibold transition-all duration-200 flex items-center gap-1 group/link px-1 py-0.5 rounded hover:bg-blue-50">
                                             <span>Lihat Detail</span>
-                                            <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
+                                            <i class="fa-solid fa-arrow-right text-[8px] group-hover/link:translate-x-1 transition-transform duration-200"></i>
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="bg-white rounded-lg shadow-md p-8 text-center">
-                            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                            <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
                                 </path>
                             </svg>
-                            <h3 class="text-lg font-semibold text-gray-600 mb-2">
+                            <h3 class="text-base font-semibold text-gray-600 mb-1.5">
                                 Tidak Ada Perjalanan Dinas Aktif
                             </h3>
-                            <p class="text-gray-500 text-sm">
+                            <p class="text-gray-500 text-xs">
                                 Saat ini tidak ada pegawai yang sedang melakukan perjalanan dinas
                             </p>
                         </div>
@@ -202,17 +201,62 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Sync height between columns
+    function syncColumnHeights() {
+        const leftColumn = document.getElementById('leftColumn');
+        const rightWrapper = document.getElementById('rightColumnWrapper');
+        const rightColumn = document.getElementById('rightColumn');
+        
+        if (leftColumn && rightColumn && rightWrapper) {
+            // Reset inline styles
+            rightWrapper.style.height = '';
+            rightColumn.style.maxHeight = '';
+            
+            // Force layout calculation
+            void leftColumn.offsetHeight;
+            
+            // Get actual rendered height of left column
+            const leftHeight = leftColumn.getBoundingClientRect().height;
+            
+            // Set right wrapper to exact same height
+            rightWrapper.style.height = leftHeight + 'px';
+            
+            // Calculate scrollable area height
+            const headerBox = rightWrapper.querySelector('.bg-white.rounded-xl');
+            const headerHeight = headerBox ? headerBox.getBoundingClientRect().height : 0;
+            const gap = 10; // mb-2.5 = 10px
+            const padding = 10; // p-2.5 on scrollable container = 10px top + 10px bottom
+            
+            // Set max-height for scrollable area
+            const scrollableHeight = leftHeight - headerHeight - gap;
+            rightColumn.style.maxHeight = scrollableHeight + 'px';
+        }
+    }
+    
+    // Run on page load
+    syncColumnHeights();
+    
+    // Run on window resize with debounce
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(syncColumnHeights, 100);
+    });
+    
+    // Run after charts are fully loaded
+    setTimeout(syncColumnHeights, 200);
+
     const barData  = @json($barChartData);
     const lineData = @json($lineChartData);
 
     console.log('Bar Chart Data:', barData);
     console.log('Line Chart Data:', lineData);
 
-    // BAR
+    // BAR CHART
     const barCanvas = document.getElementById('barChart');
     if (barCanvas) {
         const barCtx = barCanvas.getContext('2d');
-        new Chart(barCtx, {
+        const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
@@ -231,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         display: true,
                         position: 'top',
-                        labels: { font: { size: 12 } }
+                        labels: { font: { size: 10 } }
                     },
                     tooltip: {
                         callbacks: {
@@ -244,21 +288,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         beginAtZero: true,
                         ticks: {
                             stepSize: 1,
+                            font: { size: 10 },
                             callback: value => Number.isInteger(value) ? value : null
                         },
                         grid: { color: '#f3f4f6' }
                     },
-                    x: { grid: { display: false } }
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 10 } }
+                    }
                 }
             }
         });
+        
+        // Sync heights after chart animation completes
+        barChart.options.animation.onComplete = syncColumnHeights;
     }
 
-    // LINE
+    // LINE CHART
     const lineCanvas = document.getElementById('lineChart');
     if (lineCanvas) {
         const lineCtx = lineCanvas.getContext('2d');
-        new Chart(lineCtx, {
+        const lineChart = new Chart(lineCtx, {
             type: 'line',
             data: {
                 labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
@@ -271,8 +322,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     pointBackgroundColor: '#ef4444',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                     fill: true
                 }]
             },
@@ -283,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         display: true,
                         position: 'top',
-                        labels: { font: { size: 12 } }
+                        labels: { font: { size: 10 } }
                     },
                     tooltip: {
                         callbacks: {
@@ -295,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
+                            font: { size: 10 },
                             callback: value => {
                                 if (value >= 1_000_000) return 'Rp ' + (value / 1_000_000).toFixed(1) + 'jt';
                                 if (value >= 1_000)    return 'Rp ' + (value / 1_000).toFixed(0) + 'k';
@@ -303,10 +355,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         },
                         grid: { color: '#f3f4f6' }
                     },
-                    x: { grid: { display: false } }
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 10 } }
+                    }
                 }
             }
         });
+        
+        // Sync heights after chart animation completes
+        lineChart.options.animation.onComplete = syncColumnHeights;
     }
 });
 </script>
