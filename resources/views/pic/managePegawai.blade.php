@@ -3,23 +3,12 @@
 
 @section('content')
 <main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    
-    @if(session('success'))
-        <div class="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-300 text-red-700 p-3 rounded mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
 
     <div class="flex flex-col gap-0.5 mb-1">
         <x-page-title 
         title="Manajemen Pegawai"
         subtitle="Kelola data pegawai: tambah, lihat detail, atau hapus." />
-     </div>
+    </div>
 
        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
            <form action="{{ route('pic.pegawai.index') }}" method="GET" class="flex-grow">
@@ -56,6 +45,16 @@
             </button>
         </div>
 
+        @if(session('success'))
+            <div class="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="bg-red-100 border border-red-300 text-red-700 p-3 rounded mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
 
     <div id="userListContainer">
         @forelse($users as $user)
