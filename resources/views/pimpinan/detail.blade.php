@@ -3,7 +3,7 @@
 @section('title', 'Detail Perjalanan Dinas')
 
 @section('content')
-<div class="ml-[80px] p-6 mt-[90px] max-w-6xl mx-auto">
+<div class="ml-[80px] p-6 mt-[10px] max-w-6xl mx-auto">
     {{-- BACK LINK --}}
     <div class="mb-6">
         <a href="{{ route('pimpinan.monitoring') }}"
@@ -380,6 +380,28 @@
         <link rel="stylesheet"
             href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <style>
+            /* Fix z-index untuk semua elemen leaflet agar tidak menimpa navbar */
+            #mapPimpinan .leaflet-pane,
+            #mapPimpinan .leaflet-tile-pane,
+            #mapPimpinan .leaflet-overlay-pane,
+            #mapPimpinan .leaflet-shadow-pane,
+            #mapPimpinan .leaflet-marker-pane,
+            #mapPimpinan .leaflet-tooltip-pane,
+            #mapPimpinan .leaflet-popup-pane {
+                z-index: 1 !important;
+            }
+            
+            /* Control zoom dan attribution juga harus di bawah navbar */
+            #mapPimpinan .leaflet-control-container,
+            #mapPimpinan .leaflet-top,
+            #mapPimpinan .leaflet-bottom,
+            #mapPimpinan .leaflet-control-zoom,
+            #mapPimpinan .leaflet-control-attribution {
+                z-index: 50 !important;
+            }
+        </style>
 
         <script>
         document.addEventListener("DOMContentLoaded", function () {

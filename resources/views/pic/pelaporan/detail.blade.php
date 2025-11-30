@@ -6,17 +6,20 @@
 <main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
     <!-- HEADER -->
-    <div class="flex justify-between items-center mb-6">
-        <x-page-title 
+<div class="flex justify-between items-center mb-6">
+    <x-page-title 
         title="Input Rincian Biaya"
-        subtitle="{{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}" />
-        <div class="flex items-center gap-3">
-            <span class="px-4 py-2 bg-gray-100 rounded-lg font-bold text-gray-600 text-sm border border-gray-200">
-                Status : {{ $statusText }}
-            </span>
-            <x-back-button />
-        </div>
+        subtitle="{{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}"
+        class="!mb-0"
+    />
+    <div class="flex items-center gap-3">
+        <span class="px-4 py-1.5 bg-gray-100 rounded-lg font-bold text-gray-600 text-sm border border-gray-200 flex items-center gap-3 -mt-6">
+            Status : {{ $statusText }}
+        </span>
+        <x-back-button />
     </div>
+</div>
+
 
     @if(session('success'))
         <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6">{{ session('success') }}</div>
@@ -62,8 +65,8 @@
                 <!-- KIRI: DATA NOMINAL -->
                 <div class="space-y-4">
                     <div class="flex items-center gap-2 mb-2 border-b pb-2 border-gray-100">
-                        <span class="bg-green-100 text-green-700 p-1.5 rounded text-xs">💰</span>
-                        <!-- JUDUL DIUBAH (Lebih sopan) -->
+                        <span class="bg-green-100 text-green-700 p-1.5 rounded text-xs"><i class="fa-solid fa-money-bill-1-wave"></i></span>
+                        <!-- JUDUL -->
                         <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Rincian Biaya</h4>
                     </div>
 
@@ -111,7 +114,13 @@
                             </select>
                             <div class="flex gap-2">
                                 <input type="number" name="nominal" placeholder="Nominal (Rp)" class="w-2/3 text-xs border-gray-300 rounded py-1.5" required>
-                                <button type="submit" class="w-1/3 bg-green-600 hover:bg-green-700 text-white font-bold rounded text-xs shadow-sm">+ Simpan</button>
+                                <button type="submit" 
+                                    class="w-1/3 bg-green-600 hover:bg-green-700 text-white font-bold rounded text-xs shadow-sm 
+                                        flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-plus"></i>
+                                    Simpan
+                                </button>
+
                             </div>
                             <input type="file" name="bukti" class="w-full text-[10px] text-gray-500">
                         </div>
@@ -122,7 +131,7 @@
                 <!-- KANAN: DATA INFORMASI (TEKS) -->
                 <div class="space-y-4">
                     <div class="flex items-center gap-2 mb-2 border-b pb-2 border-gray-100">
-                        <span class="bg-blue-100 text-blue-700 p-1.5 rounded text-xs">📝</span>
+                        <span class="bg-blue-100 text-blue-700 p-1.5 rounded text-xs"><i class="fa-solid fa-pen-to-square"></i></span>
                         <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Data Pendukung</h4>
                     </div>
 
@@ -176,7 +185,13 @@
                             <input type="text" id="input-kodetiket-{{ $loop->index }}" name="kode_tiket" placeholder="Ketik Kode Tiket" class="hidden w-full text-xs border-gray-300 rounded py-1.5">
                             <input type="text" id="input-maskapai-{{ $loop->index }}" name="maskapai" placeholder="Ketik Nama Maskapai" class="hidden w-full text-xs border-gray-300 rounded py-1.5">
 
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs shadow-sm py-1.5 mt-1">+ Simpan</button>
+                            <button type="submit" 
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs shadow-sm py-1.5 mt-1 
+                                    flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i>
+                                Simpan
+                            </button>
+
                         </div>
                     </form>
                     @endif
@@ -196,7 +211,7 @@
         <form action="{{ route('pic.pelaporan.submit', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Yakin kirim ke PPK?')">
             @csrf
             <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-blue-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
-                <i class="fa-solid fa-paper-plane"></i> Kirim ke PPK
+                <i class="fa-regular fa-envelope"></i>Kirim ke PPK
             </button>
         </form>
     </div>
