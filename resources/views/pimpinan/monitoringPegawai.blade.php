@@ -36,7 +36,7 @@
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[25px] px-4 pb-8 min-h-screen">
+<div class="ml-[80px] mt-[20px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
@@ -160,13 +160,24 @@
                             <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
                         </div>
                         
-                        {{-- Filter Dropdown --}}
+                        {{-- Filter Bulan --}}
                         <div class="relative">
                             <select 
-                                id="filterStatus"
+                                id="filterBulan"
                                 class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent appearance-none pr-8 bg-white cursor-pointer">
-                                <option value="all">Semua Status</option>
-                                <option value="onprogress">On Progress</option>
+                                <option value="all">Semua Bulan</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[8px] pointer-events-none"></i>
                         </div>
@@ -196,6 +207,7 @@
                         <div class="perjadin-card bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100"
                              data-nomor="{{ strtolower($perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia') }}"
                              data-tujuan="{{ strtolower($perjadin->tujuan ?? 'Tidak ada tujuan') }}"
+                             data-bulan="{{ \Carbon\Carbon::parse($perjadin->tgl_mulai)->format('n') }}"
                              data-status="{{ $status_value }}">
                             <div class="border-l-[5px] border-blue-500 p-3">
                                 <div class="flex flex-col sm:flex-row justify-between items-start gap-2.5">
@@ -281,31 +293,31 @@
 document.addEventListener('DOMContentLoaded', function() {
     // ==================== SEARCH & FILTER FUNCTIONALITY ====================
     const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
+    const filterBulan = document.getElementById('filterBulan');
     const resultCount = document.getElementById('resultCount');
     const perjadinCards = document.querySelectorAll('.perjadin-card');
     const noResults = document.getElementById('noResults');
     
     function filterCards() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        const statusFilter = filterStatus.value;
+        const bulanFilter = filterBulan.value;
         let visibleCount = 0;
         
         perjadinCards.forEach(card => {
             const nomor = card.getAttribute('data-nomor').toLowerCase();
             const tujuan = card.getAttribute('data-tujuan').toLowerCase();
-            const status = card.getAttribute('data-status');
+            const bulan = card.getAttribute('data-bulan');
             
             // Check search match
             const matchSearch = searchTerm === '' || 
                                 nomor.includes(searchTerm) || 
                                 tujuan.includes(searchTerm);
             
-            // Check status filter
-            const matchStatus = statusFilter === 'all' || status === statusFilter;
+            // Check bulan filter
+            const matchBulan = bulanFilter === 'all' || bulan === bulanFilter;
             
             // Show/hide card
-            if (matchSearch && matchStatus) {
+            if (matchSearch && matchBulan) {
                 card.style.display = '';
                 visibleCount++;
             } else {
@@ -326,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Event listeners
     searchInput.addEventListener('input', filterCards);
-    filterStatus.addEventListener('change', filterCards);
+    filterBulan.addEventListener('change', filterCards);
     
     // ==================== SYNC COLUMN HEIGHTS ====================
     function syncColumnHeights() {
