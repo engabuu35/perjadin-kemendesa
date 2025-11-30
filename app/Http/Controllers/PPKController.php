@@ -248,6 +248,7 @@ class PPKController extends Controller
                 'laporankeuangan.tanggal_spm',
                 'laporankeuangan.nomor_sp2d',
                 'laporankeuangan.tanggal_sp2d',
+                'laporankeuangan.biaya_rampung as jumlah_sp2d', 
                 DB::raw('uke1.nama_uke as nama_uke1'),
                 DB::raw('uke2.nama_uke as nama_uke2'),
                 DB::raw('pangkatgolongan.nama_pangkat as pangkat_golongan'),
