@@ -64,7 +64,18 @@ class PerjalananDinas extends Model
             'id_user',
             'id',
             'nip'
-        )->withPivot('role_perjadin', 'is_lead', 'laporan_individu', 'is_finished');
+        )->withPivot('role_perjadin', 'is_finished');
+    }
+    public function pegawai_laporan()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'laporan_perjadin',
+            'id_perjadin',
+            'id_user',
+            'id',
+            'nip'
+        )->withPivot('is_final', 'uraian');
     }
 
     public function getStatusNameAttribute() 
@@ -138,10 +149,10 @@ class PerjalananDinas extends Model
         $totalSelesai = $this->pegawai()->wherePivot('is_finished', 1)->count();
 
         // hitung laporan lengkap di PHP untuk portabilitas
-        $laporanLengkap = $this->pegawai()
-            ->whereNotNull('laporan_individu')
+        $laporanLengkap = $this->pegawai_laporan()
+            ->whereNotNull('uraian')
             ->get()
-            ->filter(function($p){ return mb_strlen(trim($p->pivot->laporan_individu)) >= 100; })
+            ->filter(function($p){ return mb_strlen(trim($p->pivot->uraian)) >= 100; })
             ->count();
 
         if ($sedang && intval($this->id_status) === $sedang) {

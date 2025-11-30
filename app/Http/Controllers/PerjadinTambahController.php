@@ -85,6 +85,13 @@ class PerjadinTambahController extends Controller
         }
 
         DB::transaction(function() use ($validated, $request) {
+            
+            // PERBAIKAN: Gunakan ID Status "Belum Berlangsung" yang dinamis
+            $idStatusAwal = DB::table('statusperjadin')->where('nama_status', 'Belum Berlangsung')->value('id');
+            if (!$idStatusAwal) {
+                $idStatusAwal = DB::table('statusperjadin')->insertGetId(['nama_status' => 'Belum Berlangsung']);
+            }
+
             $perjalanan = PerjalananDinas::create([
                 'nomor_surat' => $validated['nomor_surat'],
                 'tanggal_surat' => $validated['tanggal_surat'],
@@ -93,7 +100,7 @@ class PerjadinTambahController extends Controller
                 'tgl_selesai' => $validated['tgl_selesai'],
                 'approved_by' => $validated['approved_by'] ?? null,
                 'id_pembuat' => Auth::id(),
-                'id_status' => 1,
+                'id_status' => $idStatusAwal, 
             ]);
 
             // Handle file PDF
@@ -106,16 +113,36 @@ class PerjadinTambahController extends Controller
                 $perjalanan->save();
             }
 
-            // Insert pegawai
-            $insertData = [];
+            // Insert pegawai & Init Laporan
+            $insertPegawai = [];
+            $insertLaporan = [];
+            $now = now();
+
             foreach ($validated['pegawai'] as $pegawai) {
-                $insertData[] = [
+                // Data untuk tabel pivot pegawaiperjadin
+                $insertPegawai[] = [
                     'id_perjadin' => $perjalanan->id,
                     'id_user' => $pegawai['nip'],
                 ];
+
+                // Data inisialisasi untuk tabel laporan_perjadin
+                $insertLaporan[] = [
+                    'id_perjadin' => $perjalanan->id,
+                    'id_user' => $pegawai['nip'],
+                    'uraian' => null, // Biarkan null dulu
+                    'is_final' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
             }
-            if (!empty($insertData)) {
-                DB::table('pegawaiperjadin')->insert($insertData);
+
+            if (!empty($insertPegawai)) {
+                DB::table('pegawaiperjadin')->insert($insertPegawai);
+            }
+
+            // PERBAIKAN: Masukkan data laporan kosong agar tidak error di file lain
+            if (!empty($insertLaporan)) {
+                DB::table('laporan_perjadin')->insert($insertLaporan);
             }
         });
 
@@ -214,17 +241,46 @@ class PerjadinTambahController extends Controller
                 $perjalanan->save();
             }
 
+            // Hapus pegawai lama
             DB::table('pegawaiperjadin')->where('id_perjadin', $perjalanan->id)->delete();
+            // PERBAIKAN: Hapus laporan lama juga agar sinkron (Opsional: tergantung kebijakan)
+            // DB::table('laporan_perjadin')->where('id_perjadin', $perjalanan->id)->delete(); 
+            // Jika Anda hapus laporan, data uraian lama hilang. Jika tidak, data uraian lama tetap ada.
+            // Untuk amannya, kita biarkan laporan lama, nanti di insert kita pakai insertOrIgnore atau logic cek dulu.
 
-            $insertData = [];
+            $insertPegawai = [];
+            $insertLaporan = [];
+            $now = now();
+
             foreach ($validated['pegawai'] as $pegawai) {
-                $insertData[] = [
+                $insertPegawai[] = [
                     'id_perjadin' => $perjalanan->id,
                     'id_user' => $pegawai['nip'],
                 ];
+
+                // Cek apakah sudah ada laporan, jika belum buat baru
+                $exists = DB::table('laporan_perjadin')
+                    ->where('id_perjadin', $perjalanan->id)
+                    ->where('id_user', $pegawai['nip'])
+                    ->exists();
+
+                if (!$exists) {
+                    $insertLaporan[] = [
+                        'id_perjadin' => $perjalanan->id,
+                        'id_user' => $pegawai['nip'],
+                        'uraian' => null,
+                        'is_final' => 0,
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ];
+                }
             }
-            if (!empty($insertData)) {
-                DB::table('pegawaiperjadin')->insert($insertData);
+
+            if (!empty($insertPegawai)) {
+                DB::table('pegawaiperjadin')->insert($insertPegawai);
+            }
+            if (!empty($insertLaporan)) {
+                DB::table('laporan_perjadin')->insert($insertLaporan);
             }
         });
 
