@@ -115,6 +115,9 @@ class PerjadinController extends Controller
             $geotagHistory[] = [
                 'hari_ke' => $hariKe++,
                 'tanggal' => $date->format('d M Y'),
+                // Kirim raw latitude/longitude agar bisa dipakai JS
+                'lat_raw' => $tag ? $tag->latitude : null,
+                'long_raw'=> $tag ? $tag->longitude : null,
                 'lokasi'  => $tag ? "Lat: {$tag->latitude}, Long: {$tag->longitude}" : '-',
                 'waktu'   => $tag ? Carbon::parse($tag->created_at)->format('H:i') : '-',
                 'status'  => $tag ? 'Sudah' : 'Belum'
@@ -226,6 +229,11 @@ class PerjadinController extends Controller
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->update(['is_finished' => 1]);
+
+
+        // 3.5. Update Status Laporan (Tabel Laporan - IS FINAL)
+        // PERBAIKAN: Ubah is_final menjadi 1 (True)
+        $laporan->update(['is_final' => 1]);
 
         // 4. Cek apakah SEMUA pegawai dalam tim sudah selesai?
         $totalPegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->count();

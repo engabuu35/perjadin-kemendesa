@@ -116,16 +116,26 @@ class PPKController extends Controller
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
         
+        // Status Perjadin -> 'Perlu Revisi'
         $idRevisi = DB::table('statusperjadin')->where('nama_status', 'Perlu Revisi')->value('id');
+        if (!$idRevisi) {
+            $idRevisi = DB::table('statusperjadin')->insertGetId(['nama_status' => 'Perlu Revisi']);
+        }
+
         $perjalanan->update([
             'id_status' => $idRevisi,
-            'catatan_penolakan' => $request->alasan_penolakan
+            'catatan_penolakan' => $request->alasan_penolakan // Pastikan kolom ini ada di DB dan $fillable model
         ]);
 
+        // Status Laporan Keuangan -> 'Perlu Revisi'
         $idLapRevisi = DB::table('statuslaporan')->where('nama_status', 'Perlu Revisi')->value('id');
+        if (!$idLapRevisi) {
+            $idLapRevisi = DB::table('statuslaporan')->insertGetId(['nama_status' => 'Perlu Revisi']);
+        }
+        
         LaporanKeuangan::updateOrCreate(['id_perjadin' => $id], ['id_status' => $idLapRevisi]);
 
-        return redirect()->route('ppk.verifikasi.index')->with('warning', 'Laporan dikembalikan ke PIC.');
+        return redirect()->route('ppk.verifikasi.index')->with('warning', 'Laporan dikembalikan ke PIC untuk perbaikan.');
     }
 
     public function tabelRekap(Request $request) {

@@ -40,22 +40,46 @@
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isMyTaskFinished ? 'opacity-75 pointer-events-none grayscale-[20%]' : '' }}">
             <h2 class="text-xl font-bold text-gray-800 mb-4"> Geotagging Harian</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- PETA -->
                 <div class="lg:col-span-2">
-                    <div id="map" class="w-full h-64 bg-gray-100 rounded-xl mb-4 z-0 border border-gray-200"></div>
+                    <div id="map" class="w-full h-64 bg-gray-100 rounded-xl mb-4 z-0 border border-gray-200 shadow-inner"></div>
+                    
                     @if(!$isMyTaskFinished)
-                        <button type="button" id="geotag-btn" data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}" {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }} class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition">
+                        <button type="button" id="geotag-btn" data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}" {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }} class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-location-dot"></i>
                             @if($sudahAbsenHariIni)  Lokasi Hari Ini Tercatat @else  Tandai Lokasi Saya @endif
                         </button>
                         @if(!$isTodayInPeriod)<p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>@endif
                     @endif
                 </div>
+
+                <!-- LIST KOORDINAT (SEBELUMNYA RIWAYAT) -->
                 <div class="lg:col-span-1 bg-gray-50 rounded-xl p-4 h-64 overflow-y-auto border border-gray-200">
-                    <h3 class="text-xs font-bold text-gray-500 mb-3 uppercase">Riwayat</h3>
+                    <h3 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Titik Koordinat</h3>
                     <div class="space-y-3">
                         @foreach($geotagHistory as $h)
-                        <div class="flex items-start gap-3 p-2 rounded-lg {{ $h['status'] == 'Sudah' ? 'bg-white border border-gray-200' : 'opacity-50' }}">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $h['status'] == 'Sudah' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500' }}">H{{ $h['hari_ke'] }}</div>
-                            <div><p class="text-xs font-bold">{{ $h['tanggal'] }}</p><p class="text-[10px]">{{ $h['lokasi'] }}</p></div>
+                        <!-- Tambahkan onClick agar bisa diklik -->
+                        <div 
+                            onclick="focusLocation({{ $h['lat_raw'] ?? 'null' }}, {{ $h['long_raw'] ?? 'null' }}, '{{ $h['tanggal'] }}')"
+                            class="flex items-start gap-3 p-3 rounded-lg border transition cursor-pointer hover:shadow-md
+                            {{ $h['status'] == 'Sudah' ? 'bg-white border-gray-200 hover:border-blue-300' : 'bg-gray-100 border-transparent opacity-60 cursor-not-allowed' }}">
+                            
+                            <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold 
+                                {{ $h['status'] == 'Sudah' ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500' }}">
+                                H{{ $h['hari_ke'] }}
+                            </div>
+                            
+                            <div>
+                                <p class="text-xs font-bold text-gray-700">{{ $h['tanggal'] }}</p>
+                                @if($h['status'] == 'Sudah')
+                                    <p class="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
+                                        <i class="fa-solid fa-map-pin text-red-500"></i> Lihat di Peta
+                                    </p>
+                                @else
+                                    <p class="text-[10px] text-gray-400 italic">Belum ada data</p>
+                                @endif
+                            </div>
                         </div>
                         @endforeach
                     </div>
@@ -68,14 +92,14 @@
             <h2 class="text-xl font-bold text-gray-800 mb-4"> Uraian Kegiatan</h2>
             <form action="{{ route('perjalanan.storeUraian', $perjalanan->id) }}" method="POST">
                 @csrf
-                <textarea name="uraian" rows="5" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4" placeholder="Ceritakan aktivitas..." {{ $isMyTaskFinished ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
+                <textarea name="uraian" rows="5" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 focus:ring-blue-500 focus:border-blue-500" placeholder="Ceritakan aktivitas secara detail (min. 100 kata)..." {{ $isMyTaskFinished ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
                 @if(!$isMyTaskFinished)<div class="flex justify-end mt-3"><button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900 font-medium text-sm">Simpan Uraian</button></div>@endif
             </form>
         </div>
 
-        <!-- 3. SELESAI (LOGIKA BARU) -->
+        <!-- 3. SELESAI -->
         @if(!$isMyTaskFinished)
-        <div class="bg-blue-600 text-white p-8 rounded-2xl shadow-lg text-center relative overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 rounded-2xl shadow-lg text-center relative overflow-hidden">
             <div class="relative z-10">
                 <h3 class="text-2xl font-bold mb-2">Sudah Selesai Bertugas?</h3>
                 <p class="text-blue-100 mb-6 text-sm max-w-md mx-auto">
@@ -90,15 +114,14 @@
                     @endif
                 </p>
                 
-                <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini?')">
+                <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini? Data uraian dan lokasi tidak dapat diubah lagi.')">
                     @csrf
                     <button type="submit" {{ !$canFinish ? 'disabled' : '' }} 
-                        class="{{ !$canFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105' }} px-8 py-3 rounded-xl font-bold transition transform shadow-md">
-                        @if(!$canFinish) Belum Bisa Selesai @else  Saya Sudah Selesai @endif
+                        class="{{ !$canFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 shadow-xl' }} px-8 py-3 rounded-xl font-bold transition transform">
+                        @if(!$canFinish) Belum Bisa Selesai @else  ✅ Saya Sudah Selesai @endif
                     </button>
                 </form>
             </div>
-            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 opacity-50"></div>
         </div>
         @endif
 
@@ -108,26 +131,123 @@
 <!-- Script JS Peta -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const map = L.map('map').setView([-2.548926, 118.0148634], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-    @json($geotagHistory).forEach(p => {
-        if(p.lat_raw) L.marker([p.lat_raw, p.long_raw]).addTo(map).bindPopup(p.tanggal);
-    });
-    const btn = document.getElementById('geotag-btn');
-    const token = document.querySelector('meta[name="csrf-token"]').content;
-    if(btn && !btn.disabled) {
-        btn.addEventListener('click', () => {
-            btn.innerHTML = 'Sedang mendeteksi...';
-            navigator.geolocation.getCurrentPosition(pos => {
-                fetch(btn.dataset.url, {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json','X-CSRF-TOKEN':token},
-                    body: JSON.stringify({latitude:pos.coords.latitude, longitude:pos.coords.longitude, id_tipe:1})
-                }).then(r=>r.json()).then(d=>{alert(d.message);location.reload()});
-            }, ()=> alert('Gagal lokasi.'));
-        });
+    // Variabel Global untuk Map
+    let map;
+    let markers = [];
+
+    // Fungsi untuk zoom ke lokasi saat list diklik
+    function focusLocation(lat, long, title) {
+        if (lat && long) {
+            map.flyTo([lat, long], 15, {
+                animate: true,
+                duration: 1.5
+            });
+            // Cari marker yang sesuai dan buka popupnya
+            markers.forEach(m => {
+                if (m.getLatLng().lat == lat && m.getLatLng().lng == long) {
+                    m.openPopup();
+                }
+            });
+        }
     }
-});
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Init Map (Default View Indonesia Tengah jika kosong)
+        map = L.map('map').setView([-2.548926, 118.0148634], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+        // Render Marker Riwayat
+        const historyData = @json($geotagHistory);
+        let bounds = [];
+
+        historyData.forEach(p => {
+            if(p.lat_raw && p.long_raw) {
+                const marker = L.marker([p.lat_raw, p.long_raw])
+                                .addTo(map)
+                                .bindPopup(`<b>${p.tanggal}</b><br>Lokasi Tercatat`);
+                markers.push(marker);
+                bounds.push([p.lat_raw, p.long_raw]);
+            }
+        });
+
+        // Fit Bounds agar semua marker terlihat (jika ada)
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+
+        // Logic Tombol Geotagging
+        const btn = document.getElementById('geotag-btn');
+        const token = document.querySelector('meta[name="csrf-token"]').content;
+
+        if(btn && !btn.disabled) {
+            btn.addEventListener('click', () => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sedang mendeteksi...';
+                btn.disabled = true;
+
+                if (!navigator.geolocation) {
+                    alert("Browser Anda tidak mendukung Geolocation.");
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+
+                        // Tampilkan marker sementara (Visual Feedback)
+                        L.marker([lat, lng]).addTo(map)
+                            .bindPopup("<b>Lokasi Anda Saat Ini</b>").openPopup();
+                        map.flyTo([lat, lng], 16);
+
+                        // Kirim ke Server
+                        fetch(btn.dataset.url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': token
+                            },
+                            body: JSON.stringify({
+                                latitude: lat, 
+                                longitude: lng, 
+                                id_tipe: 1
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(d => {
+                            if(d.status === 'success') {
+                                alert(d.message);
+                                location.reload(); // Reload untuk update status UI
+                            } else {
+                                alert('Gagal: ' + d.message);
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Terjadi kesalahan koneksi.');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        });
+                    }, 
+                    (err) => {
+                        console.error(err);
+                        let msg = "Gagal mendapatkan lokasi.";
+                        if (err.code == 1) msg = "Izin lokasi ditolak. Mohon aktifkan GPS.";
+                        else if (err.code == 2) msg = "Lokasi tidak tersedia (sinyal lemah).";
+                        else if (err.code == 3) msg = "Waktu permintaan habis.";
+                        
+                        alert(msg);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+    });
 </script>
 @endsection

@@ -103,6 +103,7 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::patch('/penugasan-perjadin/{id}/status', [\App\Http\Controllers\PerjadinTambahController::class, 'updateStatus'])->name('penugasan.updateStatus');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
+    
 
     // PELAPORAN KEUANGAN PIC (MANUAL)
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
@@ -123,7 +124,8 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-keuangan/delete/{id}', [PelaporanController::class, 'deleteBukti'])->name('pelaporan.deleteBukti');
 
     Route::post('/pelaporan-keuangan/{id}/submit', [PelaporanController::class, 'submitToPPK'])->name('pelaporan.submit');
-    
+
+    Route::post('/pelaporan-keuangan/{id}/store-bulk', [App\Http\Controllers\PelaporanController::class, 'storeBulk'])->name('pelaporan.storeBulk');
 });
 
 // PPK

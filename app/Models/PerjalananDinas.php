@@ -26,6 +26,8 @@ class PerjalananDinas extends Model
         'tgl_mulai',
         'tgl_selesai',
         'uraian',
+        'surat_tugas',
+        'catatan_penolakan',
     ];
 
     protected $casts = [

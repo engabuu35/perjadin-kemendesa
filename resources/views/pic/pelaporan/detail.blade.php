@@ -3,243 +3,239 @@
 @section('title', 'Input Keuangan Perjadin')
 
 @section('content')
-<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+<main class="ml-0 sm:ml-[80px] max-w-[98%] mx-auto px-4 py-6">
     
     <!-- HEADER -->
-<div class="flex justify-between items-center mb-6">
-    <x-page-title 
-        title="Input Rincian Biaya"
-        subtitle="{{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}"
-        class="!mb-0"
-    />
-    <div class="flex items-center gap-3">
-        <span class="px-4 py-1.5 bg-gray-100 rounded-lg font-bold text-gray-600 text-sm border border-gray-200 flex items-center gap-3 -mt-6">
-            Status : {{ $statusText }}
-        </span>
-        <x-back-button />
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> Input Rincian Biaya
+            </h2>
+            <p class="text-gray-600 text-sm mt-1 font-mono bg-gray-100 inline-block px-2 py-1 rounded">
+                {{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="px-4 py-2 {{ $statusText == 'Perlu Revisi' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200' }} rounded-lg font-bold text-sm border">
+                Status: {{ $statusText }}
+            </span>
+            <x-back-button />
+        </div>
     </div>
-</div>
 
-
+    <!-- FLASH MESSAGES -->
     @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6">{{ session('success') }}</div>
+        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-check-circle"></i> {{ session('success') }}
+        </div>
     @endif
     @if(session('error'))
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">{{ session('error') }}</div>
-    @endif
-
-    @if($errors->any())
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
-            <ul class="list-disc list-inside text-sm">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation"></i> {{ session('error') }}
         </div>
     @endif
 
-    <!-- LOOP PEGAWAI -->
-    <div class="space-y-10">
-        @foreach($allPeserta as $peserta)
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            
-            <!-- HEADER KARTU -->
-            <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold text-sm">
-                        {{ substr($peserta->name, 0, 2) }}
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-lg">{{ $peserta->name }}</h3>
-                        <p class="text-xs opacity-90 font-mono">{{ $peserta->nip }} | {{ $peserta->role_perjadin }}</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-[10px] opacity-80 uppercase tracking-wider">Total Reimburse</p>
-                    <p class="font-bold text-xl">Rp {{ number_format($peserta->total_biaya, 0, ',', '.') }}</p>
-                </div>
-            </div>
-
-            <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- FORM INPUT BULK -->
+    <form action="{{ route('pic.pelaporan.storeBulk', $perjalanan->id) }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        
+        <div class="space-y-12">
+            @foreach($allPeserta as $index => $peserta)
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 
-                <!-- KIRI: DATA NOMINAL -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-2 mb-2 border-b pb-2 border-gray-100">
-                        <span class="bg-green-100 text-green-700 p-1.5 rounded text-xs"><i class="fa-solid fa-money-bill-1-wave"></i></span>
-                        <!-- JUDUL -->
-                        <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Rincian Biaya</h4>
-                    </div>
-
-                    <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-                        <table class="w-full text-sm text-left">
-                            @php $hasBiaya = false; @endphp
-                            @if($peserta->laporan)
-                                @foreach($peserta->laporan->bukti as $item)
-                                    @if($item->nominal > 0)
-                                    @php $hasBiaya = true; @endphp
-                                    <tr class="border-b last:border-0 hover:bg-white transition">
-                                        <td class="px-4 py-2 font-medium text-gray-700">{{ $item->kategori }}</td>
-                                        <td class="px-4 py-2 text-right font-bold text-gray-800">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
-                                        <td class="px-2 py-2 text-right w-8">
-                                            @if(!$isReadOnly)
-                                            <a href="{{ route('pic.pelaporan.deleteBukti', $item->id) }}" onclick="return confirm('Hapus?')" class="text-red-400 hover:text-red-600 font-bold">×</a>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @endif
-                                @endforeach
-                            @endif
-                            @if(!$hasBiaya)
-                                <tr><td colspan="3" class="px-4 py-3 text-center text-xs text-gray-400 italic">Belum ada data biaya</td></tr>
-                            @endif
-                        </table>
-                    </div>
-
-                    @if(!$isReadOnly)
-                    <form action="{{ route('pic.pelaporan.storeBukti', $perjalanan->id) }}" method="POST" enctype="multipart/form-data" 
-                          class="bg-green-50/50 p-3 rounded-lg border border-green-100 mt-2">
-                        @csrf
-                        <input type="hidden" name="target_nip" value="{{ $peserta->nip }}">
-                        <div class="flex flex-col gap-2">
-                            <select name="kategori" class="w-full text-xs border-gray-300 rounded focus:ring-green-500 py-1.5" required>
-                                <option value="" disabled selected>Pilih Kategori Biaya</option>
-                                <option value="Tiket">Tiket</option>
-                                <option value="Uang Harian">Uang Harian</option>
-                                <option value="Penginapan">Penginapan</option>
-                                <option value="Uang Representasi">Uang Representasi</option>
-                                <option value="Sewa Kendaraan">Sewa Kendaraan</option>
-                                <option value="Pengeluaran Riil">Pengeluaran Riil</option>
-                                <option value="Transport">Transport</option>
-                                <option value="SSPB">SSPB</option>
-                            </select>
-                            <div class="flex gap-2">
-                                <input type="number" name="nominal" placeholder="Nominal (Rp)" class="w-2/3 text-xs border-gray-300 rounded py-1.5" required>
-                                <button type="submit" 
-                                    class="w-1/3 bg-green-600 hover:bg-green-700 text-white font-bold rounded text-xs shadow-sm 
-                                        flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-plus"></i>
-                                    Simpan
-                                </button>
-
-                            </div>
-                            <input type="file" name="bukti" class="w-full text-[10px] text-gray-500">
+                <!-- Header Peserta -->
+                <div class="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                            {{ $loop->iteration }}
                         </div>
-                    </form>
-                    @endif
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg">{{ $peserta->name }}</h3>
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-mono">
+                                {{ $peserta->nip }}
+                            </span>
+                            <span class="text-xs text-gray-500 ml-2">{{ $peserta->role_perjadin }}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider">Total Biaya</span>
+                        <div class="text-xl font-bold text-blue-600">
+                            Rp {{ number_format($peserta->total_biaya, 0, ',', '.') }}
+                        </div>
+                    </div>
                 </div>
 
-                <!-- KANAN: DATA INFORMASI (TEKS) -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-2 mb-2 border-b pb-2 border-gray-100">
-                        <span class="bg-blue-100 text-blue-700 p-1.5 rounded text-xs"><i class="fa-solid fa-pen-to-square"></i></span>
-                        <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Data Pendukung</h4>
-                    </div>
+                <div class="p-6 grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    
+                    <!-- KOLOM KIRI: RINCIAN BIAYA (8 Field) -->
+                    <div class="xl:col-span-2 space-y-4">
+                        <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide border-b pb-2 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-coins text-yellow-500"></i> Rincian Biaya & Bukti
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                            @foreach($catBiaya as $kategori)
+                                @php 
+                                    $data = $peserta->buktiMap[$kategori] ?? null; 
+                                    $nominal = $data ? $data->nominal : '';
+                                    // Buat ID unik untuk manipulasi JS
+                                    $uniqueId = $peserta->nip . '-' . str_replace(' ', '', $kategori);
+                                @endphp
+                                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 relative group hover:border-blue-300 transition">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">{{ $kategori }}</label>
+                                    
+                                    <!-- Input Nominal -->
+                                    <div class="relative mb-2">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold">Rp</span>
+                                        <input type="number" 
+                                            name="items[{{ $peserta->nip }}][{{ $kategori }}][nominal]" 
+                                            value="{{ $nominal }}" 
+                                            class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                            placeholder="0"
+                                            {{ $isReadOnly ? 'readonly' : '' }}>
+                                    </div>
 
-                    <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-                        <table class="w-full text-sm text-left">
-                            @php $hasTeks = false; @endphp
-                            @if($peserta->laporan)
-                                @foreach($peserta->laporan->bukti as $item)
-                                    @if($item->nominal == 0) 
-                                    @php $hasTeks = true; @endphp
-                                    <tr class="border-b last:border-0 hover:bg-white transition">
-                                        <td class="px-4 py-2 font-medium text-gray-700 w-1/3">{{ $item->kategori }}</td>
-                                        <!-- MENAMPILKAN KETERANGAN -->
-                                        <td class="px-4 py-2 text-gray-600 text-xs">
-                                            {{ $item->keterangan }}
-                                        </td>
-                                        <td class="px-2 py-2 text-right w-8">
-                                            @if(!$isReadOnly)
-                                            <a href="{{ route('pic.pelaporan.deleteBukti', $item->id) }}" onclick="return confirm('Hapus?')" class="text-red-400 hover:text-red-600 font-bold">×</a>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @endif
-                                @endforeach
-                            @endif
-                            @if(!$hasTeks)
-                                <tr><td colspan="3" class="px-4 py-3 text-center text-xs text-gray-400 italic">Belum ada data</td></tr>
-                            @endif
-                        </table>
-                    </div>
+                                    <!-- Input File (Custom UI) -->
+                                    <div class="pt-2 border-t border-gray-200">
+                                        @if(!$isReadOnly)
+                                            <div class="flex items-center gap-2">
+                                                <label class="cursor-pointer bg-white border border-gray-300 text-gray-600 text-[10px] font-bold py-1 px-3 rounded hover:bg-gray-100 transition">
+                                                    Choose File
+                                                    <input type="file" 
+                                                        id="file-{{ $uniqueId }}"
+                                                        name="items[{{ $peserta->nip }}][{{ $kategori }}][file]" 
+                                                        class="hidden"
+                                                        onchange="updateFileName('{{ $uniqueId }}')">
+                                                </label>
+                                                <!-- Tempat Menampilkan Nama File Baru -->
+                                                <span id="filename-{{ $uniqueId }}" class="text-[10px] text-gray-500 truncate max-w-[150px]">
+                                                    Belum ada file baru
+                                                </span>
+                                            </div>
+                                        @endif
 
-                    <!-- FORM INPUT TEKS (Tetap sama formnya, controller yg handle simpan ke keterangan) -->
-                    @if(!$isReadOnly)
-                    <form action="{{ route('pic.pelaporan.storeBukti', $perjalanan->id) }}" method="POST" 
-                          class="bg-blue-50/50 p-3 rounded-lg border border-blue-100 mt-2"
-                          x-data="{ kategori: '' }">
-                        @csrf
-                        <input type="hidden" name="target_nip" value="{{ $peserta->nip }}">
-                        <div class="flex flex-col gap-2">
-                            <select name="kategori" class="w-full text-xs border-gray-300 rounded focus:ring-blue-500 py-1.5" required id="kategori-select-{{ $loop->index }}" onchange="toggleInputs({{ $loop->index }})">
-                                <option value="" disabled selected>Pilih Informasi</option>
-                                <option value="Nama Penginapan">Nama Penginapan</option>
-                                <option value="Kota">Kota</option>
-                                <option value="Kode Tiket">Kode Tiket</option>
-                                <option value="Maskapai">Maskapai</option>
-                            </select>
-                            
-                            <!-- INPUTAN SPESIFIK -->
-                            <input type="text" id="input-hotel-{{ $loop->index }}" name="nama_hotel" placeholder="Ketik Nama Penginapan" class="hidden w-full text-xs border-gray-300 rounded py-1.5">
-                            <input type="text" id="input-kota-{{ $loop->index }}" name="kota" placeholder="Ketik Nama Kota" class="hidden w-full text-xs border-gray-300 rounded py-1.5">
-                            <input type="text" id="input-kodetiket-{{ $loop->index }}" name="kode_tiket" placeholder="Ketik Kode Tiket" class="hidden w-full text-xs border-gray-300 rounded py-1.5">
-                            <input type="text" id="input-maskapai-{{ $loop->index }}" name="maskapai" placeholder="Ketik Nama Maskapai" class="hidden w-full text-xs border-gray-300 rounded py-1.5">
-
-                            <button type="submit" 
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs shadow-sm py-1.5 mt-1 
-                                    flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-plus"></i>
-                                Simpan
-                            </button>
-
+                                        <!-- Link File Existing -->
+                                        @if($data && $data->path_file)
+                                            <div class="mt-1 flex items-center justify-between bg-green-50 px-2 py-1 rounded border border-green-100">
+                                                <span class="text-[10px] text-green-700 truncate max-w-[120px]">
+                                                    <i class="fa-solid fa-check-circle"></i> {{ $data->nama_file ?? 'File Tersimpan' }}
+                                                </span>
+                                                <a href="{{ asset('storage/'.$data->path_file) }}" target="_blank" 
+                                                   class="text-[10px] font-bold text-green-700 hover:underline">
+                                                    Lihat
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                    </form>
-                    @endif
-                </div>
+                    </div>
 
+                    <!-- KOLOM KANAN: DATA PENDUKUNG (4 Field) -->
+                    <div class="xl:col-span-1 space-y-4">
+                        <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide border-b pb-2 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-blue-500"></i> Informasi Tambahan
+                        </h4>
+
+                        <div class="space-y-4">
+                            @foreach($catPendukung as $kategori)
+                                @php 
+                                    $data = $peserta->buktiMap[$kategori] ?? null; 
+                                    $text = $data ? $data->keterangan : '';
+                                @endphp
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ $kategori }}</label>
+                                    <input type="text" 
+                                        name="items[{{ $peserta->nip }}][{{ $kategori }}][text]" 
+                                        value="{{ $text }}" 
+                                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                        placeholder="-"
+                                        {{ $isReadOnly ? 'readonly' : '' }}>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <!-- Info Box -->
+                        <div class="mt-6 p-3 bg-blue-50 text-blue-800 text-xs rounded border border-blue-100">
+                            <i class="fa-solid fa-circle-info mr-1"></i>
+                            <strong>Info File:</strong> Jika Anda tidak memilih file baru, file bukti yang sudah tersimpan sebelumnya (jika ada) <strong>tidak akan hilang</strong>.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <!-- AREA CATATAN REVISI (PALING BAWAH) -->
+        <div class="mt-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-message text-gray-500"></i> Catatan / Revisi dari PPK
+            </label>
+            <textarea readonly rows="3" 
+                class="w-full border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:ring-0 cursor-not-allowed {{ $perjalanan->catatan_penolakan ? 'border-red-300 bg-red-50 text-red-800' : '' }}"
+                placeholder="Tidak ada catatan revisi.">{{ $perjalanan->catatan_penolakan ?? '-' }}</textarea>
+        </div>
+
+        <!-- FOOTER ACTION -->
+        @if(!$isReadOnly)
+        <div class="sticky bottom-4 z-40 mt-8">
+            <div class="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 flex justify-between items-center max-w-4xl mx-auto">
+                <div class="text-sm text-gray-600">
+                    <i class="fa-solid fa-floppy-disk text-blue-600 mr-1"></i>
+                    Klik simpan untuk merekam semua perubahan di atas.
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                    SIMPAN SEMUA DATA
+                </button>
             </div>
         </div>
-        @endforeach
-    </div>
+        @endif
 
+    </form>
+
+    <!-- AREA KIRIM KE PPK -->
     @if(!$isReadOnly)
-    <div class="mt-10 p-6 bg-blue-50 rounded-2xl border border-blue-200 text-center">
-        <h3 class="text-lg font-bold text-gray-800 mb-2">Finalisasi Laporan Keuangan</h3>
+    <div class="mt-12 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 text-center">
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Finalisasi & Kirim</h3>
         <p class="text-sm text-gray-600 mb-6 max-w-2xl mx-auto">
-            Pastikan seluruh data keuangan pegawai (Tiket, Penginapan, Uang Harian, dll) telah diinput dengan benar.
+            Jika seluruh data keuangan pegawai telah diinput dan disimpan, silakan kirim ke PPK. <br>
+            <span class="text-red-500 font-bold">Pastikan sudah klik "Simpan Semua Data" di atas sebelum mengirim!</span>
         </p>
-        <form action="{{ route('pic.pelaporan.submit', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Yakin kirim ke PPK?')">
+        <form action="{{ route('pic.pelaporan.submit', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin data sudah lengkap dan ingin mengirim ke PPK?')">
             @csrf
-            <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-blue-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
-                <i class="fa-regular fa-envelope"></i>Kirim ke PPK
+            <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-green-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
+                <i class="fa-solid fa-paper-plane"></i> KIRIM KE PPK
             </button>
         </form>
     </div>
     @endif
 
-</div>
+</main>
 
 <script>
-function toggleInputs(index) {
-    var select = document.getElementById('kategori-select-' + index);
-    var val = select.value;
-    
-    // Sembunyikan semua dulu
-    document.getElementById('input-hotel-' + index).classList.add('hidden');
-    document.getElementById('input-kota-' + index).classList.add('hidden');
-    document.getElementById('input-kodetiket-' + index).classList.add('hidden');
-    document.getElementById('input-maskapai-' + index).classList.add('hidden');
-    
-    // Tampilkan sesuai pilihan
-    if (val === 'Nama Penginapan') {
-        document.getElementById('input-hotel-' + index).classList.remove('hidden');
-    } else if (val === 'Kota') {
-        document.getElementById('input-kota-' + index).classList.remove('hidden');
-    } else if (val === 'Kode Tiket') {
-        document.getElementById('input-kodetiket-' + index).classList.remove('hidden');
-    } else if (val === 'Maskapai') {
-        document.getElementById('input-maskapai-' + index).classList.remove('hidden');
+    // Fungsi untuk Update Nama File saat dipilih
+    function updateFileName(id) {
+        // Ambil elemen input file
+        const input = document.getElementById('file-' + id);
+        // Ambil elemen label text di sebelahnya
+        const label = document.getElementById('filename-' + id);
+        
+        // Cek apakah user memilih file
+        if (input.files && input.files.length > 0) {
+            // Ubah teks menjadi nama file
+            label.textContent = input.files[0].name;
+            
+            // Ubah warna jadi biru agar terlihat beda
+            label.classList.add('text-blue-600', 'font-bold');
+            label.classList.remove('text-gray-500');
+        } else {
+            // Jika batal pilih file
+            label.textContent = 'Belum ada file baru';
+            label.classList.remove('text-blue-600', 'font-bold');
+            label.classList.add('text-gray-500');
+        }
     }
-}
 </script>
 @endsection
