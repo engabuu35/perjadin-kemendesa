@@ -22,7 +22,6 @@ return new class extends Migration
             // Kolom status_laporan, bukti_transport, dll SUDAH DIHAPUS
             // Karena file sekarang disimpan di tabel induk (perjalanandinas)
             $table->string('role_perjadin', 100)->default('Anggota');
-            $table->boolean('is_lead')->default(false);
             
             // Primary Key Gabungan (Satu pegawai hanya bisa masuk 1x di surat yang sama)
             $table->primary(['id_perjadin', 'id_user']);

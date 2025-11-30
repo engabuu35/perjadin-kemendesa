@@ -23,14 +23,6 @@ return new class extends Migration
             $table->string('tujuan');
             $table->date('tgl_mulai');
             $table->date('tgl_selesai');
-            $table->text('hasil_perjadin')->nullable();
-            
-            // --- KOLOM BARU (PINDAHAN DARI TABEL PEGAWAI) ---
-            // Tempat menyimpan file PDF gabungan untuk satu tim
-            $table->text('laporan_akhir')->nullable(); 
-            $table->string('file_laporan_kegiatan', 255)->nullable();
-            $table->string('file_bukti_transport', 255)->nullable();
-            $table->string('file_bukti_penginapan', 255)->nullable();
             
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate()->useCurrent();

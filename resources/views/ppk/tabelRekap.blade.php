@@ -83,7 +83,6 @@
     {{-- TABEL REKAP --}}
     <div class="bg-white rounded-2xl shadow border border-gray-200 p-4 sm:p-6">
         <div class="max-h-[70vh] overflow-auto rounded-lg border border-gray-100">
-            {{-- min-width besar supaya muat semua kolom --}}
             <div class="min-w-[2200px]">
                 <table class="w-full text-xs">
                     <thead class="sticky top-0 z-20">
@@ -93,8 +92,13 @@
                             <th rowspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">Nama UKE-1</th>
                             <th rowspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">Nama UKE-2</th>
 
+                            {{-- Dokumen Pembayaran (di awal sesuai template) --}}
+                            <th rowspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">No SPM</th>
+                            <th rowspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">No SP2D</th>
+                            <th rowspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">Jumlah SP2D (Rp)</th>
+
                             {{-- Surat Perjalanan Dinas --}}
-                            <th colspan="7" class="px-3 py-2 border-2 border-gray-300 align-middle">
+                            <th colspan="9" class="px-3 py-2 border-2 border-gray-300 align-middle">
                                 Surat Perjalanan Dinas
                             </th>
 
@@ -112,11 +116,6 @@
                             <th colspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
                                 Pesawat
                             </th>
-
-                            {{-- Dokumen Pembayaran --}}
-                            <th colspan="4" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                Dokumen Pembayaran
-                            </th>
                         </tr>
 
                         {{-- BARIS HEADER 2 (SUB-GRUP) --}}
@@ -133,6 +132,12 @@
                             </th>
                             <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
                                 Dalam Rangka
+                            </th>
+                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
+                                Daerah Asal
+                            </th>
+                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
+                                Daerah Tujuan
                             </th>
                             <th colspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
                                 Tanggal SPD
@@ -164,20 +169,6 @@
                             <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
                                 Maskapai
                             </th>
-
-                            {{-- Dokumen Pembayaran --}}
-                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                No SPM
-                            </th>
-                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                Tgl SPM
-                            </th>
-                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                No SP2D
-                            </th>
-                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                Tgl SP2D
-                            </th>
                         </tr>
 
                         {{-- BARIS HEADER 3 (LEAF UNTUK SUB-GRUP) --}}
@@ -197,9 +188,9 @@
                             <th class="px-3 py-2 border-2 border-gray-300">SSPB</th>
                         </tr>
 
-                        {{-- BARIS HEADER 4 (NOMOR KOLOM 0–26) --}}
+                        {{-- BARIS HEADER 4 (NOMOR KOLOM 0–27) --}}
                         <tr style="background-color:#f4c6f4;" class="font-bold text-center">
-                            @for($i = 0; $i <= 26; $i++)
+                            @for($i = 0; $i <= 27; $i++)
                                 <th class="px-1 py-1 border-2 border-gray-300 text-[10px]">{{ $i }}</th>
                             @endfor
                         </tr>
@@ -218,10 +209,19 @@
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nama_uke1 ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nama_uke2 ?? '-' }}</td>
 
-                                {{-- 4–10: SPD --}}
+                                {{-- 4–6: Dokumen Pembayaran --}}
+                                <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nomor_spm ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nomor_sp2d ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-right">
+                                    {{ $row->jumlah_sp2d ? number_format($row->jumlah_sp2d, 0, ',', '.') : '-' }}
+                                </td>
+
+                                {{-- 7–15: SPD --}}
                                 <td class="px-3 py-2 border text-center">{{ $row->nama_pegawai }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nip }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->pangkat_golongan ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $row->tujuan ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center">Jakarta</td>
                                 <td class="px-3 py-2 border text-center">{{ $row->tujuan ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">
                                     {{ $mulai ? $mulai->format('d-m-Y') : '-' }}
@@ -233,12 +233,12 @@
                                     {{ $lama ?? '-' }}
                                 </td>
 
-                                {{-- 11: Jumlah Dibayarkan --}}
+                                {{-- 16: Jumlah Dibayarkan --}}
                                 <td class="px-3 py-2 border text-right">
                                     {{ $row->jumlah_dibayarkan ? number_format($row->jumlah_dibayarkan, 0, ',', '.') : '-' }}
                                 </td>
 
-                                {{-- 12–19: Rincian Biaya --}}
+                                {{-- 17–24: Rincian Biaya --}}
                                 <td class="px-3 py-2 border text-right">
                                     {{ $row->biaya_tiket ? number_format($row->biaya_tiket, 0, ',', '.') : '-' }}
                                 </td>
@@ -264,7 +264,7 @@
                                     {{ $row->biaya_sspb ? number_format($row->biaya_sspb, 0, ',', '.') : '-' }}
                                 </td>
 
-                                {{-- 20–21: Penginapan --}}
+                                {{-- 25–26: Penginapan --}}
                                 <td class="px-3 py-2 border text-center">
                                     {{ $row->nama_hotel ?? '-' }}
                                 </td>
@@ -272,31 +272,17 @@
                                     {{ $row->kota_hotel ?? '-' }}
                                 </td>
 
-                                {{-- 22–23: Pesawat --}}
+                                {{-- 27–28: Pesawat --}}
                                 <td class="px-3 py-2 border text-center">
                                     {{ $row->kode_tiket ?? '-' }}
                                 </td>
                                 <td class="px-3 py-2 border text-center">
                                     {{ $row->maskapai ?? '-' }}
                                 </td>
-
-                                {{-- 24–27: Dokumen Pembayaran --}}
-                                <td class="px-3 py-2 border text-center whitespace-nowrap">
-                                    {{ $row->nomor_spm ?? '-' }}
-                                </td>
-                                <td class="px-3 py-2 border text-center whitespace-nowrap">
-                                    {{ $row->tanggal_spm ? \Carbon\Carbon::parse($row->tanggal_spm)->format('d-m-Y') : '-' }}
-                                </td>
-                                <td class="px-3 py-2 border text-center whitespace-nowrap">
-                                    {{ $row->nomor_sp2d ?? '-' }}
-                                </td>
-                                <td class="px-3 py-2 border text-center whitespace-nowrap">
-                                    {{ $row->tanggal_sp2d ? \Carbon\Carbon::parse($row->tanggal_sp2d)->format('d-m-Y') : '-' }}
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="27" class="px-4 py-6 border text-center text-gray-400">
+                                <td colspan="28" class="px-4 py-6 border text-center text-gray-400">
                                     Belum ada data LS rampung / selesai dibayar untuk ditampilkan.
                                 </td>
                             </tr>
@@ -306,13 +292,16 @@
                     @if($rekap->count() > 0)
                         <tfoot class="bg-gray-50 font-semibold text-[11px]">
                             <tr>
-                                <td colspan="10" class="px-3 py-2 border text-right">
+                                {{-- 1–15: sebelum kolom Jumlah Dibayarkan --}}
+                                <td colspan="15" class="px-3 py-2 border text-right">
                                     TOTAL JUMLAH DIBAYARKAN
                                 </td>
+                                {{-- kolom 16: jumlah dibayarkan --}}
                                 <td class="px-3 py-2 border text-right">
                                     {{ number_format($totalDibayarkan, 0, ',', '.') }}
                                 </td>
-                                <td colspan="16" class="px-3 py-2 border"></td>
+                                {{-- sisa kolom 17–28 --}}
+                                <td colspan="12" class="px-3 py-2 border"></td>
                             </tr>
                         </tfoot>
                     @endif

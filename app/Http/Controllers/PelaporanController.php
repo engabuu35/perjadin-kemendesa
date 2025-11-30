@@ -82,7 +82,6 @@ class PelaporanController extends Controller
             ->join('users', 'users.nip', '=', 'pegawaiperjadin.id_user')
             ->where('pegawaiperjadin.id_perjadin', $id)
             ->select('users.nip', 'users.nama as name', 'pegawaiperjadin.role_perjadin')
-            ->orderBy('pegawaiperjadin.is_lead', 'desc')
             ->get();
 
         // Siapkan Data Existing untuk Form Bulk

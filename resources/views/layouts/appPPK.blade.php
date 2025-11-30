@@ -8,6 +8,9 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 </head>
 <body class= "flex flex-col min-h-screen">
     @include('partials.navbar')
@@ -22,5 +25,6 @@
 
     @include('partials.footer')
     @include('partials.mainBackground')
+    <x-floating-button />
 </body>
 </html>
