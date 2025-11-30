@@ -16,7 +16,6 @@ class StatusPerjadinSeeder extends Seeder
         $statuses = [
             ['nama_status' => 'Belum Berlangsung'], //jika tanggal belum mulai
             ['nama_status' => 'Sedang Berlangsung'], //jika tanggal sudah mulai
-            ['nama_status' => 'Pembuatan Laporan'],  //jika perjalanan dinas selesai, laporan keungan pic
             ['nama_status' => 'Menunggu Verifikasi Laporan'], //jika laporan sudah dikirim ke pic, menunggu verifikasi pic
             ['nama_status' => 'Menunggu Validasi PPK'], //jika laporan sudah dikirim ke ppk, menunggu validasi ppk
             ['nama_status' => 'Selesai'], //jika laporan divalidasi ppk

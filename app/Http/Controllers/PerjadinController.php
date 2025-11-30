@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use App\Models\Notifikasi;
+use App\Notifications\PerjalananAssignedNotification;
 
 class PerjadinController extends Controller
 {
@@ -331,4 +333,21 @@ class PerjadinController extends Controller
 
         return response()->json(['status' => 'success', 'message' => 'Hadir!']);
     }
+
+    public function assign(Request $request, PerjalananDinas $perjalanan)
+    {
+        // Ambil user yang ditugaskan
+        $user = User::find($request->input('user_id'));
+
+        if ($user) {
+            // Simpan data lama perjalanan untuk payload
+            $oldData = $perjalanan->only(['tgl_mulai','tgl_selesai','tujuan']);
+
+            // Kirim notifikasi email langsung ke user
+            $user->notify(new PerjalananAssignedNotification($perjalanan));
+        }
+
+        return back()->with('success', 'Perjalanan berhasil ditugaskan dan notifikasi dikirim.');
+    }
+
 }

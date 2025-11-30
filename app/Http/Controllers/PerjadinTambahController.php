@@ -113,6 +113,12 @@ class PerjadinTambahController extends Controller
                     'id_perjadin' => $perjalanan->id,
                     'id_user' => $pegawai['nip'],
                 ];
+                // Kirim notifikasi email
+                $user = User::find($pegawai['nip']);
+                if ($user) {
+                    $user->notify(new \App\Notifications\PerjalananAssignedNotification($perjalanan));
+
+                }
             }
             if (!empty($insertData)) {
                 DB::table('pegawaiperjadin')->insert($insertData);
@@ -222,6 +228,10 @@ class PerjadinTambahController extends Controller
                     'id_perjadin' => $perjalanan->id,
                     'id_user' => $pegawai['nip'],
                 ];
+                $user = User::find($pegawai['nip']);
+                if ($user) {
+                    $user->notify(new \App\Notifications\PerjalananAssignedNotification($perjalanan));
+                }
             }
             if (!empty($insertData)) {
                 DB::table('pegawaiperjadin')->insert($insertData);
