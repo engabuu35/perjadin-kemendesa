@@ -3,18 +3,15 @@
 @section('title', 'Manajemen Perjalanan Dinas')
 
 @section('content')
-<main class="item-center max-w-5xl min-h-screen mx-auto px-5 py-8 ">
+<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
     <!-- Header + Search + Button Tambah -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <h2 class="text-gray-700 text-2xl font-bold pb-3 relative">
-                Manajemen Perjalanan Dinas
-                <span class="absolute bottom-0 left-0 w-60 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
-            </h2>
-            <p class="text-gray-500 text-sm">Kelola penugasan dan perjalanan dinas pegawai.</p>
-        </div>
-
+    <div class="flex flex-col gap-0.5 mb-1">
+        <x-page-title 
+        title="Manajemen Perjalanan Dinas"
+        subtitle="Kelola data pegawai: tambah, lihat detail, atau hapus." />
+     </div>   
         <div class="flex items-center gap-3 w-full sm:w-auto">
             <form action="{{ route('pic.penugasan') }}" method="GET" class="mr-3 w-full sm:w-auto">
                 <div class="flex items-center gap-2">
@@ -147,8 +144,57 @@
     </div>
 
     <!-- pagination -->
-    <div class="mt-6">
-        {{ $penugasans->links() }}
-    </div>
+    @if ($penugasans->hasPages())
+        <div class="mt-6 flex justify-center">
+
+            <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+
+                {{-- Previous --}}
+                @if ($penugasans->onFirstPage())
+                    <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
+                @else
+                    <a href="{{ $penugasans->previousPageUrl() }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        ❮
+                    </a>
+                @endif
+
+                {{-- Page Numbers --}}
+                @foreach ($penugasans->toArray()['links'] as $link)
+
+                    {{-- Skip "Previous" & "Next" from Laravel --}}
+                    @if ($loop->first || $loop->last)
+                        @continue
+                    @endif
+
+                    {{-- Active --}}
+                    @if ($link['active'])
+                        <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
+                            {{ $link['label'] }}
+                        </span>
+                    @else
+                        <a href="{{ $link['url'] }}"
+                        class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                            {{ $link['label'] }}
+                        </a>
+                    @endif
+
+                @endforeach
+
+                {{-- Next --}}
+                @if ($penugasans->hasMorePages())
+                    <a href="{{ $penugasans->nextPageUrl() }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        ❯
+                    </a>
+                @else
+                    <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
+                @endif
+
+            </nav>
+
+        </div>
+    @endif
+
 </main>
 @endsection
