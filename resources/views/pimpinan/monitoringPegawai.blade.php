@@ -112,7 +112,7 @@
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[70px] px-4 pb-8 min-h-screen">
+<div class="ml-[80px] mt-[20px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
