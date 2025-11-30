@@ -33,7 +33,7 @@ class PPKController extends Controller
             });
         }
 
-        $listVerifikasi = $query->orderBy('updated_at', 'desc')->paginate(10);
+        $listVerifikasi = $query->orderBy('updated_at', 'desc')->paginate(12);
 
         foreach ($listVerifikasi as $item) {
             $item->custom_status = 'Butuh Validasi';
@@ -54,7 +54,6 @@ class PPKController extends Controller
             ->join('users', 'users.nip', '=', 'pegawaiperjadin.id_user')
             ->where('pegawaiperjadin.id_perjadin', $id)
             ->select('users.nip', 'users.nama', 'pegawaiperjadin.role_perjadin')
-            ->orderBy('pegawaiperjadin.is_lead', 'desc')
             ->get();
 
         $rekapData = [];
@@ -248,6 +247,7 @@ class PPKController extends Controller
                 'laporankeuangan.tanggal_spm',
                 'laporankeuangan.nomor_sp2d',
                 'laporankeuangan.tanggal_sp2d',
+                'laporankeuangan.biaya_rampung as jumlah_sp2d', 
                 DB::raw('uke1.nama_uke as nama_uke1'),
                 DB::raw('uke2.nama_uke as nama_uke2'),
                 DB::raw('pangkatgolongan.nama_pangkat as pangkat_golongan'),

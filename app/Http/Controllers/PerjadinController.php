@@ -43,11 +43,11 @@ class PerjadinController extends Controller
                 ->pluck('id_user')
                 ->toArray();
 
-            $missingUraian[$p->id] = DB::table('pegawaiperjadin')
+            $missingUraian[$p->id] = DB::table('laporan_perjadin')
                 ->where('id_perjadin', $p->id)
                 ->where(function ($q) {
-                    $q->whereNull('laporan_individu')
-                      ->orWhereRaw("TRIM(IFNULL(laporan_individu,'')) = ''");
+                    $q->whereNull('uraian')
+                      ->orWhereRaw("TRIM(IFNULL(uraian,'')) = ''");
                 })
                 ->pluck('id_user')
                 ->toArray();

@@ -2,24 +2,27 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class RekapPerjadinExport implements FromCollection, WithHeadings, WithMapping, WithEvents, WithStyles
+class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, WithEvents
 {
-    protected $tahun;
-    protected $bulanMulai;
-    protected $bulanSelesai;
+    protected ?int $tahun;
+    protected ?int $bulanMulai;
+    protected ?int $bulanSelesai;
 
-    protected $rowNumber = 0; // untuk kolom "No"
+    /** counter untuk kolom "No" */
+    protected int $rowIndex = 0;
 
-    public function __construct($tahun = null, $bulanMulai = null, $bulanSelesai = null)
+    public function __construct(?int $tahun = null, ?int $bulanMulai = null, ?int $bulanSelesai = null)
     {
         $this->tahun        = $tahun;
         $this->bulanMulai   = $bulanMulai;
@@ -27,179 +30,220 @@ class RekapPerjadinExport implements FromCollection, WithHeadings, WithMapping, 
     }
 
     /**
-     * QUERY UTAMA – sama logikanya dengan PPKController::tabelRekap
+     * Query data – strukturnya disamakan dengan tabel rekap di PPKController::tabelRekap()
      */
-    public function collection()
+    public function collection(): Collection
     {
-        // Subquery agregat bukti_laporan
-        $agg = DB::table('laporan_perjadin')
-            ->join('bukti_laporan', 'laporan_perjadin.id', '=', 'bukti_laporan.id_laporan')
-            ->select(
-                'laporan_perjadin.id_perjadin',
-                'laporan_perjadin.id_user',
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Tiket' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_tiket"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Uang Harian' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_uang_harian"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Penginapan' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_penginapan"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Uang Representasi' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_uang_representasi"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Transport' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_transport"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Sewa Kendaraan' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_sewa_kendaraan"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Pengeluaran Riil' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_pengeluaran_riil"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'SSPB' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_sspb"),
-                DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori <> 'SSPB' THEN bukti_laporan.nominal ELSE 0 END) AS jumlah_dibayarkan"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Penginapan' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_hotel"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kota' THEN bukti_laporan.keterangan ELSE NULL END) AS kota_hotel"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Maskapai' THEN bukti_laporan.keterangan ELSE NULL END) AS maskapai")
-            )
-            ->groupBy('laporan_perjadin.id_perjadin', 'laporan_perjadin.id_user');
+        $tahun       = $this->tahun;
+        $bulanMulai  = $this->bulanMulai;
+        $bulanSelesai= $this->bulanSelesai;
 
-        $query = DB::table('laporankeuangan')
-            ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
-            ->join('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
-            ->join('pegawaiperjadin', 'pegawaiperjadin.id_perjadin', '=', 'perjalanandinas.id')
-            ->join('users', 'pegawaiperjadin.id_user', '=', 'users.nip')
-            ->leftJoin('unitkerja as uke2', 'users.id_uke', '=', 'uke2.id')
-            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')
-            ->leftJoin('pangkatgolongan', 'users.pangkat_gol_id', '=', 'pangkatgolongan.id')
-            ->leftJoinSub($agg, 'agg', function ($join) {
-                $join->on('agg.id_perjadin', '=', 'perjalanandinas.id');
-                $join->on('agg.id_user', '=', 'users.nip');
+        // SUBQUERY: agregasi bukti_laporan per (id_perjadin, id_user)
+        $biayaSub = DB::table('laporan_perjadin as lp')
+            ->join('bukti_laporan as bl', 'lp.id', '=', 'bl.id_laporan')
+            ->selectRaw('
+                lp.id_perjadin,
+                lp.id_user,
+
+                SUM(CASE WHEN bl.kategori = "Tiket"             AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_tiket,
+                SUM(CASE WHEN bl.kategori = "Uang Harian"       AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_uang_harian,
+                SUM(CASE WHEN bl.kategori = "Penginapan"        AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_penginapan,
+                SUM(CASE WHEN bl.kategori = "Uang Representasi" AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_uang_representasi,
+                SUM(CASE WHEN bl.kategori = "Transport"         AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_transport,
+                SUM(CASE WHEN bl.kategori = "Sewa Kendaraan"    AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_sewa_kendaraan,
+                SUM(CASE WHEN bl.kategori = "Pengeluaran Riil"  AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_pengeluaran_riil,
+                SUM(CASE WHEN bl.kategori = "SSPB"              AND bl.nominal > 0 THEN bl.nominal ELSE 0 END) AS biaya_sspb,
+
+                -- Jumlah dibayarkan per pegawai (semua nominal > 0 kecuali SSPB)
+                SUM(CASE WHEN bl.nominal > 0 AND bl.kategori <> "SSPB" THEN bl.nominal ELSE 0 END) AS jumlah_dibayarkan,
+
+                -- Info tambahan yang disimpan di kolom keterangan
+                MAX(CASE WHEN bl.kategori = "Nama Penginapan" THEN bl.keterangan ELSE NULL END) AS nama_hotel,
+                MAX(CASE WHEN bl.kategori = "Kota Penginapan" THEN bl.keterangan ELSE NULL END) AS kota_hotel,
+                MAX(CASE WHEN bl.kategori = "Kode Tiket"      THEN bl.keterangan ELSE NULL END) AS kode_tiket,
+                MAX(CASE WHEN bl.kategori = "Maskapai"        THEN bl.keterangan ELSE NULL END) AS maskapai
+            ')
+            ->groupBy('lp.id_perjadin', 'lp.id_user');
+
+        $query = DB::table('laporankeuangan as lk')
+            ->join('perjalanandinas as pd', 'lk.id_perjadin', '=', 'pd.id')
+            ->join('pegawaiperjadin as pp', 'pp.id_perjadin', '=', 'pd.id')
+            ->join('users as u', 'pp.id_user', '=', 'u.nip')
+            ->leftJoin('pangkatgolongan as pg', 'u.pangkat_gol_id', '=', 'pg.id')
+            ->leftJoin('unitkerja as uke2', 'u.id_uke', '=', 'uke2.id')              // UKE-2 (unit langsung)
+            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')        // UKE-1 (induk) -> pakai id_induk, bukan parent_id
+            ->leftJoin('statuslaporan as sl', 'lk.id_status', '=', 'sl.id')
+            ->leftJoinSub($biayaSub, 'b', function ($join) {
+                $join->on('b.id_perjadin', '=', 'pd.id')
+                     ->on('b.id_user', '=', 'u.nip');
             })
-            ->where('statuslaporan.nama_status', 'Selesai')
-            ->select(
-                'perjalanandinas.tujuan',
-                'perjalanandinas.tgl_mulai',
-                'perjalanandinas.tgl_selesai',
-                'users.nama as nama_pegawai',
-                'users.nip',
-                'laporankeuangan.nomor_spm',
-                'laporankeuangan.tanggal_spm',
-                'laporankeuangan.nomor_sp2d',
-                'laporankeuangan.tanggal_sp2d',
-                DB::raw('uke1.nama_uke as nama_uke1'),
-                DB::raw('uke2.nama_uke as nama_uke2'),
-                DB::raw('pangkatgolongan.nama_pangkat as pangkat_golongan'),
-                DB::raw('COALESCE(agg.biaya_tiket, 0)              as biaya_tiket'),
-                DB::raw('COALESCE(agg.biaya_uang_harian, 0)        as biaya_uang_harian'),
-                DB::raw('COALESCE(agg.biaya_penginapan, 0)         as biaya_penginapan'),
-                DB::raw('COALESCE(agg.biaya_uang_representasi, 0)  as biaya_uang_representasi'),
-                DB::raw('COALESCE(agg.biaya_transport, 0)          as biaya_transport'),
-                DB::raw('COALESCE(agg.biaya_sewa_kendaraan, 0)     as biaya_sewa_kendaraan'),
-                DB::raw('COALESCE(agg.biaya_pengeluaran_riil, 0)   as biaya_pengeluaran_riil'),
-                DB::raw('COALESCE(agg.biaya_sspb, 0)               as biaya_sspb'),
-                DB::raw('COALESCE(agg.jumlah_dibayarkan, 0)        as jumlah_dibayarkan'),
-                'agg.nama_hotel',
-                'agg.kota_hotel',
-                'agg.kode_tiket',
-                'agg.maskapai'
-            );
+            ->where('sl.nama_status', 'Selesai')
+            ->selectRaw('
+                pd.id                  AS id_perjadin,
+                pd.tgl_mulai,
+                pd.tgl_selesai,
+                pd.tujuan,
 
-        if ($this->tahun) {
-            $query->whereYear('perjalanandinas.tgl_mulai', $this->tahun);
+                u.nama                 AS nama_pegawai,
+                u.nip                  AS nip,
+                pg.nama_pangkat        AS pangkat_golongan,
+
+                uke1.nama_uke          AS nama_uke1,
+                uke2.nama_uke          AS nama_uke2,
+
+                COALESCE(b.biaya_tiket,            0) AS biaya_tiket,
+                COALESCE(b.biaya_uang_harian,      0) AS biaya_uang_harian,
+                COALESCE(b.biaya_penginapan,       0) AS biaya_penginapan,
+                COALESCE(b.biaya_uang_representasi,0) AS biaya_uang_representasi,
+                COALESCE(b.biaya_transport,        0) AS biaya_transport,
+                COALESCE(b.biaya_sewa_kendaraan,   0) AS biaya_sewa_kendaraan,
+                COALESCE(b.biaya_pengeluaran_riil, 0) AS biaya_pengeluaran_riil,
+                COALESCE(b.biaya_sspb,             0) AS biaya_sspb,
+                COALESCE(b.jumlah_dibayarkan,      0) AS jumlah_dibayarkan,
+
+                b.nama_hotel,
+                b.kota_hotel,
+                b.kode_tiket,
+                b.maskapai,
+
+                lk.nomor_spm,
+                lk.nomor_sp2d,
+                lk.biaya_rampung       AS jumlah_sp2d
+            ');
+
+        // Filter tahun
+        if ($tahun) {
+            $query->whereYear('pd.tgl_mulai', $tahun);
         }
-        if ($this->bulanMulai && $this->bulanSelesai) {
-            $query->whereMonth('perjalanandinas.tgl_mulai', '>=', $this->bulanMulai)
-                  ->whereMonth('perjalanandinas.tgl_mulai', '<=', $this->bulanSelesai);
+
+        // Filter rentang bulan
+        if ($bulanMulai && $bulanSelesai) {
+            $query->whereMonth('pd.tgl_mulai', '>=', $bulanMulai)
+                  ->whereMonth('pd.tgl_mulai', '<=', $bulanSelesai);
         }
 
         return $query
-            ->orderBy('perjalanandinas.tgl_mulai')
-            ->orderBy('users.nama')
+            ->orderBy('pd.tgl_mulai')
+            ->orderBy('u.nama')
             ->get();
     }
 
     /**
-     * HEADINGS baris ke-2 (sub-header).
-     * Baris ke-1 akan kita buat manual di AfterSheet.
-     */
-    public function headings(): array
-    {
-        return [
-            'No',
-            'Nama UKE-1',
-            'Nama UKE-2',
-            'Nama Pegawai',
-            'NIP',
-            'Pangkat / Gol',
-            'Tujuan / Dalam Rangka',
-            'Tgl Berangkat',
-            'Tgl Kembali',
-            'Lama (hari)',
-            'Tiket',
-            'Uang Harian',
-            'Penginapan',
-            'Uang Representasi',
-            'Transport',
-            'Sewa Kendaraan',
-            'Pengeluaran Riil',
-            'SSPB',
-            'Jumlah Dibayarkan (Rp)',
-            'Nama Hotel',
-            'Kota',
-            'Kode Tiket',
-            'Maskapai',
-            'No SPM',
-            'Tgl SPM',
-            'No SP2D',
-            'Tgl SP2D',
-        ];
-    }
-
-    /**
-     * Mapping setiap row ke 27 kolom (urutan sama dengan headings()).
+     * Mapping 1 baris data -> 28 kolom (sesuai template Excel 0–27).
      */
     public function map($row): array
     {
-        $this->rowNumber++;
+        $this->rowIndex++;
 
         $mulai   = $row->tgl_mulai ? \Carbon\Carbon::parse($row->tgl_mulai) : null;
         $selesai = $row->tgl_selesai ? \Carbon\Carbon::parse($row->tgl_selesai) : null;
         $lama    = ($mulai && $selesai) ? $mulai->diffInDays($selesai) + 1 : null;
 
         return [
-            $this->rowNumber,
-            $row->nama_uke1 ?? '-',
-            $row->nama_uke2 ?? '-',
-            $row->nama_pegawai,
-            $row->nip,
-            $row->pangkat_golongan ?? '-',
-            $row->tujuan ?? '-',
-            $mulai   ? $mulai->format('d-m-Y')   : '-',
-            $selesai ? $selesai->format('d-m-Y') : '-',
-            $lama ?? '-',
-            $row->biaya_tiket             ?: 0,
-            $row->biaya_uang_harian       ?: 0,
-            $row->biaya_penginapan        ?: 0,
-            $row->biaya_uang_representasi ?: 0,
-            $row->biaya_transport         ?: 0,
-            $row->biaya_sewa_kendaraan    ?: 0,
-            $row->biaya_pengeluaran_riil  ?: 0,
-            $row->biaya_sspb              ?: 0,
-            $row->jumlah_dibayarkan       ?: 0,
-            $row->nama_hotel  ?? '-',
-            $row->kota_hotel  ?? '-',
-            $row->kode_tiket  ?? '-',
-            $row->maskapai    ?? '-',
-            $row->nomor_spm   ?? '-',
-            $row->tanggal_spm ? \Carbon\Carbon::parse($row->tanggal_spm)->format('d-m-Y') : '-',
-            $row->nomor_sp2d  ?? '-',
-            $row->tanggal_sp2d ? \Carbon\Carbon::parse($row->tanggal_sp2d)->format('d-m-Y') : '-',
+            // 1–6: No, UKE, SPM, SP2D, Jumlah SP2D
+            $this->rowIndex,                                   // No
+            $row->nama_uke1 ?? '-',                            // Nama UKE-1
+            $row->nama_uke2 ?? '-',                            // Nama UKE-2
+            $row->nomor_spm ?? '-',                            // No SPM
+            $row->nomor_sp2d ?? '-',                           // No SP2D
+            $row->jumlah_sp2d ?: 0,                            // Jumlah SP2D (Rp)
+
+            // 7–15: SPD
+            $row->nama_pegawai,                                // Nama Lengkap Tanpa Gelar
+            $row->nip,                                         // NIP
+            $row->pangkat_golongan ?? '-',                     // Pangkat Golongan
+            $row->tujuan ?? '-',                               // Dalam Rangka  (pakai tujuan)
+            'Jakarta',                                         // Daerah Asal (statis)
+            $row->tujuan ?? '-',                               // Daerah Tujuan (pakai tujuan lagi)
+            $mulai   ? $mulai->format('d-m-Y') : '-',          // Tgl SPD Brgkt
+            $selesai ? $selesai->format('d-m-Y') : '-',        // Tgl SPD Kmbl
+            $lama ?? '-',                                      // Lama Hari
+
+            // 16: Jumlah Dibayarkan per pegawai
+            $row->jumlah_dibayarkan ?: 0,
+
+            // 17–24: Rincian Biaya
+            $row->biaya_tiket            ?: 0,
+            $row->biaya_uang_harian      ?: 0,
+            $row->biaya_penginapan       ?: 0,
+            $row->biaya_uang_representasi?: 0,
+            $row->biaya_transport        ?: 0,
+            $row->biaya_sewa_kendaraan   ?: 0,
+            $row->biaya_pengeluaran_riil ?: 0,
+            $row->biaya_sspb             ?: 0,
+
+            // 25–28: Penginapan & Pesawat
+            $row->nama_hotel ?? '-',
+            $row->kota_hotel ?? '-',
+            $row->kode_tiket ?? '-',
+            $row->maskapai   ?? '-',
         ];
     }
 
     /**
-     * Style default (misal wrap text).
+     * Header 2 baris.
+     * Baris 1: grup besar (SPD, Rincian Pembayaran, Penginapan, Pesawat).
+     * Baris 2: nama kolom detail.
      */
-    public function styles(Worksheet $sheet)
+    public function headings(): array
     {
-        // Autofit tinggi header, wrap text kolom judul
-        $sheet->getStyle('A2:AA2')->getAlignment()->setWrapText(true);
+        return [
+            // Baris header 1
+            [
+                'No',
+                'Nama UKE-1',
+                'Nama UKE-2',
+                'No SPM',
+                'No SP2D',
+                'Jumlah SP2D (Rp)',
 
-        return [];
+                'Surat Perjalanan Dinas', '', '', '', '', '', '', '', // G–O
+
+                'Rincian Pembayaran / Rincian Biaya (Rp)', '', '', '', '', '', '', '', '', // P–X
+
+                'Penginapan', '', // Y–Z
+                'Pesawat',   '', // AA–AB
+            ],
+
+            // Baris header 2 (nama kolom persis urutan 0–27)
+            [
+                'No',
+                'Nama UKE-1',
+                'Nama UKE-2',
+                'No SPM',
+                'No SP2D',
+                'Jumlah SP2D (Rp)',
+
+                'Nama Lengkap Tanpa Gelar',
+                'NIP',
+                'Pangkat Golongan',
+                'Dalam Rangka',
+                'Daerah Asal',
+                'Daerah Tujuan',
+                'Tgl SPD Brgkt',
+                'Tgl SPD Kmbl',
+                'Lama Hari',
+
+                'Jumlah Dibayarkan (Rp)',
+                'Tiket',
+                'Uang Harian',
+                'Penginapan',
+                'Uang Representasi',
+                'Transport',
+                'Sewa Kendaraan',
+                'Pengeluaran Riil',
+                'SSPB',
+
+                'Nama Hotel',
+                'Kota',
+                'Kode Tiket',
+                'Maskapai',
+            ],
+        ];
     }
 
     /**
-     * Event untuk bikin header bertingkat + warna + border tebal.
+     * Styling & merge header (warna, border, format angka).
      */
     public function registerEvents(): array
     {
@@ -207,75 +251,67 @@ class RekapPerjadinExport implements FromCollection, WithHeadings, WithMapping, 
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                // Sisipkan baris baru di paling atas:
-                // headings() (baris header bawah) geser ke row 2, data ke row 3 dst.
-                $sheet->insertNewRowBefore(1, 1);
-
-                // Isi header baris pertama
-                $sheet->setCellValue('A1', 'No');
-                $sheet->setCellValue('B1', 'Nama UKE-1');
-                $sheet->setCellValue('C1', 'Nama UKE-2');
-                $sheet->setCellValue('D1', 'Nama Pegawai');
-                $sheet->setCellValue('E1', 'NIP');
-                $sheet->setCellValue('F1', 'Pangkat / Gol');
-                $sheet->setCellValue('G1', 'Tujuan / Dalam Rangka');
-                $sheet->setCellValue('H1', 'Tgl Berangkat');
-                $sheet->setCellValue('I1', 'Tgl Kembali');
-                $sheet->setCellValue('J1', 'Lama (hari)');
-
-                $sheet->setCellValue('K1', 'Rincian Pembayaran / Rincian Biaya (Rp)');
-                $sheet->setCellValue('S1', 'Jumlah Dibayarkan (Rp)');
-                $sheet->setCellValue('T1', 'Penginapan');
-                $sheet->setCellValue('V1', 'Pesawat');
-                $sheet->setCellValue('X1', 'Dokumen Pembayaran');
-
-                // Merge kolom yang perlu rowspan dan colspan
-                $sheet->mergeCells('A1:A2');
-                $sheet->mergeCells('B1:B2');
-                $sheet->mergeCells('C1:C2');
-                $sheet->mergeCells('D1:D2');
-                $sheet->mergeCells('E1:E2');
-                $sheet->mergeCells('F1:F2');
-                $sheet->mergeCells('G1:G2');
-                $sheet->mergeCells('H1:H2');
-                $sheet->mergeCells('I1:I2');
-                $sheet->mergeCells('J1:J2');
-
-                $sheet->mergeCells('K1:R1'); // Rincian pembayaran (8 kolom)
-                $sheet->mergeCells('S1:S2'); // Jumlah dibayarkan
-                $sheet->mergeCells('T1:U1'); // Penginapan
-                $sheet->mergeCells('V1:W1'); // Pesawat
-                $sheet->mergeCells('X1:AA1'); // Dokumen pembayaran (4 kolom)
-
-                // Warna + bold header (baris 1–2)
-                $headerRange = 'A1:AA2';
-
-                $sheet->getStyle($headerRange)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                    ->getStartColor()->setARGB('FFF4C6F4'); // warna ungu muda
-
-                $sheet->getStyle($headerRange)->getFont()->setBold(true);
-
-                // Alignment tengah untuk header
-                $sheet->getStyle($headerRange)->getAlignment()->setHorizontal('center');
-                $sheet->getStyle($headerRange)->getAlignment()->setVertical('center');
-
-                // Border tebal di header
-                $sheet->getStyle($headerRange)->getBorders()->getAllBorders()->setBorderStyle(
-                    \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM
-                );
-
-                // Border tipis untuk body data
-                $highestRow = $sheet->getHighestRow();
-                $sheet->getStyle("A3:AA{$highestRow}")
-                    ->getBorders()->getAllBorders()->setBorderStyle(
-                        \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN
-                    );
-
-                // Auto-size lebar kolom
-                foreach (range('A', 'Z') as $col) {
-                    $sheet->getColumnDimension($col)->setAutoSize(true);
+                // Merge header vertical untuk kolom yang tidak punya sub-kolom (baris 1–2)
+                $mergeVertical = ['A', 'B', 'C', 'D', 'E', 'F'];
+                foreach ($mergeVertical as $col) {
+                    $sheet->mergeCells("{$col}1:{$col}2");
                 }
-                $sheet->getColumnDimension('AA')->setAutoSize(true);
+
+                // Merge grup besar
+                $sheet->mergeCells('G1:O1');   // Surat Perjalanan Dinas
+                $sheet->mergeCells('P1:X1');   // Rincian Pembayaran / Biaya
+                $sheet->mergeCells('Y1:Z1');   // Penginapan
+                $sheet->mergeCells('AA1:AB1'); // Pesawat
+
+                // Range header keseluruhan
+                $headerRange = 'A1:AB2';
+
+                // Warna background + alignment + border tebal
+                $sheet->getStyle($headerRange)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => 'F4C6F4'], // ungu muda
+                    ],
+                    'font' => [
+                        'bold' => true,
+                        'size' => 10,
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical'   => Alignment::VERTICAL_CENTER,
+                        'wrapText'   => true,
+                    ],
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color'       => ['rgb' => '000000'],
+                        ],
+                    ],
+                ]);
+
+                // Border untuk seluruh data (header + isi)
+                $highestRow = $sheet->getHighestRow();
+                $fullRange  = "A1:AB{$highestRow}";
+                $sheet->getStyle($fullRange)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color'       => ['rgb' => '000000'],
+                        ],
+                    ],
+                ]);
+
+                // Format angka untuk kolom rupiah:
+                // F  = Jumlah SP2D
+                // P  = Jumlah Dibayarkan
+                // Q–X = Rincian Biaya
+                $sheet->getStyle("F3:F{$highestRow}")
+                    ->getNumberFormat()
+                    ->setFormatCode('#,##0');
+
+                $sheet->getStyle("P3:X{$highestRow}")
+                    ->getNumberFormat()
+                    ->setFormatCode('#,##0');
             },
         ];
     }

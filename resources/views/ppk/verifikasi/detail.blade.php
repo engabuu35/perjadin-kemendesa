@@ -7,16 +7,16 @@
     
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6 px-2">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">Verifikasi Pembayaran</h2>
-            <p class="text-gray-600 text-sm mt-1">Surat Tugas: {{ $perjalanan->nomor_surat }}</p>
+        <x-page-title 
+        title="Verifikasi Pembayaran"
+        subtitle="Surat Tugas: {{ $perjalanan->nomor_surat }}" />
+       <div class="flex items-center gap-3">
+        <span class="px-4 py-2 -mt-8 {{ $isSelesai ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }} rounded-lg font-bold text-sm border">
+            Status: {{ $statusText }}
+        </span>
+            <x-back-button />
         </div>
-        <div class="flex gap-3">
-            <span class="px-4 py-2 {{ $isSelesai ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }} rounded-lg font-bold text-sm border">
-                Status: {{ $statusText }}
-            </span>
-            <a href="{{ route('ppk.verifikasi.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700">Kembali</a>
-        </div>
+
     </div>
 
     @if(session('success'))
@@ -101,7 +101,7 @@
     <!-- FORM VERIFIKASI -->
     <div class="bg-white rounded-xl shadow-lg border border-yellow-200 p-8 max-w-4xl mx-auto">
         <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span class="bg-yellow-100 text-yellow-700 p-2 rounded">💳</span>
+            <span class="bg-yellow-100 text-yellow-700 p-2 rounded"><i class="fa-regular fa-credit-card"></i></span>
             Verifikasi & Keputusan PPK
         </h3>
 
@@ -160,12 +160,12 @@
         <div class="flex justify-between pt-6 border-t gap-4">
             <!-- TOMBOL TOLAK (Buka Modal/Accordion) -->
             <button type="button" onclick="document.getElementById('reject-section').classList.toggle('hidden')" class="bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-red-200 transition">
-                ❌ Tolak / Revisi
+                <i class="fa-regular fa-circle-xmark"></i> Tolak / Revisi
             </button>
 
             <!-- TOMBOL SETUJUI (Submit Form Approve) -->
             <button type="button" onclick="if(confirm('Setujui pembayaran ini?')) document.getElementById('form-approve').submit()" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
-                <i class="fa-solid fa-check-double"></i>
+                <i class="fa-regular fa-circle-check"></i>
                 Setujui & Selesaikan
             </button>
         </div>

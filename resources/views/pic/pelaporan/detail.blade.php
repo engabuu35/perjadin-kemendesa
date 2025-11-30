@@ -8,15 +8,12 @@
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> Input Rincian Biaya
-            </h2>
-            <p class="text-gray-600 text-sm mt-1 font-mono bg-gray-100 inline-block px-2 py-1 rounded">
-                {{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}
-            </p>
+            <x-page-title 
+            title="Input Rincian Biaya"
+            subtitle="{{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}"/>
         </div>
         <div class="flex items-center gap-3">
-            <span class="px-4 py-2 {{ $statusText == 'Perlu Revisi' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200' }} rounded-lg font-bold text-sm border">
+            <span class="px-4 py-2 -mt-8 {{ $statusText == 'Perlu Revisi' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200' }} rounded-lg font-bold text-sm border">
                 Status: {{ $statusText }}
             </span>
             <x-back-button />
@@ -70,7 +67,7 @@
                     <!-- KOLOM KIRI: RINCIAN BIAYA (8 Field) -->
                     <div class="xl:col-span-2 space-y-4">
                         <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide border-b pb-2 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-coins text-yellow-500"></i> Rincian Biaya & Bukti
+                            <i class="fa-solid fa-money-bill-1-wave text-yellow-500"></i> Rincian Biaya & Bukti
                         </h4>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
@@ -183,11 +180,10 @@
         <div class="sticky bottom-4 z-40 mt-8">
             <div class="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 flex justify-between items-center max-w-4xl mx-auto">
                 <div class="text-sm text-gray-600">
-                    <i class="fa-solid fa-floppy-disk text-blue-600 mr-1"></i>
                     Klik simpan untuk merekam semua perubahan di atas.
                 </div>
                 <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                    SIMPAN SEMUA DATA
+                   <i class="fa-solid fa-floppy-disk"></i> SIMPAN SEMUA DATA
                 </button>
             </div>
         </div>

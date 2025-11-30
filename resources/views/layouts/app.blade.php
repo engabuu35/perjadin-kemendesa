@@ -15,12 +15,15 @@
     <div class="flex flex-1">
         @include('partials.sidebarDinamis')
 
-        <main class="flex-1 p-6 overflow-y-auto">
+        <main class="flex-1 p-6 overflow-y-auto min-h-screen">
             @yield('content')
         </main>
     </div>
 
     @include('partials.footer')
     @include('partials.mainBackground')
+
+    <x-floating-button />
+
 </body>
 </html>

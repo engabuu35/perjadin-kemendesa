@@ -12,29 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('perjalanandinas', function (Blueprint $table) {
-            // Ganti nama kolom hasil_perjadin menjadi uraian
-            if (Schema::hasColumn('perjalanandinas', 'hasil_perjadin')) {
-                $table->renameColumn('hasil_perjadin', 'uraian');
-            }
 
-            // Hapus kolom yang tidak dipakai
-            if (Schema::hasColumn('perjalanandinas', 'laporan_akhir')) {
-                $table->dropColumn('laporan_akhir');
-            }
-            if (Schema::hasColumn('perjalanandinas', 'file_laporan_kegiatan')) {
-                $table->dropColumn('file_laporan_kegiatan');
-            }
-            if (Schema::hasColumn('perjalanandinas', 'file_bukti_penginapan')) {
-                $table->dropColumn('file_bukti_penginapan');
-            }
-
-            // Ganti nama kolom file_bukti_transport menjadi pdf_keuangan
-            if (Schema::hasColumn('perjalanandinas', 'file_bukti_transport')) {
-                $table->renameColumn('file_bukti_transport', 'pdf_keuangan');
-            }
 
             // Tambah kolom baru
-            $table->string('surat_tugas', 255)->nullable()->after('uraian'); 
+            $table->string('surat_tugas', 255)->nullable()->after('tgl_selesai'); 
             $table->unsignedBigInteger('id_atasan')->nullable()->after('surat_tugas')->index();
             $table->date('tgl_acc')->nullable()->after('id_atasan');
         });
