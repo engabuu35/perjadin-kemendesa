@@ -3,7 +3,7 @@
 @section('title', 'Detail Verifikasi PPK')
 
 @section('content')
-<main class="max-w-[98%] mx-auto px-2 py-6">
+<main class="ml-0 sm:ml-[80px] max-w-[98%] mx-auto px-2 py-6">
     
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6 px-2">
@@ -29,7 +29,7 @@
             <h3 class="font-bold text-gray-700">Rincian LS Rampung (Data dari PIC)</h3>
         </div>
         
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto p-4">
             <table class="min-w-[1800px] w-full text-sm text-left text-gray-600">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b text-center font-bold">
                     <tr>
