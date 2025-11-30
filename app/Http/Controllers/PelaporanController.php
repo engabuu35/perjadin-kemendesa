@@ -40,7 +40,7 @@ class PelaporanController extends Controller
             });
         }
 
-        $laporanList = $query->orderBy('updated_at', 'desc')->paginate(10);
+        $laporanList = $query->orderBy('updated_at', 'desc')->paginate(12);
         
         $laporanList->getCollection()->transform(function ($item) {
             // Status Merah (Revisi)
