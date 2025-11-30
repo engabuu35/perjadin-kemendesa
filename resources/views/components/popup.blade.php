@@ -8,16 +8,16 @@
 
         <!-- Profil Saya -->
         <a href="{{ route('profile') }}"
-            class="block px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
+        class="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
             <i class="fas fa-user"></i>
-            Profil Saya
+            <span>Profil Saya</span>
         </a>
 
         <!-- Logout -->
         <button id="popupLogout"
-            class="block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
+            class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
             <i class="fas fa-sign-out-alt"></i>
-            Logout
+            <span>Logout</span>
         </button>
     </div>
 
