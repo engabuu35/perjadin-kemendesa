@@ -19,10 +19,24 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #f97316;
     }
+    
+    /* Leaflet Map Z-Index Fix */
+    .leaflet-pane,
+    .leaflet-tile,
+    .leaflet-layer,
+    .leaflet-control,
+    .leaflet-top,
+    .leaflet-bottom {
+        z-index: 1 !important;
+    }
+    
+    .leaflet-popup {
+        z-index: 10 !important;
+    }
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[70px] px-4 pb-8 min-h-screen">
+<div class="ml-[80px] mt-[20px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
@@ -42,139 +56,28 @@
             <div class="space-y-4" id="leftColumn">
                 {{-- Map --}}
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-4 flex items-center justify-center border border-gray-200 h-[250px]">
-                        <div class="text-center">
-                            <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
-                                </path>
-                            </svg>
-                            <h2 class="text-lg font-bold text-gray-400">PETA</h2>
-                            <p class="text-gray-500 text-[10px] mt-1">
-                                {{-- ======================= CARD PETA ======================= --}}
-                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                    <div class="p-4">
+                        <h3 class="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-blue-500"></i>
+                            Peta Perjalanan Dinas Aktif
+                        </h3>
 
-                                    <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <i class="fa-solid fa-map-location-dot text-blue-500"></i>
-                                        Peta Perjalanan Dinas Aktif
-                                    </h2>
-
-                                    @if($geotagMapData->isEmpty())
-                                        <p class="text-sm text-gray-400 italic">
-                                            Belum ada titik geotagging dari perjalanan dinas yang sedang berlangsung.
-                                        </p>
-                                    @else
-                                        <div id="mapMonitoring"
-                                            class="w-full h-80 rounded-xl border border-gray-200 overflow-hidden">
-                                        </div>
-                                        <p class="mt-2 text-xs text-gray-500">
-                                            Menampilkan {{ $geotagMapData->count() }} titik geotagging dari perjalanan dinas aktif.
-                                        </p>
-
-                                        <div id="mapLegend" class="mt-3 text-xs text-gray-600"></div> 
-                                    @endif
-                                    @if(!$geotagMapData->isEmpty())
-                                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-                                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-                                        <script>
-                                        document.addEventListener("DOMContentLoaded", function () {
-                                            const geoData = @json($geotagMapData);
-
-                                            // Inisialisasi peta (view awal kira-kira di Indonesia)
-                                            const map = L.map('mapMonitoring').setView([-2.548926, 118.0148634], 5);
-
-                                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                                maxZoom: 19
-                                            }).addTo(map);
-
-                                            const layer  = L.layerGroup().addTo(map);
-                                            const bounds = [];
-
-                                            // Palet warna untuk perjadin
-                                            const palette = [
-                                                '#2563eb', // biru
-                                                '#16a34a', // hijau
-                                                '#f97316', // oranye
-                                                '#e11d48', '#a855f7',
-                                                '#0ea5e9', '#facc15'
-                                            ];
-
-                                            // Map: id_perjadin -> warna
-                                            const colorByPerjadin = {};
-                                            let colorIndex = 0;
-
-                                            geoData.forEach(point => {
-                                                if (!colorByPerjadin[point.id_perjadin]) {
-                                                    colorByPerjadin[point.id_perjadin] =
-                                                        palette[colorIndex % palette.length];
-                                                    colorIndex++;
-                                                }
-                                            });
-
-                                            // Tambah marker
-                                            geoData.forEach(point => {
-                                                const color = colorByPerjadin[point.id_perjadin];
-
-                                                // Circle marker berwarna (beda per perjadin)
-                                                const marker = L.circleMarker([point.lat, point.lng], {
-                                                    radius: 7,
-                                                    weight: 2,
-                                                    color: color,
-                                                    fillColor: color,
-                                                    fillOpacity: 0.85
-                                                }).addTo(layer);
-
-                                                marker.bindPopup(`
-                                                    <div class="text-xs">
-                                                        <strong>${point.nama}</strong> (${point.nip})<br>
-                                                        <span class="text-gray-600">${point.nomor}</span><br>
-                                                        Tujuan: ${point.tujuan}<br>
-                                                        Waktu: ${point.waktu}<br>
-                                                        Tipe: ${point.tipe ?? '-'}
-                                                    </div>
-                                                `);
-
-                                                bounds.push([point.lat, point.lng]);
-                                            });
-
-                                            // Auto zoom ke semua titik, tapi kalau cuma 1 titik jangan terlalu dekat
-                                            if (bounds.length === 1) {
-                                                map.setView(bounds[0], 13); // zoom 13 biar gak terlalu nge-zoom ke bangunan
-                                            } else if (bounds.length > 1) {
-                                                map.fitBounds(bounds, { padding: [25, 25] });
-                                            }
-
-                                            // Buat legenda warna per perjadin
-                                            const legendEl = document.getElementById('mapLegend');
-                                            if (legendEl) {
-                                                const entries = Object.entries(colorByPerjadin).map(([id, color]) => {
-                                                    const anyPoint = geoData.find(p => p.id_perjadin === parseInt(id));
-                                                    const label    = anyPoint
-                                                        ? `${anyPoint.nomor} – ${anyPoint.tujuan}`
-                                                        : `Perjalanan dinas ${id}`;
-
-                                                    return `
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <span style="
-                                                                width:12px;height:12px;border-radius:9999px;
-                                                                display:inline-block;background:${color};
-                                                            "></span>
-                                                            <span>${label}</span>
-                                                        </div>
-                                                    `;
-                                                }).join('');
-
-                                                legendEl.innerHTML =
-                                                    '<p class="mb-1 font-semibold">Keterangan warna per perjalanan dinas:</p>'
-                                                    + entries;
-                                            }
-                                        });
-                                        </script>
-                                    @endif
+                        @if($geotagMapData->isEmpty())
+                            <div class="flex items-center justify-center h-[250px] bg-gray-50 rounded-lg border border-gray-200">
+                                <div class="text-center">
+                                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 013.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                                        </path>
+                                    </svg>
+                                    <p class="text-sm text-gray-400">
+                                        Belum ada titik geotagging dari perjalanan dinas yang sedang berlangsung.
+                                    </p>
                                 </div>
-                            </p>
-                        </div>
+                            </div>
+                        @else
+                            <div id="mapMonitoring" class="w-full h-[250px] rounded-lg border border-gray-200 overflow-hidden"></div>
+                        @endif
                     </div>
 
                     <div class="bg-orange-500 text-white px-4 py-2">
@@ -257,13 +160,24 @@
                             <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
                         </div>
                         
-                        {{-- Filter Dropdown --}}
+                        {{-- Filter Bulan --}}
                         <div class="relative">
                             <select 
-                                id="filterStatus"
+                                id="filterBulan"
                                 class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent appearance-none pr-8 bg-white cursor-pointer">
-                                <option value="all">Semua Status</option>
-                                <option value="onprogress">On Progress</option>
+                                <option value="all">Semua Bulan</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[8px] pointer-events-none"></i>
                         </div>
@@ -293,6 +207,7 @@
                         <div class="perjadin-card bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100"
                              data-nomor="{{ strtolower($perjadin->nomor_surat ?? 'Nomor Surat Tidak Tersedia') }}"
                              data-tujuan="{{ strtolower($perjadin->tujuan ?? 'Tidak ada tujuan') }}"
+                             data-bulan="{{ \Carbon\Carbon::parse($perjadin->tgl_mulai)->format('n') }}"
                              data-status="{{ $status_value }}">
                             <div class="border-l-[5px] border-blue-500 p-3">
                                 <div class="flex flex-col sm:flex-row justify-between items-start gap-2.5">
@@ -366,37 +281,43 @@
     </div>
 </div>
 
+{{-- Leaflet CSS & JS (hanya dimuat jika ada data) --}}
+@if(!$geotagMapData->isEmpty())
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endif
+
 {{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Search and Filter Functionality
+    // ==================== SEARCH & FILTER FUNCTIONALITY ====================
     const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
+    const filterBulan = document.getElementById('filterBulan');
     const resultCount = document.getElementById('resultCount');
     const perjadinCards = document.querySelectorAll('.perjadin-card');
     const noResults = document.getElementById('noResults');
     
     function filterCards() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        const statusFilter = filterStatus.value;
+        const bulanFilter = filterBulan.value;
         let visibleCount = 0;
         
         perjadinCards.forEach(card => {
             const nomor = card.getAttribute('data-nomor').toLowerCase();
             const tujuan = card.getAttribute('data-tujuan').toLowerCase();
-            const status = card.getAttribute('data-status');
+            const bulan = card.getAttribute('data-bulan');
             
             // Check search match
             const matchSearch = searchTerm === '' || 
                                 nomor.includes(searchTerm) || 
                                 tujuan.includes(searchTerm);
             
-            // Check status filter
-            const matchStatus = statusFilter === 'all' || status === statusFilter;
+            // Check bulan filter
+            const matchBulan = bulanFilter === 'all' || bulan === bulanFilter;
             
             // Show/hide card
-            if (matchSearch && matchStatus) {
+            if (matchSearch && matchBulan) {
                 card.style.display = '';
                 visibleCount++;
             } else {
@@ -417,9 +338,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Event listeners
     searchInput.addEventListener('input', filterCards);
-    filterStatus.addEventListener('change', filterCards);
+    filterBulan.addEventListener('change', filterCards);
     
-    // Sync height between columns
+    // ==================== SYNC COLUMN HEIGHTS ====================
     function syncColumnHeights() {
         const leftColumn = document.getElementById('leftColumn');
         const rightWrapper = document.getElementById('rightColumnWrapper');
@@ -463,13 +384,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Run after charts are fully loaded
     setTimeout(syncColumnHeights, 200);
 
+    // ==================== CHART DATA ====================
     const barData  = @json($barChartData);
     const lineData = @json($lineChartData);
 
     console.log('Bar Chart Data:', barData);
     console.log('Line Chart Data:', lineData);
 
-    // BAR CHART
+    // ==================== BAR CHART ====================
     const barCanvas = document.getElementById('barChart');
     if (barCanvas) {
         const barCtx = barCanvas.getContext('2d');
@@ -514,15 +436,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: { display: false },
                         ticks: { font: { size: 10 } }
                     }
+                },
+                animation: {
+                    onComplete: syncColumnHeights
                 }
             }
         });
-        
-        // Sync heights after chart animation completes
-        barChart.options.animation.onComplete = syncColumnHeights;
     }
 
-    // LINE CHART
+    // ==================== LINE CHART ====================
     const lineCanvas = document.getElementById('lineChart');
     if (lineCanvas) {
         const lineCtx = lineCanvas.getContext('2d');
@@ -576,13 +498,97 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: { display: false },
                         ticks: { font: { size: 10 } }
                     }
+                },
+                animation: {
+                    onComplete: syncColumnHeights
                 }
             }
         });
-        
-        // Sync heights after chart animation completes
-        lineChart.options.animation.onComplete = syncColumnHeights;
     }
+
+    // ==================== LEAFLET MAP INITIALIZATION ====================
+    @if(!$geotagMapData->isEmpty())
+    // Tunggu sampai map container dan Leaflet library siap
+    setTimeout(function() {
+        const mapEl = document.getElementById('mapMonitoring');
+        if (!mapEl || typeof L === 'undefined') return;
+
+        const geoData = @json($geotagMapData);
+
+        // Inisialisasi peta (view awal kira-kira di Indonesia)
+        const map = L.map('mapMonitoring').setView([-2.548926, 118.0148634], 5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Paksa map untuk resize setelah container siap
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
+
+        const layer  = L.layerGroup().addTo(map);
+        const bounds = [];
+
+        // Palet warna untuk perjadin
+        const palette = [
+            '#2563eb', // biru
+            '#16a34a', // hijau
+            '#f97316', // oranye
+            '#e11d48', '#a855f7',
+            '#0ea5e9', '#facc15'
+        ];
+
+        // Map: id_perjadin -> warna
+        const colorByPerjadin = {};
+        let colorIndex = 0;
+
+        geoData.forEach(point => {
+            if (!colorByPerjadin[point.id_perjadin]) {
+                colorByPerjadin[point.id_perjadin] =
+                    palette[colorIndex % palette.length];
+                colorIndex++;
+            }
+        });
+
+        // Tambah marker
+        geoData.forEach(point => {
+            const color = colorByPerjadin[point.id_perjadin];
+
+            // Circle marker berwarna (beda per perjadin)
+            const marker = L.circleMarker([point.lat, point.lng], {
+                radius: 7,
+                weight: 2,
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.85
+            }).addTo(layer);
+
+            marker.bindPopup(`
+                <div class="text-xs">
+                    <strong>${point.nama}</strong> (${point.nip})<br>
+                    <span class="text-gray-600">${point.nomor}</span><br>
+                    Tujuan: ${point.tujuan}<br>
+                    Waktu: ${point.waktu}<br>
+                    Tipe: ${point.tipe ?? '-'}
+                </div>
+            `);
+
+            bounds.push([point.lat, point.lng]);
+        });
+
+        // Auto zoom ke semua titik
+        if (bounds.length === 1) {
+            map.setView(bounds[0], 13);
+        } else if (bounds.length > 1) {
+            map.fitBounds(bounds, { padding: [25, 25] });
+        }
+
+        // Sync heights setelah map dimuat
+        setTimeout(syncColumnHeights, 300);
+    }, 250);
+    @endif
 });
 </script>
 @endsection
