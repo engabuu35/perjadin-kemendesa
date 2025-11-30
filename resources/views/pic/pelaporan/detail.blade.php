@@ -3,19 +3,18 @@
 @section('title', 'Input Keuangan Perjadin')
 
 @section('content')
-<div class="max-w-[95%] mx-auto px-4 py-8">
+<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">Input Rincian Biaya</h2>
-            <p class="text-gray-600 text-sm mt-1">{{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}</p>
-        </div>
-        <div class="flex gap-3">
+        <x-page-title 
+        title="Input Rincian Biaya"
+        subtitle="{{ $perjalanan->nomor_surat }} | {{ $perjalanan->tujuan }}" />
+        <div class="flex items-center gap-3">
             <span class="px-4 py-2 bg-gray-100 rounded-lg font-bold text-gray-600 text-sm border border-gray-200">
-                Status: {{ $statusText }}
+                Status : {{ $statusText }}
             </span>
-            <a href="{{ route('pic.pelaporan.index') }}" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700">Kembali</a>
+            <x-back-button />
         </div>
     </div>
 

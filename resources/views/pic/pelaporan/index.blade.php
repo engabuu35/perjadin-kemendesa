@@ -3,7 +3,7 @@
 @section('title', 'Daftar Pelaporan Masuk')
 
 @section('content')
-<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
+<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <x-page-title 
@@ -31,7 +31,7 @@
                     @endphp
 
                     <span class="{{ $colorClass }} text-xs font-bold flex items-center gap-1">
-                        {{ $item->status_icon }} {{ $item->custom_status }}
+                        {!!$item->status_icon!!} {{$item->custom_status }}
                     </span>
                 </div>
                 
@@ -39,7 +39,7 @@
                 
                 <div class="space-y-2 text-sm text-gray-600">
                     <div class="flex items-center gap-2">
-                        <span class="w-4 text-center">📅</span>
+                        <i class="fa-slab-press fa-regular fa-calendar"></i>
                         {{ \Carbon\Carbon::parse($item->tgl_mulai)->format('d M') }} - {{ \Carbon\Carbon::parse($item->tgl_selesai)->format('d M Y') }}
                     </div>
                 </div>

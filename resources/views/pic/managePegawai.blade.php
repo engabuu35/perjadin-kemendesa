@@ -35,7 +35,6 @@
                 </div>
             </form>
 
-            <!-- Tambah (PERBAIKAN DI SINI) -->
             <!-- Ditambahkan class: whitespace-nowrap (biar teks gak turun) & flex-shrink-0 (biar tombol gak kegencet) -->
             <a href="{{ route('pic.pegawai.create') }}"
             class="px-4 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
