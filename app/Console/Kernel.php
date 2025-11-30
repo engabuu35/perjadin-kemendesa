@@ -21,6 +21,8 @@ class Kernel extends ConsoleKernel
                     ->dailyAt('00:05')
                     ->name('perjadin:update-full')
                     ->withoutOverlapping();
+        
+        $schedule->command('notifikasi:process')->everyFiveMinutes();
     }
 
     protected function commands(): void

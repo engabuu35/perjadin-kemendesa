@@ -126,7 +126,6 @@ class PerjadinDataSeeder extends Seeder
             'tujuan' => 'Dinas ke ' . $this->getNamaKota($i),
             'tgl_mulai' => now()->subDays(rand(5,8)),
             'tgl_selesai' => now()->subDays(rand(1,3)),
-            'uraian' => 'Kegiatan dummy untuk simulasi aplikasi.',
             'created_at' => now()->subDays(12),
         ]);
 
@@ -138,7 +137,6 @@ class PerjadinDataSeeder extends Seeder
                 'id_perjadin' => $id,
                 'id_user' => $nipPegawai,
                 'role_perjadin' => ($index == 0) ? 'Ketua' : 'Anggota',
-                'is_lead' => ($index == 0) ? 1 : 0,
                 'is_finished' => 1 
             ]);
 

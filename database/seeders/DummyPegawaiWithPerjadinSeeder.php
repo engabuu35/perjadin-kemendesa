@@ -114,7 +114,6 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                     'tujuan'        => 'Kota ' . Str::upper(Str::random(5)),
                     'tgl_mulai'     => $mulai,
                     'tgl_selesai'   => $selesai,
-                    'uraian'        => "Perjalanan dinas dummy untuk {$nama}",
                     'created_at'    => $now,
                     'updated_at'    => $now,
                 ]);
@@ -126,7 +125,6 @@ class DummyPegawaiWithPerjadinSeeder extends Seeder
                     'role_perjadin' => 'Anggota',
                     // Pegawai dianggap sudah selesai tugasnya jika status sudah masuk PIC/PPK/Selesai
                     'is_finished'   => ($status == $idStatusSelesai || $status == $idStatusMenungguP || $status == $idStatusPic) ? 1 : 0,
-                    'is_lead'       => 1,
                 ]);
 
                 // Buat Laporan Keuangan Dummy HANYA jika status Menunggu Validasi PPK (Agar PIC bersih)

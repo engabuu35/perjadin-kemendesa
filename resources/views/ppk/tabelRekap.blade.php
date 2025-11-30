@@ -3,18 +3,12 @@
 @section('title', 'Tabel Rekap Keuangan Perjalanan Dinas')
 
 @section('content')
-<main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
+<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     {{-- HEADER HALAMAN --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-gray-700 text-3xl font-bold pb-2 relative">
-                Tabel Rekap Keuangan Perjalanan Dinas
-                <span class="absolute bottom-0 left-0 w-32 h-1 bg-blue-500 rounded"></span>
-            </h1>
-            <p class="text-gray-500 mt-2">
-                Rekap perjalanan dinas yang sudah memiliki laporan keuangan final (SPM/SP2D rampung).
-            </p>
-        </div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-1">
+        <x-page-title
+        title="Tabel Rekap Keuangan Perjalanan Dinas"
+        subtitle="Rekap perjalanan dinas yang sudah memiliki laporan keuangan final (SPM/SP2D rampung)." />
     </div>
 
     @php
@@ -25,7 +19,7 @@
     @endphp
 
     {{-- FILTER PERIODE --}}
-    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 mb-6">
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 mb-4">
         <div class="flex items-center gap-2 mb-4">
             <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
                 <i class="fa-solid fa-filter"></i>
