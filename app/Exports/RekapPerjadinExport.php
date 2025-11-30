@@ -57,7 +57,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
 
                 -- Info tambahan yang disimpan di kolom keterangan
                 MAX(CASE WHEN bl.kategori = "Nama Penginapan" THEN bl.keterangan ELSE NULL END) AS nama_hotel,
-                MAX(CASE WHEN bl.kategori = "Kota Penginapan" THEN bl.keterangan ELSE NULL END) AS kota_hotel,
+                MAX(CASE WHEN bl.kategori = "Kota" THEN bl.keterangan ELSE NULL END) AS kota_hotel,
                 MAX(CASE WHEN bl.kategori = "Kode Tiket"      THEN bl.keterangan ELSE NULL END) AS kode_tiket,
                 MAX(CASE WHEN bl.kategori = "Maskapai"        THEN bl.keterangan ELSE NULL END) AS maskapai
             ')
@@ -69,7 +69,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
             ->leftJoin('pangkatgolongan as pg', 'u.pangkat_gol_id', '=', 'pg.id')
             ->leftJoin('unitkerja as uke2', 'u.id_uke', '=', 'uke2.id')
-            ->leftJoin('unitkerja as uke1', 'uke2.parent_id', '=', 'uke1.id')
+            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')
             ->leftJoin('statuslaporan as sl', 'lk.id_status', '=', 'sl.id')
             ->leftJoinSub($biayaSub, 'b', function ($join) {
                 $join->on('b.id_perjadin', '=', 'pd.id')
