@@ -25,7 +25,7 @@ class User extends Authenticatable
         'nama',
         'email',
         'no_telp',
-        'password_hash', // Sesuai migrasi
+        'password_hash',
         'is_aktif',
     ];
 
