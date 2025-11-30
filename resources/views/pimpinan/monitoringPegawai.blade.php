@@ -33,10 +33,86 @@
     .leaflet-popup {
         z-index: 10 !important;
     }
+    
+    /* Modal Fullscreen Map */
+    .map-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .map-modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .map-modal-content {
+        width: 95%;
+        height: 90%;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative;
+        animation: slideUp 0.3s ease;
+    }
+    
+    .map-close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10000;
+        background: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .map-close-btn:hover {
+        background: #ef4444;
+        color: white;
+        transform: rotate(90deg);
+    }
+    
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
 </style>
 
 {{-- wrapper mengikuti layout lain: geser dari sidebar & header --}}
-<div class="ml-[80px] mt-[20px] px-4 pb-8 min-h-screen">
+<div class="ml-[80px] mt-[70px] px-4 pb-8 min-h-screen">
     <div class="mx-auto max-w-[1400px]">
 
         {{-- Header --}}
@@ -76,7 +152,7 @@
                                 </div>
                             </div>
                         @else
-                            <div id="mapMonitoring" class="w-full h-[250px] rounded-lg border border-gray-200 overflow-hidden"></div>
+                            <div id="mapMonitoring" class="w-full h-[250px] rounded-lg border border-gray-200 overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:border-blue-400" onclick="openMapModal()" title="Klik untuk memperbesar peta"></div>
                         @endif
                     </div>
 
@@ -278,6 +354,16 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+{{-- Modal Fullscreen Map --}}
+<div id="mapModal" class="map-modal">
+    <div class="map-modal-content">
+        <button class="map-close-btn" onclick="closeMapModal()">
+            <i class="fa-solid fa-times text-lg"></i>
+        </button>
+        <div id="mapMonitoringFull" class="w-full h-full"></div>
     </div>
 </div>
 
@@ -508,22 +594,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==================== LEAFLET MAP INITIALIZATION ====================
     @if(!$geotagMapData->isEmpty())
-    // Tunggu sampai map container dan Leaflet library siap
-    setTimeout(function() {
-        const mapEl = document.getElementById('mapMonitoring');
-        if (!mapEl || typeof L === 'undefined') return;
+    let mapInstance = null;
+    let mapFullInstance = null;
+    const geoData = @json($geotagMapData);
+    
+    // Fungsi untuk membuat map
+    function createMap(containerId, isFullscreen = false) {
+        const mapEl = document.getElementById(containerId);
+        if (!mapEl || typeof L === 'undefined') return null;
 
-        const geoData = @json($geotagMapData);
-
-        // Inisialisasi peta (view awal kira-kira di Indonesia)
-        const map = L.map('mapMonitoring').setView([-2.548926, 118.0148634], 5);
+        // Inisialisasi peta
+        const map = L.map(containerId).setView([-2.548926, 118.0148634], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // Paksa map untuk resize setelah container siap
+        // Paksa map untuk resize
         setTimeout(function() {
             map.invalidateSize();
         }, 100);
@@ -533,11 +621,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Palet warna untuk perjadin
         const palette = [
-            '#2563eb', // biru
-            '#16a34a', // hijau
-            '#f97316', // oranye
-            '#e11d48', '#a855f7',
-            '#0ea5e9', '#facc15'
+            '#2563eb', '#16a34a', '#f97316', '#e11d48', 
+            '#a855f7', '#0ea5e9', '#facc15'
         ];
 
         // Map: id_perjadin -> warna
@@ -546,8 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         geoData.forEach(point => {
             if (!colorByPerjadin[point.id_perjadin]) {
-                colorByPerjadin[point.id_perjadin] =
-                    palette[colorIndex % palette.length];
+                colorByPerjadin[point.id_perjadin] = palette[colorIndex % palette.length];
                 colorIndex++;
             }
         });
@@ -556,9 +640,8 @@ document.addEventListener('DOMContentLoaded', function() {
         geoData.forEach(point => {
             const color = colorByPerjadin[point.id_perjadin];
 
-            // Circle marker berwarna (beda per perjadin)
             const marker = L.circleMarker([point.lat, point.lng], {
-                radius: 7,
+                radius: isFullscreen ? 10 : 7,
                 weight: 2,
                 color: color,
                 fillColor: color,
@@ -582,12 +665,57 @@ document.addEventListener('DOMContentLoaded', function() {
         if (bounds.length === 1) {
             map.setView(bounds[0], 13);
         } else if (bounds.length > 1) {
-            map.fitBounds(bounds, { padding: [25, 25] });
+            map.fitBounds(bounds, { padding: [50, 50] });
         }
+
+        return map;
+    }
+    
+    // Tunggu sampai container siap
+    setTimeout(function() {
+        mapInstance = createMap('mapMonitoring', false);
+        if (!mapInstance) return;
 
         // Sync heights setelah map dimuat
         setTimeout(syncColumnHeights, 300);
     }, 250);
+    
+    // Fungsi untuk membuka modal fullscreen
+    window.openMapModal = function() {
+        const modal = document.getElementById('mapModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Buat map fullscreen jika belum ada
+        setTimeout(function() {
+            if (!mapFullInstance) {
+                mapFullInstance = createMap('mapMonitoringFull', true);
+            } else {
+                mapFullInstance.invalidateSize();
+            }
+        }, 100);
+    };
+    
+    // Fungsi untuk menutup modal
+    window.closeMapModal = function() {
+        const modal = document.getElementById('mapModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+    
+    // Close modal dengan ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeMapModal();
+        }
+    });
+    
+    // Close modal ketika klik di luar content
+    document.getElementById('mapModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeMapModal();
+        }
+    });
     @endif
 });
 </script>

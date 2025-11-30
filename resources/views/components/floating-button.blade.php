@@ -10,7 +10,7 @@
 <body class="bg-gray-100 min-h-screen">
 
 <!-- Modal Notifikasi - Positioned near FAB -->
-<div id="notificationModal" class="hidden fixed bottom-24 right-6 transform transition-all duration-300 scale-95 opacity-0" style="z-index: 100000 !important;">
+<div id="notificationModal" class="hidden fixed bottom-24 right-6 transform transition-all duration-300 scale-95 opacity-0" style="z-index: 1005 !important;">
     <div class="bg-white rounded-xl shadow-2xl w-80 max-w-[calc(100vw-3rem)]" id="modalContent" onclick="event.stopPropagation()">
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
@@ -63,7 +63,7 @@
 </div>
 
 <!-- Floating Action Button dengan Menu Vertikal -->
-<div class="fixed bottom-6 right-6" style="z-index: 9999 !important;">
+<div class="fixed bottom-6 right-6" style="z-index: 1005 !important;">
     <div class="relative">
         <!-- Container Background -->
         <div 
