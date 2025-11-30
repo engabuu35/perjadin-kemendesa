@@ -124,7 +124,13 @@ class PerjadinTambahController extends Controller
                     'id_perjadin' => $perjalanan->id,
                     'id_user' => $pegawai['nip'],
                 ];
+                
+                // Kirim notifikasi email
+                $user = User::find($pegawai['nip']);
+                if ($user) {
+                    $user->notify(new \App\Notifications\PerjalananAssignedNotification($perjalanan));
 
+                }
                 // Data inisialisasi untuk tabel laporan_perjadin
                 $insertLaporan[] = [
                     'id_perjadin' => $perjalanan->id,
@@ -257,6 +263,13 @@ class PerjadinTambahController extends Controller
                     'id_perjadin' => $perjalanan->id,
                     'id_user' => $pegawai['nip'],
                 ];
+
+                // Kirim notifikasi email
+                $user = User::find($pegawai['nip']);
+                if ($user) {
+                    $user->notify(new \App\Notifications\PerjalananAssignedNotification($perjalanan));
+
+                }
 
                 // Cek apakah sudah ada laporan, jika belum buat baru
                 $exists = DB::table('laporan_perjadin')
