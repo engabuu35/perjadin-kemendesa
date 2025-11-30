@@ -367,7 +367,8 @@
                 </div>
 
                 <div id="mapPimpinan"
-                    class="rounded-xl border border-gray-200 w-full h-80">
+                    class="rounded-xl border border-gray-200 w-full h-80"
+                    style="position: relative; z-index: 1;">
                 </div>
 
                 <p id="mapInfo" class="mt-2 text-xs text-gray-500"></p>
@@ -380,6 +381,25 @@
         <link rel="stylesheet"
             href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <style>
+            /* Fix z-index issue dengan peta Leaflet */
+            #mapPimpinan {
+                position: relative;
+                z-index: 1 !important;
+            }
+            
+            #mapPimpinan .leaflet-container,
+            #mapPimpinan .leaflet-pane,
+            #mapPimpinan .leaflet-map-pane {
+                z-index: 1 !important;
+            }
+            
+            /* Pastikan navbar tetap di atas */
+            nav, .navbar, header, [class*="fixed"], [class*="sticky"] {
+                z-index: 9999 !important;
+            }
+        </style>
 
         <script>
         document.addEventListener("DOMContentLoaded", function () {
