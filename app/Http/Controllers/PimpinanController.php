@@ -134,7 +134,51 @@ class PimpinanController extends Controller
                     'id_perjadin' => $row->id_perjadin,
                 ];
             });
+        
+        $rawGeo = DB::table('geotagging as g')
+            ->join('perjalanandinas as pd', 'g.id_perjadin', '=', 'pd.id')
+            ->join('users as u', 'g.id_user', '=', 'u.nip')
+            ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
+            ->where('pd.id_status', $statusOnProgress)
+            ->select(
+                'g.latitude',
+                'g.longitude',
+                'g.created_at',
+                'pd.id as id_perjadin',
+                'pd.nomor_surat',
+                'pd.tujuan',
+                'u.nama',
+                'u.nip',
+                't.nama_tipe'
+            )
+            ->get();
 
+        // Grouping per (lat,lng,id_perjadin)
+        $geotagMapData = $rawGeo
+            ->groupBy(function($row) {
+                return $row->id_perjadin.'|'.$row->latitude.'|'.$row->longitude;
+            })
+            ->map(function ($group) {
+                $first = $group->first();
+
+                return [
+                    'lat'        => (float) $first->latitude,
+                    'lng'        => (float) $first->longitude,
+                    'id_perjadin'=> $first->id_perjadin,
+                    'nomor'      => $first->nomor_surat,
+                    'tujuan'     => $first->tujuan,
+                    'waktu'      => $group->max('created_at'),
+                    'tipe'       => $first->nama_tipe,
+                    'jumlah'     => $group->count(),
+                    'pegawai'    => $group->map(function($r){
+                                        return [
+                                            'nama' => $r->nama,
+                                            'nip'  => $r->nip,
+                                        ];
+                                    })->values()->all(),
+                ];
+            })
+            ->values();
 
         return view('pimpinan.monitoringPegawai', compact(
             'pegawaiOnProgress',

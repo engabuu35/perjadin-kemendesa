@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Tambah marker
+        // Tambah marker (tiap titik mewakili beberapa pegawai jika perlu)
         geoData.forEach(point => {
             const color = colorByPerjadin[point.id_perjadin];
 
@@ -648,18 +648,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 fillOpacity: 0.85
             }).addTo(layer);
 
+            // Susun daftar pegawai di titik ini
+            const pegawaiList = (point.pegawai || [])
+                .map(p => `• ${p.nama} (${p.nip})`)
+                .join('<br>');
+
             marker.bindPopup(`
                 <div class="text-xs">
-                    <strong>${point.nama}</strong> (${point.nip})<br>
-                    <span class="text-gray-600">${point.nomor}</span><br>
+                    <strong>${point.nomor}</strong><br>
                     Tujuan: ${point.tujuan}<br>
-                    Waktu: ${point.waktu}<br>
+                    <hr class="my-1">
+                    <strong>Pegawai di titik ini (${point.jumlah}):</strong><br>
+                    ${pegawaiList}<br>
+                    <hr class="my-1">
+                    Waktu terakhir: ${point.waktu}<br>
                     Tipe: ${point.tipe ?? '-'}
                 </div>
             `);
 
             bounds.push([point.lat, point.lng]);
         });
+
 
         // Auto zoom ke semua titik
         if (bounds.length === 1) {
