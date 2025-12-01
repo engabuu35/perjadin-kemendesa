@@ -22,10 +22,15 @@ class PimpinanController extends Controller
             ->where('nama_status', 'Sedang Berlangsung')
             ->value('id');
 
-        // Hitung perjadin yang sedang dalam perjalanan dinas
-        $pegawaiOnProgress = DB::table('perjalanandinas')
-            ->where('id_status', $statusOnProgress)
-            ->count();
+        // Hitung pegawai yang sedang dalam perjalanan dinas
+        $pegawaiOnProgress = DB::table('pegawaiperjadin AS pp')
+            ->join('perjalanandinas AS pd', 'pd.id', '=', 'pp.id_perjadin')
+            ->join('users AS u', 'u.nip', '=', 'pp.id_user')   // opsional, kalau mau filter is_aktif
+            ->where('pd.id_status', $statusOnProgress)        // status "Sedang Berlangsung"
+            ->where('u.is_aktif', 1)                          // opsional: hanya pegawai aktif
+            ->distinct('pp.id_user')                          // hitung pegawai unik
+            ->count('pp.id_user');
+
 
         // Ambil data perjalanan dinas yang sedang berlangsung dengan detail
         $perjalanandinas = DB::table('perjalanandinas')
