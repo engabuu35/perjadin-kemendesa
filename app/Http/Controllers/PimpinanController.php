@@ -22,10 +22,15 @@ class PimpinanController extends Controller
             ->where('nama_status', 'Sedang Berlangsung')
             ->value('id');
 
-        // Hitung perjadin yang sedang dalam perjalanan dinas
-        $pegawaiOnProgress = DB::table('perjalanandinas')
-            ->where('id_status', $statusOnProgress)
-            ->count();
+        // Hitung pegawai yang sedang dalam perjalanan dinas
+        $pegawaiOnProgress = DB::table('pegawaiperjadin AS pp')
+            ->join('perjalanandinas AS pd', 'pd.id', '=', 'pp.id_perjadin')
+            ->join('users AS u', 'u.nip', '=', 'pp.id_user')   // opsional, kalau mau filter is_aktif
+            ->where('pd.id_status', $statusOnProgress)        // status "Sedang Berlangsung"
+            ->where('u.is_aktif', 1)                          // opsional: hanya pegawai aktif
+            ->distinct('pp.id_user')                          // hitung pegawai unik
+            ->count('pp.id_user');
+
 
         // Ambil data perjalanan dinas yang sedang berlangsung dengan detail
         $perjalanandinas = DB::table('perjalanandinas')
@@ -94,6 +99,15 @@ class PimpinanController extends Controller
             ->join('users as u', 'g.id_user', '=', 'u.nip')
             ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
             ->where('pd.id_status', $statusOnProgress)
+            // ambil hanya record terbaru per pegawai & perjadin
+            ->whereRaw('g.id = (
+                SELECT g2.id 
+                FROM geotagging as g2
+                WHERE g2.id_perjadin = g.id_perjadin
+                AND g2.id_user     = g.id_user
+                ORDER BY g2.created_at DESC
+                LIMIT 1
+            )')
             ->orderBy('g.created_at', 'desc')
             ->select(
                 'g.latitude',
@@ -117,8 +131,54 @@ class PimpinanController extends Controller
                     'tujuan'  => $row->tujuan,
                     'waktu'   => Carbon::parse($row->created_at)->format('Y-m-d H:i'),
                     'tipe'    => $row->nama_tipe,
+                    'id_perjadin' => $row->id_perjadin,
                 ];
             });
+        
+        $rawGeo = DB::table('geotagging as g')
+            ->join('perjalanandinas as pd', 'g.id_perjadin', '=', 'pd.id')
+            ->join('users as u', 'g.id_user', '=', 'u.nip')
+            ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
+            ->where('pd.id_status', $statusOnProgress)
+            ->select(
+                'g.latitude',
+                'g.longitude',
+                'g.created_at',
+                'pd.id as id_perjadin',
+                'pd.nomor_surat',
+                'pd.tujuan',
+                'u.nama',
+                'u.nip',
+                't.nama_tipe'
+            )
+            ->get();
+
+        // Grouping per (lat,lng,id_perjadin)
+        $geotagMapData = $rawGeo
+            ->groupBy(function($row) {
+                return $row->id_perjadin.'|'.$row->latitude.'|'.$row->longitude;
+            })
+            ->map(function ($group) {
+                $first = $group->first();
+
+                return [
+                    'lat'        => (float) $first->latitude,
+                    'lng'        => (float) $first->longitude,
+                    'id_perjadin'=> $first->id_perjadin,
+                    'nomor'      => $first->nomor_surat,
+                    'tujuan'     => $first->tujuan,
+                    'waktu'      => $group->max('created_at'),
+                    'tipe'       => $first->nama_tipe,
+                    'jumlah'     => $group->count(),
+                    'pegawai'    => $group->map(function($r){
+                                        return [
+                                            'nama' => $r->nama,
+                                            'nip'  => $r->nip,
+                                        ];
+                                    })->values()->all(),
+                ];
+            })
+            ->values();
 
         return view('pimpinan.monitoringPegawai', compact(
             'pegawaiOnProgress',
@@ -228,14 +288,14 @@ class PimpinanController extends Controller
         $uraianIndividu = DB::table('laporan_perjadin as lp')
             ->join('users as u', 'lp.id_user', '=', 'u.nip')
             ->where('lp.id_perjadin', $id)
-            ->select(
-                'lp.*',
-                'u.nama',
-                'u.nip'
-            )
+            ->select('lp.*','u.nama','u.nip')
             ->orderBy('lp.created_at', 'asc')
             ->get();
-
+        
+        $jumlahUraianTerisi = $uraianIndividu->filter(function ($row) {
+            return trim($row->uraian ?? '') !== '';
+        })->count();
+            
         // ==========================
         // 6. Rekap Keuangan
         // ==========================
@@ -265,11 +325,39 @@ class PimpinanController extends Controller
             ? ($mulai->diffInDays($selesai) + 1)
             : 0;
 
-        $hariTerisi = DB::table('geotagging')
-            ->where('id_perjadin', $id)
-            ->select(DB::raw('DATE(created_at) as tgl'))
-            ->distinct()
-            ->count();
+        $hariTerisi = 0;
+
+        if ($totalHari > 0 && $totalPegawai > 0) {
+            // Ambil semua geotag dalam rentang tanggal perjadin
+            $geotagPerHari = DB::table('geotagging')
+                ->where('id_perjadin', $id)
+                ->whereBetween(DB::raw('DATE(created_at)'), [
+                    $mulai->format('Y-m-d'),
+                    $selesai->format('Y-m-d'),
+                ])
+                ->select(DB::raw('DATE(created_at) as tgl'), 'id_user')
+                ->distinct()                // kombinasi (tgl, user) unik
+                ->get()
+                ->groupBy('tgl');           // group per tanggal
+
+            // Loop semua hari dalam rentang perjadin
+            $tanggalIter = $mulai->copy();
+            while ($tanggalIter->lte($selesai)) {
+                $tglKey = $tanggalIter->format('Y-m-d');
+
+                // Berapa pegawai yang punya geotag di hari ini?
+                $userCountToday = isset($geotagPerHari[$tglKey])
+                    ? $geotagPerHari[$tglKey]->count()   // count kombinasi user unik di tanggal ini
+                    : 0;
+
+                // Hari dianggap "terisi" kalau semua pegawai sudah geotag minimal 1x
+                if ($userCountToday >= $totalPegawai) {
+                    $hariTerisi++;
+                }
+
+                $tanggalIter->addDay();
+            }
+        }
 
         $totalRecordGeotag = DB::table('geotagging')
             ->where('id_perjadin', $id)
@@ -320,7 +408,7 @@ class PimpinanController extends Controller
             'pegawai_selesai'          => $pegawaiSelesai,
             'persen_pegawai_selesai'   => $persenPegawaiSelesai,
             'ada_uraian_perjadin'      => trim($uraianPerjadin) !== '',
-            'jumlah_uraian_individu'   => $uraianIndividu->count(),
+            'jumlah_uraian_individu'   => $jumlahUraianTerisi,
             'ada_laporan_keuangan'     => $keuangan['ada_laporan'],
             'status_laporan_keuangan'  => $keuangan['status_laporan'],
         ];

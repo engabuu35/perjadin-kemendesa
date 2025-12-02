@@ -329,7 +329,7 @@
                             </p>
                         </div>
                         <div class="bg-gray-50 rounded-xl px-3 py-2">
-                            <p class="text-xs text-gray-500">Hari Terisi</p>
+                            <p class="text-xs text-gray-500">Hari Geotag Lengkap</p>
                             <p class="text-lg font-bold text-emerald-600">
                                 {{ $geotagSummary['hari_terisi'] }}
                             </p>
