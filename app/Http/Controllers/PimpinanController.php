@@ -47,24 +47,50 @@ class PimpinanController extends Controller
             ->get();
 
         // ==========================
-        //   BAR CHART: JUMLAH PERJADIN PER BULAN
+        //   BAR CHART: PERJADIN & STATUS LAPORAN PER BULAN (BERDASARKAN TGL SELESAI)
         // ==========================
-        $barChartData   = [];
-        $tahunSekarang  = Carbon::now()->year;
+        $tahunSekarang      = Carbon::now()->year;
+
+        $barPerjadinTotal   = []; // perjadin selesai per bulan
+        $barPegawaiSelesai  = []; // tugas pegawai yg is_finished = 1
+        $barPegawaiBelum    = []; // tugas pegawai yg belum selesai
 
         for ($bulan = 1; $bulan <= 12; $bulan++) {
-            $count = DB::table('perjalanandinas')
-                ->whereYear('tgl_mulai', $tahunSekarang)
-                ->whereMonth('tgl_mulai', $bulan)
-                ->count();
+            // Ambil ID perjadin yang SELESAI di bulan ini
+            $perjadinIds = DB::table('perjalanandinas')
+                ->whereYear('tgl_selesai', $tahunSekarang)
+                ->whereMonth('tgl_selesai', $bulan)
+                ->pluck('id');
 
-            $barChartData[] = $count;
+            // 1) Total perjadin selesai
+            $totalPerjadin = $perjadinIds->count();
+            $barPerjadinTotal[] = $totalPerjadin;
+
+            // Kalau tidak ada perjadin, otomatis 0 semua
+            if ($perjadinIds->isEmpty()) {
+                $barPegawaiSelesai[] = 0;
+                $barPegawaiBelum[]   = 0;
+                continue;
+            }
+
+            // 2) Tugas pegawai di perjadin yang selesai bulan ini
+            $assignQuery = DB::table('pegawaiperjadin')
+                ->whereIn('id_perjadin', $perjadinIds);
+
+            $totalTugas   = (clone $assignQuery)->count();
+            $tugasSelesai = (clone $assignQuery)->where('is_finished', 1)->count();
+            $tugasBelum   = max($totalTugas - $tugasSelesai, 0);
+
+            $barPegawaiSelesai[] = $tugasSelesai;
+            $barPegawaiBelum[]   = $tugasBelum;
         }
 
-        // Total perjadin 30 hari terakhir
+        // Total perjadin 30 hari terakhir (berdasarkan tgl_selesai)
         $totalSebulanTerakhir = DB::table('perjalanandinas')
-            ->where('tgl_mulai', '>=', Carbon::now()->subDays(30))
-            ->where('tgl_mulai', '<=', Carbon::now())
+            ->whereBetween('tgl_selesai', [
+                Carbon::now()->subDays(30),
+                Carbon::now()
+            ])
             ->count();
 
         // ==========================
@@ -83,7 +109,7 @@ class PimpinanController extends Controller
             $lineChartData[] = $totalAnggaran;
         }
 
-        // Total anggaran 30 hari terakhir
+        // Total anggaran 30 hari terakhir (boleh tetap pakai tgl_mulai, atau kalau mau konsisten bisa diubah ke tgl_selesai)
         $anggaranSebulanTerakhir = (int) DB::table('laporankeuangan')
             ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
             ->where('perjalanandinas.tgl_mulai', '>=', Carbon::now()->subDays(30))
@@ -183,7 +209,9 @@ class PimpinanController extends Controller
         return view('pimpinan.monitoringPegawai', compact(
             'pegawaiOnProgress',
             'perjalanandinas',
-            'barChartData',
+            'barPerjadinTotal',
+            'barPegawaiSelesai',
+            'barPegawaiBelum',
             'lineChartData',
             'totalSebulanTerakhir',
             'anggaranSebulanTerakhir',

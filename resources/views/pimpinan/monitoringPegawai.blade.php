@@ -470,65 +470,99 @@ document.addEventListener('DOMContentLoaded', function() {
     // Run after charts are fully loaded
     setTimeout(syncColumnHeights, 200);
 
-    // ==================== CHART DATA ====================
-    const barData  = @json($barChartData);
-    const lineData = @json($lineChartData);
+        // ==================== CHART DATA ====================
+        const barPerjadinTotal  = @json($barPerjadinTotal);
+        const barPegawaiSelesai = @json($barPegawaiSelesai);
+        const barPegawaiBelum   = @json($barPegawaiBelum);
+        const lineData          = @json($lineChartData);
 
-    console.log('Bar Chart Data:', barData);
-    console.log('Line Chart Data:', lineData);
+        console.log('Bar Perjadin:', barPerjadinTotal);
+        console.log('Bar Pegawai Selesai:', barPegawaiSelesai);
+        console.log('Bar Pegawai Belum:', barPegawaiBelum);
+        console.log('Line Chart Data:', lineData);
 
-    // ==================== BAR CHART ====================
-    const barCanvas = document.getElementById('barChart');
-    if (barCanvas) {
-        const barCtx = barCanvas.getContext('2d');
-        const barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
-                datasets: [{
-                    label: 'Jumlah Perjalanan Dinas',
-                    data: barData,
-                    backgroundColor: '#10b981',
-                    borderRadius: 6,
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: { font: { size: 10 } }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => 'Total: ' + ctx.parsed.y + ' perjalanan dinas'
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            font: { size: 10 },
-                            callback: value => Number.isInteger(value) ? value : null
+        // ==================== BAR CHART (3 BAR PER BULAN) ====================
+        const barCanvas = document.getElementById('barChart');
+        if (barCanvas) {
+            const barCtx = barCanvas.getContext('2d');
+            const barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+                    datasets: [
+                        {
+                            // Perjalanan dinas yang selesai bulan itu
+                            label: 'Perjalanan Dinas Selesai',
+                            data: barPerjadinTotal,
+                            backgroundColor: '#22c55e', // hijau
+                            borderRadius: 6,
+                            borderWidth: 0
                         },
-                        grid: { color: '#f3f4f6' }
-                    },
-                    x: { 
-                        grid: { display: false },
-                        ticks: { font: { size: 10 } }
-                    }
+                        {
+                            // Tugas pegawai yang sudah menyelesaikan laporan (is_finished = 1)
+                            label: 'Pegawai Selesai Laporan',
+                            data: barPegawaiSelesai,
+                            backgroundColor: '#3b82f6', // biru
+                            borderRadius: 6,
+                            borderWidth: 0
+                        },
+                        {
+                            // Tugas pegawai yang belum menyelesaikan laporan
+                            label: 'Pegawai Belum Selesai',
+                            data: barPegawaiBelum,
+                            backgroundColor: '#ef4444', // merah
+                            borderRadius: 6,
+                            borderWidth: 0
+                        }
+                    ]
                 },
-                animation: {
-                    onComplete: syncColumnHeights
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { font: { size: 10 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const label = ctx.dataset.label || '';
+                                    return label + ': ' + ctx.parsed.y;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 10 },
+                                callback: value => Number.isInteger(value) ? value : null
+                            },
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        }
+                    },
+                    // Biar bar sedikit "ngumpul" dan kelihatan overlap/rapat
+                    datasets: {
+                        bar: {
+                            categoryPercentage: 0.7,
+                            barPercentage: 0.8
+                        }
+                    },
+                    animation: {
+                        onComplete: syncColumnHeights
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
+
 
     // ==================== LINE CHART ====================
     const lineCanvas = document.getElementById('lineChart');
