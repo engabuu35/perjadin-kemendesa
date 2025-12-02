@@ -220,7 +220,7 @@
                                 <td class="px-3 py-2 border text-center">{{ $row->nama_pegawai }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nip }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->pangkat_golongan ?? '-' }}</td>
-                                <td class="px-3 py-2 border text-center">{{ $row->tujuan ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $row->dalam_rangka ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-center">Jakarta</td>
                                 <td class="px-3 py-2 border text-center">{{ $row->tujuan ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-center whitespace-nowrap">

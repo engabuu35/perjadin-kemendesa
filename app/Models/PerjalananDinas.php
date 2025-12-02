@@ -29,6 +29,7 @@ class PerjalananDinas extends Model
         'uraian',
         'surat_tugas',
         'catatan_penolakan',
+        'dalam_rangka',
     ];
 
     protected $casts = [

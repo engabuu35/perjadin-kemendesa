@@ -239,6 +239,7 @@ class PPKController extends Controller
             ->where('statuslaporan.nama_status', 'Selesai')
             ->select(
                 'perjalanandinas.tujuan',
+                'perjalanandinas.dalam_rangka',
                 'perjalanandinas.tgl_mulai',
                 'perjalanandinas.tgl_selesai',
                 'users.nama as nama_pegawai',
