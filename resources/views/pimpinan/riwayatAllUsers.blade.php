@@ -3,7 +3,7 @@
 @section('content')
 @php
     // Tab aktif default = pribadi
-    $activeTab = 'pribadi';
+    $activeTab = request('tab', 'pribadi');
 @endphp
 
 <main class="ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
@@ -24,18 +24,17 @@
 
         <!-- Tabs -->
         <div class="flex gap-3 mb-5">
-            <button
-                type="button"
+            <button type="button"
                 data-tab-target="pribadi"
                 class="tab-btn px-6 py-2.5 text-sm sm:text-base font-semibold rounded-lg shadow-sm
-                       bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all duration-200 active:scale-95">
+                    {{ $activeTab === 'pribadi' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600' }}">
                 Pribadi
             </button>
-            <button
-                type="button"
+
+            <button type="button"
                 data-tab-target="pegawai"
-                class="tab-btn px-6 py-2.5 text-sm sm:text-base font-semibold rounded-lg
-                       bg-gray-200 text-gray-600 hover:bg-gray-300 hover:shadow-sm transition-all duration-200 active:scale-95">
+                class="tab-btn px-6 py-2.5 text-sm sm:text-base font-semibold rounded-lg shadow-sm
+                    {{ $activeTab === 'pegawai' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600' }}">
                 Pegawai
             </button>
         </div>
@@ -56,7 +55,8 @@
     </div>
 
     <!-- TAB: PRIBADI -->
-    <div id="tab-pribadi" class="tab-panel space-y-4">
+    <div id="tab-pribadi"
+     class="tab-panel space-y-4 {{ $activeTab === 'pribadi' ? '' : 'hidden' }}">
         @forelse ($riwayatPribadi as $riwayat)
             <div class="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
                  style="background-color: #BCBCBF;">
@@ -113,31 +113,29 @@
                 @if ($riwayatPribadi->onFirstPage())
                     <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
                 @else
-                    <a href="{{ $riwayatPribadi->previousPageUrl() }}"
+                    <a href="{{ $riwayatPribadi->previousPageUrl() }}&tab=pribadi"
                     class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
                         ❮
                     </a>
                 @endif
 
                 {{-- Page Numbers --}}
-                @foreach ($riwayatPribadi->toArray()['links'] as $link)
-                    @if ($loop->first || $loop->last) @continue @endif
-
-                    @if ($link['active'])
+                @for ($page = 1; $page <= $riwayatPribadi->lastPage(); $page++)
+                    @if ($page == $riwayatPribadi->currentPage())
                         <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
-                            {{ $link['label'] }}
+                            {{ $page }}
                         </span>
                     @else
-                        <a href="{{ $link['url'] }}"
+                        <a href="{{ $riwayatPribadi->url($page) }}&tab=pribadi"
                         class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                            {{ $link['label'] }}
+                            {{ $page }}
                         </a>
                     @endif
-                @endforeach
+                @endfor
 
                 {{-- Next --}}
                 @if ($riwayatPribadi->hasMorePages())
-                    <a href="{{ $riwayatPribadi->nextPageUrl() }}"
+                    <a href="{{ $riwayatPribadi->nextPageUrl() }}&tab=pribadi"
                     class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
                         ❯
                     </a>
@@ -153,7 +151,9 @@
     </div>
 
     <!-- TAB: PEGAWAI -->
-    <div id="tab-pegawai" class="tab-panel space-y-4 hidden">
+    <div id="tab-pegawai"
+     class="tab-panel space-y-4 {{ $activeTab === 'pegawai' ? '' : 'hidden' }}">
+
         @forelse ($riwayatPegawai as $riwayat)
             <div class="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
                  style="background-color: #BCBCBF;">
@@ -184,7 +184,7 @@
                                 {{ $riwayat->status }}
                             </span>
 
-                            <a href="{{ route('pimpinan.detail', $riwayat->id) }}"
+                            <a href="{{ route('pimpinan.detail', $riwayat->id) }}&tab=pegawai"
                                class="text-gray-200 hover:text-white hover:underline text-sm font-medium transition-all duration-200 flex items-center gap-1.5 group/link">
                                 <span>Lihat Detail</span>
                                 <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
@@ -199,7 +199,6 @@
                 <p class="text-lg">Belum ada riwayat perjalanan dinas pegawai yang selesai.</p>
             </div>
         @endforelse
-    </div>
 
         {{-- PAGINATION PEGAWAI --}}
         @if ($riwayatPegawai instanceof \Illuminate\Pagination\LengthAwarePaginator && $riwayatPegawai->total() > 0)
@@ -211,31 +210,31 @@
                 @if ($riwayatPegawai->onFirstPage())
                     <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
                 @else
-                    <a href="{{ $riwayatPegawai->previousPageUrl() }}"
+                    <a href="{{ $riwayatPegawai->previousPageUrl() }}&tab=pegawai"
                     class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
                         ❮
                     </a>
                 @endif
 
                 {{-- Page Numbers --}}
-                @foreach ($riwayatPegawai->toArray()['links'] as $link)
-                    @if ($loop->first || $loop->last) @continue @endif
-
-                    @if ($link['active'])
+                @for ($page = 1; $page <= $riwayatPegawai->lastPage(); $page++)
+                    @if ($page == $riwayatPegawai->currentPage())
                         <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
-                            {{ $link['label'] }}
+                            {{ $page }}
                         </span>
                     @else
-                        <a href="{{ $link['url'] }}"
+                        <a href="{{ $riwayatPegawai->url($page) }}&tab=pegawai"
                         class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                            {{ $link['label'] }}
+                            {{ $page }}
                         </a>
                     @endif
-                @endforeach
+                @endfor
+
+
 
                 {{-- Next --}}
                 @if ($riwayatPegawai->hasMorePages())
-                    <a href="{{ $riwayatPegawai->nextPageUrl() }}"
+                    <a href="{{ $riwayatPegawai->nextPageUrl() }}&tab=pegawai"
                     class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
                         ❯
                     </a>
@@ -247,6 +246,7 @@
 
         </div>
         @endif
+</div>
 
 </main>
 

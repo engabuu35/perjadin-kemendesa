@@ -69,8 +69,7 @@ class RiwayatController extends Controller
                 $applySearch($qPribadi);
                 $applySearch($qPegawai);
             }
-
-
+            
             $formatter = function ($item) {
             $mulai   = Carbon::parse($item->tgl_mulai);
             $selesai = Carbon::parse($item->tgl_selesai);
@@ -92,20 +91,6 @@ class RiwayatController extends Controller
                 ->paginate(10, ['*'], 'pegawai_page')
                 ->through($formatter);
 
-            // Tambahkan field bantu (lokasi, tanggal, status) untuk dipakai di view
-            $formatter = function ($item) {
-                $mulai   = Carbon::parse($item->tgl_mulai);
-                $selesai = Carbon::parse($item->tgl_selesai);
-
-                $item->lokasi  = $item->tujuan;
-                $item->tanggal = $mulai->translatedFormat('d F Y') . ' - ' . $selesai->translatedFormat('d F Y');
-                $item->status  = $item->nama_status ?? 'Selesai';
-
-                return $item;
-            };
-
-            $riwayatPribadi = $riwayatPribadi->through($formatter);
-            $riwayatPegawai = $riwayatPegawai->through($formatter);
 
             return view('pimpinan.riwayatAllUsers', [
                 'riwayatPribadi' => $riwayatPribadi,
