@@ -102,6 +102,54 @@
                 <p class="text-lg">Belum ada riwayat perjalanan dinas pribadi yang selesai.</p>
             </div>
         @endforelse
+
+                {{-- PAGINATION PRIBADI --}}
+       @if ($riwayatPribadi instanceof \Illuminate\Pagination\LengthAwarePaginator && $riwayatPribadi->total() > 0)
+        <div class="mt-6 flex justify-center">
+
+            <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+
+                {{-- Previous --}}
+                @if ($riwayatPribadi->onFirstPage())
+                    <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
+                @else
+                    <a href="{{ $riwayatPribadi->previousPageUrl() }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        ❮
+                    </a>
+                @endif
+
+                {{-- Page Numbers --}}
+                @foreach ($riwayatPribadi->toArray()['links'] as $link)
+                    @if ($loop->first || $loop->last) @continue @endif
+
+                    @if ($link['active'])
+                        <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
+                            {{ $link['label'] }}
+                        </span>
+                    @else
+                        <a href="{{ $link['url'] }}"
+                        class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                            {{ $link['label'] }}
+                        </a>
+                    @endif
+                @endforeach
+
+                {{-- Next --}}
+                @if ($riwayatPribadi->hasMorePages())
+                    <a href="{{ $riwayatPribadi->nextPageUrl() }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        ❯
+                    </a>
+                @else
+                    <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
+                @endif
+
+            </nav>
+
+        </div>
+        @endif
+
     </div>
 
     <!-- TAB: PEGAWAI -->
@@ -152,6 +200,53 @@
             </div>
         @endforelse
     </div>
+
+        {{-- PAGINATION PEGAWAI --}}
+        @if ($riwayatPegawai instanceof \Illuminate\Pagination\LengthAwarePaginator && $riwayatPegawai->total() > 0)
+        <div class="mt-6 flex justify-center">
+
+            <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+
+                {{-- Previous --}}
+                @if ($riwayatPegawai->onFirstPage())
+                    <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
+                @else
+                    <a href="{{ $riwayatPegawai->previousPageUrl() }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        ❮
+                    </a>
+                @endif
+
+                {{-- Page Numbers --}}
+                @foreach ($riwayatPegawai->toArray()['links'] as $link)
+                    @if ($loop->first || $loop->last) @continue @endif
+
+                    @if ($link['active'])
+                        <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
+                            {{ $link['label'] }}
+                        </span>
+                    @else
+                        <a href="{{ $link['url'] }}"
+                        class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                            {{ $link['label'] }}
+                        </a>
+                    @endif
+                @endforeach
+
+                {{-- Next --}}
+                @if ($riwayatPegawai->hasMorePages())
+                    <a href="{{ $riwayatPegawai->nextPageUrl() }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                        ❯
+                    </a>
+                @else
+                    <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
+                @endif
+
+            </nav>
+
+        </div>
+        @endif
 
 </main>
 

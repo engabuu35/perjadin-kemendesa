@@ -118,5 +118,52 @@
 
     </div>
 
+    @if ($riwayat_list instanceof \Illuminate\Pagination\LengthAwarePaginator)
+    <div class="mt-6 flex justify-center">
+
+        <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+
+            {{-- Previous --}}
+            @if ($riwayat_list->onFirstPage())
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
+            @else
+                <a href="{{ $riwayat_list->previousPageUrl() }}"
+                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                ❮
+                </a>
+            @endif
+
+            {{-- Page Numbers --}}
+            @foreach ($riwayat_list->toArray()['links'] as $link)
+                @if ($loop->first || $loop->last) @continue @endif
+
+                @if ($link['active'])
+                    <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
+                        {{ $link['label'] }}
+                    </span>
+                @else
+                    <a href="{{ $link['url'] }}"
+                    class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                    {{ $link['label'] }}
+                    </a>
+                @endif
+            @endforeach
+
+            {{-- Next --}}
+            @if ($riwayat_list->hasMorePages())
+                <a href="{{ $riwayat_list->nextPageUrl() }}"
+                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
+                ❯
+                </a>
+            @else
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
+            @endif
+
+        </nav>
+
+    </div>
+    @endif
+
+
 </main>
 @endsection

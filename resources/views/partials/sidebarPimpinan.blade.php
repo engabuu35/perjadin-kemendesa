@@ -60,7 +60,7 @@
                         transition-colors duration-300 gap-[10px] text-base whitespace-nowrap
                         {{ request()->routeIs('pimpinan.riwayat', 'pimpinan.detail') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
-                        <i class="fa-solid fa-rotate-left"></i>
+                        <i class="fa-solid fa-history"></i>
                     </span>
                     <span class="opacity-0 transition-opacity duration-300">Riwayat</span>
                 </a>
