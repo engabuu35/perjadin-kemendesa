@@ -165,31 +165,14 @@
             @endforeach
         </div>
 
-        <!-- AREA CATATAN REVISI DAN DALAM RANGKA-->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <!-- KOLOM KIRI: DALAM RANGKA (BARU) -->
-            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-pen-nib text-blue-500"></i> Dalam Rangka
-                </label>
-                <textarea name="dalam_rangka" rows="3"
-                    class="w-full border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:ring-blue-500 focus:border-blue-500 transition"
-                    placeholder="Contoh: Mengikuti kegiatan Workshop Pengawasan..."
-                    {{ $isReadOnly ? 'readonly' : '' }}>{{ old('dalam_rangka', $perjalanan->dalam_rangka ?? '') }}</textarea>
-                <p class="text-xs text-gray-500 mt-1">*Wajib diisi untuk keperluan kuitansi.</p>
-            </div>
-
-            <!-- KOLOM KANAN: CATATAN REVISI DARI PPK -->
-            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-message text-orange-500"></i> Catatan / Revisi dari PPK
-                </label>
-                <textarea readonly rows="3" 
-                    class="w-full border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:ring-0 cursor-not-allowed {{ $perjalanan->catatan_penolakan ? 'border-red-300 bg-red-50 text-red-800' : '' }}"
-                    placeholder="Tidak ada catatan revisi.">{{ $perjalanan->catatan_penolakan ?? '-' }}</textarea>
-            </div>
-
+        <!-- AREA CATATAN REVISI (PALING BAWAH) -->
+        <div class="mt-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-message text-gray-500"></i> Catatan / Revisi dari PPK
+            </label>
+            <textarea readonly rows="3" 
+                class="w-full border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:ring-0 cursor-not-allowed {{ $perjalanan->catatan_penolakan ? 'border-red-300 bg-red-50 text-red-800' : '' }}"
+                placeholder="Tidak ada catatan revisi.">{{ $perjalanan->catatan_penolakan ?? '-' }}</textarea>
         </div>
 
         <!-- FOOTER ACTION -->

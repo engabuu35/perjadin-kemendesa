@@ -101,6 +101,7 @@ class PerjadinTambahController extends Controller
                 'approved_by' => $validated['approved_by'] ?? null,
                 'id_pembuat' => Auth::id(),
                 'id_status' => $idStatusAwal, 
+                'dalam_rangka' => $request->input('dalam_rangka', null),
             ]);
 
             // Handle file PDF
