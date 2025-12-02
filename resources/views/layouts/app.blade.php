@@ -6,7 +6,7 @@
     <title>@yield('title', 'Pencatatan Perjalanan Dinas')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<link rel="icon" type="image/png" href="{{ asset('img/logo_kementerian.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo_kementerian.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
