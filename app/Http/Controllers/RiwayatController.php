@@ -70,13 +70,27 @@ class RiwayatController extends Controller
                 $applySearch($qPegawai);
             }
 
+
+            $formatter = function ($item) {
+            $mulai   = Carbon::parse($item->tgl_mulai);
+            $selesai = Carbon::parse($item->tgl_selesai);
+
+            $item->lokasi  = $item->tujuan;
+            $item->tanggal = $mulai->translatedFormat('d F Y') . ' - ' . $selesai->translatedFormat('d F Y');
+            $item->status  = $item->nama_status ?? 'Selesai';
+
+            return $item;
+        };
+
             $riwayatPribadi = $qPribadi
                 ->orderBy('perjalanandinas.tgl_mulai', 'desc')
-                ->get();
+                ->paginate(10, ['*'], 'pribadi_page')
+                ->through($formatter);
 
             $riwayatPegawai = $qPegawai
                 ->orderBy('perjalanandinas.tgl_mulai', 'desc')
-                ->get();
+                ->paginate(10, ['*'], 'pegawai_page')
+                ->through($formatter);
 
             // Tambahkan field bantu (lokasi, tanggal, status) untuk dipakai di view
             $formatter = function ($item) {
@@ -90,8 +104,8 @@ class RiwayatController extends Controller
                 return $item;
             };
 
-            $riwayatPribadi = $riwayatPribadi->map($formatter);
-            $riwayatPegawai = $riwayatPegawai->map($formatter);
+            $riwayatPribadi = $riwayatPribadi->through($formatter);
+            $riwayatPegawai = $riwayatPegawai->through($formatter);
 
             return view('pimpinan.riwayatAllUsers', [
                 'riwayatPribadi' => $riwayatPribadi,
@@ -129,10 +143,10 @@ class RiwayatController extends Controller
 
         $riwayat_list = $query
             ->orderBy('perjalanandinas.tgl_mulai', 'desc')
-            ->get();
+            ->paginate(10, ['*'], 'riwayat_page');
 
         // Tambahkan property status agar view lama tetap jalan
-        $riwayat_list->transform(function ($item) {
+        $riwayat_list = $riwayat_list->through(function ($item) {
             $item->status        = 'Selesai';
             $item->nama_status   = 'Selesai';
             $item->custom_status = 'Selesai';

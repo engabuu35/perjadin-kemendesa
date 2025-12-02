@@ -4,11 +4,10 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto px-5 py-8">
-    <h2 class="text-gray-700 text-2xl font-bold mb-5 pb-4 relative">
-        Edit Pegawai
-        <span class="absolute bottom-0 left-0 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
-    </h2>
-
+    <div class="flex items-center justify-between mb-4">
+    <x-page-title title="Edit Pegawai" />
+    <x-back-button />
+    </div>
     <div class="bg-white rounded-xl p-8" style="box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.2);">
         <form action="{{ route('pic.pegawai.update', $user->nip) }}" method="POST">
             @csrf
