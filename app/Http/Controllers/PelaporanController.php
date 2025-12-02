@@ -46,22 +46,22 @@ class PelaporanController extends Controller
             if ($item->nama_status == 'Perlu Revisi') {
                 $item->custom_status = 'Perlu Revisi';
                 $item->status_color  = 'red'; 
-                $item->status_icon   = '⚠️';
+                $item->status_icon   = '<i class="fa-solid fa-triangle-exclamation"></i>';
             } 
             elseif (in_array($item->nama_status, ['Menunggu Verifikasi', 'Menunggu Validasi PPK'])) {
                 $item->custom_status = 'Menunggu PPK';
                 $item->status_color  = 'yellow'; 
-                $item->status_icon   = '⏳';
+                $item->status_icon   = '<i class="fa-solid fa-clock"></i>';
             }
             else {
                 if (!$item->id_keuangan) {
                     $item->custom_status = 'Perlu Tindakan';
                     $item->status_color  = 'blue'; 
-                    $item->status_icon   = '⚡';
+                    $item->status_icon   = '<i class="fa-solid fa-bolt"></i>';
                 } else {
                     $item->custom_status = 'Sedang Dilengkapi';
                     $item->status_color  = 'indigo'; 
-                    $item->status_icon   = '📝';
+                    $item->status_icon   = '<i class="fa-regular fa-pen-to-square"></i>';
                 }
             }
             return $item;
