@@ -58,12 +58,26 @@
 
             <!-- Tujuan -->
             <div class="mb-5">
-                <label for="tujuan" class="block text-gray-700 text-sm font-medium mb-2">Tujuan</label>
+                <label for="tujuan" class="block text-gray-700 text-sm font-medium mb-2">Kota Tujuan</label>
                 <input type="text" id="tujuan" name="tujuan"
                     value="{{ old('tujuan', $perjalanan->tujuan ?? '') }}"
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                    placeholder="Contoh: Antang Kalang, Kalimantan Tengah"
                     required>
                 @error('tujuan')
+                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- Dalam Rangka (baru) -->
+            <div class="mb-5">
+                <label for="dalam_rangka" class="block text-gray-700 text-sm font-medium mb-2">Dalam Rangka</label>
+                <input type="text" id="dalam_rangka" name="dalam_rangka"
+                    value="{{ old('dalam_rangka', $perjalanan->dalam_rangka ?? '') }}"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-600 transition"
+                    placeholder="Contoh: Kegiatan Koordinasi / Workshop / Supervisi" 
+                    required>
+                @error('dalam_rangka')
                     <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                 @enderror
             </div>
