@@ -275,7 +275,7 @@
                             $tglMulai   = \Carbon\Carbon::parse($perjadin->tgl_mulai)->format('d M Y');
                             $tglSelesai = \Carbon\Carbon::parse($perjadin->tgl_selesai)->format('d M Y');
                             $tanggal    = $tglMulai . ' - ' . $tglSelesai;
-                            $status     = 'On Progress';
+                            $status     = 'Sedang Berlangsung';
                             $badge_class = 'bg-yellow-500';
                             $status_value = 'onprogress';
                         @endphp

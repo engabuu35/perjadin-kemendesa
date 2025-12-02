@@ -45,7 +45,7 @@
                     // fallback mapping berdasarkan id_status
                     $map = [
                         1 => 'bg-red-500',    // contoh: Menunggu / Draft
-                        2 => 'bg-yellow-500', // contoh: On Progress
+                        2 => 'bg-yellow-500', // contoh: Sedang Berlangsung
                         3 => 'bg-blue-500',
                         4 => 'bg-green-600',  // Selesai
                     ];
@@ -55,7 +55,7 @@
                 // default label jika kosong
                 $statusLabel = $statusName ?? match($statusId) {
                     1 => 'Menunggu',
-                    2 => 'On Progress',
+                    2 => 'Sedang Berlangsung',
                     4 => 'Selesai',
                     default => 'Draft'
                 };
