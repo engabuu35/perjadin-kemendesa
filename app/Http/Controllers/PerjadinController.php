@@ -81,22 +81,42 @@ class PerjadinController extends Controller
      */
     public function show($id)
     {
-        $userNip = Auth::user()->nip;
+        $user    = Auth::user();
+        $userNip = $user->nip;
+
         $perjalanan = PerjalananDinas::findOrFail($id);
 
+        // Refresh status perjadin
         if (method_exists($perjalanan, 'updateStatus')) {
             $perjalanan->updateStatus();
             $perjalanan->refresh();
         }
 
+        // Ambil role utama user (kalau ada)
+        $roleKode = DB::table('penugasanperan')
+            ->join('roles', 'penugasanperan.role_id', '=', 'roles.id')
+            ->where('penugasanperan.user_id', $userNip)
+            ->value('roles.kode');
+
+        $roleKode = $roleKode ? strtoupper($roleKode) : null;
+
+        // Cek apakah user adalah anggota tim perjadin (tabel pivot)
         $dataSaya = DB::table('pegawaiperjadin')
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->first();
 
-        if (!$dataSaya) abort(403);
+        $isAnggota  = (bool) $dataSaya;
+        $isPembuat  = $perjalanan->id_pembuat === $userNip;
+        $isPrivRole = in_array($roleKode, ['PIC', 'PPK', 'PIMPINAN']);
 
-        $isMyTaskFinished = $dataSaya->is_finished == 1;
+        // Kalau bukan anggota, bukan pembuat, dan bukan role istimewa → dilarang
+        if (!$isAnggota && !$isPembuat && !$isPrivRole) {
+            abort(403);
+        }
+
+    // Flag status tugas saya (kalau user bukan anggota, anggap false)
+    $isMyTaskFinished = $dataSaya ? ($dataSaya->is_finished == 1) : false;
 
         $period = CarbonPeriod::create($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         $geotagHistory = [];
