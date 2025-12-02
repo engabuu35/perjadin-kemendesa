@@ -119,13 +119,6 @@ class PelaporanController extends Controller
             return back()->with('error', 'Data terkunci. Tidak bisa diedit.');
         }
 
-        // 1. UPDATE DATA PERJADIN UTAMA (Dalam Rangka)
-        if ($request->has('dalam_rangka')) {
-            $perjalanan->update([
-                'dalam_rangka' => $request->input('dalam_rangka')
-            ]);
-        }
-
         // 2. SIMPAN DATA KEUANGAN PEGAWAI
         $items = $request->input('items', []);
         $allFiles = $request->file('items') ?? [];
