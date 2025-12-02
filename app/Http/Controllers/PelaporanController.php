@@ -116,12 +116,18 @@ class PelaporanController extends Controller
         $statusName = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
         if (!in_array($statusName, ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi'])) {
-            return back()->with('error', 'Data sudah dikirim ke PPK. Tidak bisa diedit.');
+            return back()->with('error', 'Data terkunci. Tidak bisa diedit.');
         }
 
+        // 1. UPDATE DATA PERJADIN UTAMA (Dalam Rangka)
+        if ($request->has('dalam_rangka')) {
+            $perjalanan->update([
+                'dalam_rangka' => $request->input('dalam_rangka')
+            ]);
+        }
+
+        // 2. SIMPAN DATA KEUANGAN PEGAWAI
         $items = $request->input('items', []);
-        
-        // Ambil semua file yang diupload (Array multidimensi)
         $allFiles = $request->file('items') ?? [];
 
         foreach ($items as $nip => $categories) {
@@ -137,25 +143,24 @@ class PelaporanController extends Controller
                 $pathFile = null;
                 $namaFile = null;
 
-                // Ambil data lama
+                // Ambil data bukti lama
                 $bukti = BuktiLaporan::where('id_laporan', $laporan->id)
                                      ->where('kategori', str_replace('_', ' ', $kategori))
                                      ->first();
 
-                // Cek apakah ada file baru di request file array
                 $fileBaru = $allFiles[$nip][$kategori]['file'] ?? null;
 
                 if ($fileBaru && $fileBaru->isValid()) {
-                    // Upload File Baru
-                    $pathFile = $fileBaru->storeAs('bukti_perjadin', time().'_'.$nip.'_'.str_replace(' ', '', $kategori).'_'.$fileBaru->getClientOriginalName(), 'public');
+                    $cleanKategori = str_replace(' ', '', $kategori);
+                    $filename = time().'_'.$nip.'_'.$cleanKategori.'_'.$fileBaru->getClientOriginalName();
+                    
+                    $pathFile = $fileBaru->storeAs('bukti_perjadin', $filename, 'public');
                     $namaFile = $fileBaru->getClientOriginalName();
                     
-                    // Hapus file lama jika ada
                     if ($bukti && $bukti->path_file) {
                         Storage::disk('public')->delete($bukti->path_file);
                     }
                 } else {
-                    // Pakai data lama jika tidak ada upload baru
                     if ($bukti) {
                         $pathFile = $bukti->path_file;
                         $namaFile = $bukti->nama_file;
@@ -177,6 +182,7 @@ class PelaporanController extends Controller
             }
         }
 
+        // Update status laporan keuangan
         $statusAwal = DB::table('statuslaporan')->where('nama_status', 'Perlu Tindakan')->value('id') ?? 2;
         LaporanKeuangan::firstOrCreate(['id_perjadin' => $id], ['id_status' => $statusAwal, 'created_at' => now()]);
 
