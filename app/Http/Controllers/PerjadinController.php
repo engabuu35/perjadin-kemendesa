@@ -115,8 +115,19 @@ class PerjadinController extends Controller
             abort(403);
         }
 
-    // Flag status tugas saya (kalau user bukan anggota, anggap false)
-    $isMyTaskFinished = $dataSaya ? ($dataSaya->is_finished == 1) : false;
+        // Flag status tugas saya (kalau user bukan anggota, anggap false)
+        $isMyTaskFinished = $dataSaya ? ($dataSaya->is_finished == 1) : false;
+
+        // --- status perjadin (riwayat atau belum) ---
+        $idStatusSelesai = DB::table('statusperjadin')
+            ->where('nama_status', 'Selesai')
+            ->value('id');
+
+        $isRiwayatPerjadin = $perjalanan->id_status == $idStatusSelesai;
+
+        // Flag global untuk view: boleh edit atau tidak
+        $canEditUraian   = !$isRiwayatPerjadin && !$isMyTaskFinished;
+        $canFinishTask   = !$isRiwayatPerjadin && !$isMyTaskFinished;
 
         $period = CarbonPeriod::create($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         $geotagHistory = [];
@@ -204,6 +215,10 @@ class PerjadinController extends Controller
 
         return view('pages.detailperjadin', compact(
             'perjalanan',
+            'dataSaya',
+            'isRiwayatPerjadin',
+            'canEditUraian',
+            'canFinishTask',
             'geotagHistory',
             'sudahAbsenHariIni',
             'laporanSaya',

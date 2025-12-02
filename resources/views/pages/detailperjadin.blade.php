@@ -4,23 +4,38 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
+@php
+    // Read-only kalau:
+    // 1) tugas pegawai sudah ditandai selesai, atau
+    // 2) perjadin ini sudah berstatus "Selesai" (riwayat)
+    $isRiwayatPerjadin = $isRiwayatPerjadin ?? false;
+    $isReadOnly = $isMyTaskFinished || $isRiwayatPerjadin;
+@endphp
+
 <main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
     
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-               <x-page-title
+            <x-page-title
                title="Pelaksanaan Tugas" />
-            <p class="text-gray-500 mt-1">Surat Tugas: <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span></p>
+            <p class="text-gray-500 mt-1">
+                Surat Tugas: 
+                <span class="font-semibold text-blue-600">{{ $perjalanan->nomor_surat }}</span>
+            </p>
             
             @if($isMyTaskFinished)
                 <span class="inline-block mt-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200">
                     Tugas Anda Sudah Selesai
                 </span>
+            @elseif($isRiwayatPerjadin)
+                <span class="inline-block mt-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
+                    Perjalanan Dinas Telah Selesai (Riwayat)
+                </span>
             @else
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ $statusBadgeClass ?? '' }}">
-                {{ $statusPegawai ?? '—' }}
-            </span>
+                    {{ $statusPegawai ?? '—' }}
+                </span>
             @endif
         </div>
         
@@ -37,7 +52,7 @@
     <div class="flex flex-col gap-8">
         
         <!-- 1. GEOTAGGING -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isMyTaskFinished ? 'opacity-75 pointer-events-none grayscale-[20%]' : '' }}">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isReadOnly ? 'opacity-75 pointer-events-none grayscale-[20%]' : '' }}">
             <h2 class="text-xl font-bold text-gray-800 mb-4"> Geotagging Harian</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
@@ -45,21 +60,37 @@
                 <div class="lg:col-span-2">
                     <div id="map" class="w-full h-64 bg-gray-100 rounded-xl mb-4 z-0 border border-gray-200 shadow-inner"></div>
                     
-                    @if(!$isMyTaskFinished)
-                        <button type="button" id="geotag-btn" data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}" {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }} class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition flex justify-center items-center gap-2">
+                    @if(!$isReadOnly)
+                        <button 
+                            type="button" 
+                            id="geotag-btn" 
+                            data-url="{{ route('perjalanan.hadir', $perjalanan->id) }}" 
+                            {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'disabled' : '' }} 
+                            class="w-full {{ (!$isTodayInPeriod || $sudahAbsenHariIni) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition flex justify-center items-center gap-2">
+                            
                             <i class="fa-solid fa-location-dot"></i>
-                            @if($sudahAbsenHariIni)  Lokasi Hari Ini Tercatat @else  Tandai Lokasi Saya @endif
+                            @if($sudahAbsenHariIni)  
+                                Lokasi Hari Ini Tercatat 
+                            @else  
+                                Tandai Lokasi Saya 
+                            @endif
                         </button>
-                        @if(!$isTodayInPeriod)<p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>@endif
+
+                        @if(!$isTodayInPeriod)
+                            <p class="text-center text-xs text-red-500 mt-2 font-bold">{{ $statusMessage }}</p>
+                        @endif
+                    @else
+                        <p class="text-center text-xs text-gray-400 mt-2 italic">
+                            Geotagging tidak dapat dilakukan karena perjalanan dinas ini telah selesai / tugas Anda sudah selesai.
+                        </p>
                     @endif
                 </div>
 
-                <!-- LIST KOORDINAT (SEBELUMNYA RIWAYAT) -->
+                <!-- LIST KOORDINAT -->
                 <div class="lg:col-span-1 bg-gray-50 rounded-xl p-4 h-64 overflow-y-auto border border-gray-200">
                     <h3 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Titik Koordinat</h3>
                     <div class="space-y-3">
                         @foreach($geotagHistory as $h)
-                        <!-- Tambahkan onClick agar bisa diklik -->
                         <div 
                             onclick="focusLocation({{ $h['lat_raw'] ?? 'null' }}, {{ $h['long_raw'] ?? 'null' }}, '{{ $h['tanggal'] }}')"
                             class="flex items-start gap-3 p-3 rounded-lg border transition cursor-pointer hover:shadow-md
@@ -88,26 +119,60 @@
         </div>
 
         <!-- 2. URAIAN -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isMyTaskFinished ? 'opacity-75 pointer-events-none' : '' }}">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isReadOnly ? 'opacity-75 pointer-events-none' : '' }}">
             <h2 class="text-xl font-bold text-gray-800 mb-4"> Uraian Kegiatan</h2>
             <form action="{{ route('perjalanan.storeUraian', $perjalanan->id) }}" method="POST">
                 @csrf
-                <textarea name="uraian" rows="5" class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 focus:ring-blue-500 focus:border-blue-500" placeholder="Ceritakan aktivitas secara detail (min. 100 kata)..." {{ $isMyTaskFinished ? 'disabled' : '' }}>{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
-                @if(!$isMyTaskFinished)<div class="flex justify-end mt-3"><button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900 font-medium text-sm">Simpan Uraian</button></div>@endif
+                <textarea 
+                    name="uraian" 
+                    rows="5" 
+                    class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 focus:ring-blue-500 focus:border-blue-500 @if($isReadOnly) bg-gray-100 text-gray-500 cursor-not-allowed @endif" 
+                    placeholder="Ceritakan aktivitas secara detail (min. 100 kata)..." 
+                    {{ $isReadOnly ? 'disabled readonly' : '' }}
+                >{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
+
+                @if(!$isReadOnly)
+                    <div class="flex justify-end mt-3">
+                        <button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900 font-medium text-sm">
+                            Simpan Uraian
+                        </button>
+                    </div>
+                @else
+                    <p class="mt-2 text-xs text-gray-500 italic">
+                        Uraian tidak dapat diubah karena 
+                        @if($isRiwayatPerjadin)
+                            perjalanan dinas ini telah selesai.
+                        @elseif($isMyTaskFinished)
+                            Anda sudah menandai tugas ini sebagai selesai.
+                        @endif
+                    </p>
+                @endif
             </form>
         </div>
 
         <!-- 3. SELESAI -->
         @if(!$isMyTaskFinished)
+        @php
+            // Tombol final hanya benar-benar bisa diklik kalau:
+            // - aturan bisnis canFinish terpenuhi, dan
+            // - perjadin belum berstatus "Selesai"
+            $finalCanFinish = $canFinish && !$isRiwayatPerjadin;
+        @endphp
+
         <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 rounded-2xl shadow-lg text-center relative overflow-hidden">
             <div class="relative z-10">
                 <h3 class="text-2xl font-bold mb-2">Sudah Selesai Bertugas?</h3>
                 <p class="text-blue-100 mb-6 text-sm max-w-md mx-auto">
-                    @if(!$canFinish)
+                    @if(!$finalCanFinish)
                         <span class="bg-white/20 px-3 py-1 rounded text-yellow-300 font-bold border border-white/30 block mb-2">
                              Tombol Belum Aktif
                         </span>
-                        {{ $finishMessage ?? '' }}
+
+                        @if($isRiwayatPerjadin)
+                            Perjalanan dinas ini telah dinyatakan selesai, sehingga Anda tidak dapat lagi mengubah status tugas.
+                        @else
+                            {{ $finishMessage ?? '' }}
+                        @endif
                     @else
                         Jika Anda sudah kembali dan menyelesaikan semua kegiatan, silakan klik tombol di bawah. <br>
                         <span class="text-yellow-300 font-semibold">Data tidak bisa diubah setelah ini.</span>
@@ -116,9 +181,16 @@
                 
                 <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini? Data uraian dan lokasi tidak dapat diubah lagi.')">
                     @csrf
-                    <button type="submit" {{ !$canFinish ? 'disabled' : '' }} 
-                        class="{{ !$canFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 shadow-xl' }} px-8 py-3 rounded-xl font-bold transition transform">
-                        @if(!$canFinish) Belum Bisa Selesai @else  ✅ Saya Sudah Selesai @endif
+                    <button 
+                        type="submit" 
+                        {{ !$finalCanFinish ? 'disabled' : '' }} 
+                        class="{{ !$finalCanFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 shadow-xl' }} px-8 py-3 rounded-xl font-bold transition transform">
+                        
+                        @if(!$finalCanFinish) 
+                            Belum Bisa Selesai 
+                        @else  
+                            ✅ Saya Sudah Selesai 
+                        @endif
                     </button>
                 </form>
             </div>
