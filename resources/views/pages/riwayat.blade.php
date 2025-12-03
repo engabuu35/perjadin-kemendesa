@@ -10,15 +10,17 @@
 <main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
     <!-- Header -->
-    <div class="mb-4 sm:mb-6">
+    <div class="mb-3 sm:mb-4">
         <x-page-title
                title="Riwayat Perjalanan Dinas" />
         
         <!-- Info Box -->
-        <x-info-box>
-        Riwayat perjalanan dinas yang ditampilkan maksimal untuk 1 tahun terakhir.
-        </x-info-box>
-
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6 mb-2 flex items-start gap-2 sm:gap-3 transition-colors hover:bg-blue-100">
+            <i class="fa-solid fa-circle-info text-blue-600 text-base sm:text-lg mt-0.5 flex-shrink-0"></i>
+            <p class="text-blue-800 text-xs sm:text-sm">
+                Riwayat perjalanan dinas yang ditampilkan maksimal untuk 1 tahun terakhir.
+            </p>
+        </div>
 
         <!-- Tabs -->
         @if($role === 'PIMPINAN')
@@ -39,7 +41,7 @@
 
 
         <!-- Search Form -->
-        <form method="GET" action="{{ route('riwayat') }}" class="relative mb-4 sm:mb-6 group">
+        <form method="GET" action="{{ route('riwayat') }}" class="relative mb-1 sm:mb-1 group">
             <input type="hidden" name="tab" value="{{ $tab }}">
             <i class="fa-solid fa-search absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm sm:text-base group-focus-within:text-blue-500 transition-colors duration-200"></i>
             <input 
@@ -72,7 +74,7 @@
             
             <div class="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group" style="background-color: #BCBCBF;">
                 <div class="p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-1.5">
                         
                         <!-- Info Kiri -->
                         <div class="flex-1 space-y-2.5">
@@ -110,10 +112,11 @@
             </div>
 
         @empty
-            <div class="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-500 hover:shadow-md transition-shadow duration-300">
-                <i class="fa-solid fa-inbox text-4xl text-gray-300 mb-3"></i>
-                <p class="text-lg">Belum ada riwayat perjalanan dinas yang selesai.</p>
-            </div>
+           <x-empty-state 
+                icon="fa-suitcase-rolling"
+                title="Belum ada Riwayat Perjalanan Dinas"
+                message="Belum ada riwayat perjalanan dinas yang selesai."
+            />
         @endforelse
 
     </div>
