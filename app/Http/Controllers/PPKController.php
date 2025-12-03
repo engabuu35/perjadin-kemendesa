@@ -80,10 +80,18 @@ class PPKController extends Controller
             ];
 
             $info = [
-                'Nama Penginapan'  => '-',
-                'Kota'             => '-',
-                'Kode Tiket'       => '-',
-                'Maskapai'         => '-',
+                'Nama Penginapan'        => '-', 
+                'Kota'                   => '-', 
+                
+                // Transportasi Pergi
+                'Jenis Transportasi(Pergi)'  => '-', 
+                'Kode Tiket(Pergi)'       => '-',
+                'Nama Transportasi(Pergi)'   => '-', 
+                
+                // Transportasi Pulang
+                'Jenis Transportasi(Pulang)' => '-', 
+                'Kode Tiket(Pulang)'      => '-',
+                'Nama Transportasi(Pulang)'  => '-'
             ];
 
             foreach ($buktis as $b) {

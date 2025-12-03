@@ -33,31 +33,54 @@
             <table class="min-w-[1800px] w-full text-sm text-left text-gray-600">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b text-center font-bold">
                     <tr>
-                        <th rowspan="3" class="px-4 py-2 border-r border-gray-300 w-12">No</th>
-                        <th rowspan="3" class="px-4 py-2 border-r border-gray-300 w-32">NIP</th>
-                        <th rowspan="3" class="px-4 py-2 border-r border-gray-300 w-48">Nama</th>
+                        <!-- LEVEL 1: HEADER UTAMA -->
+                        <th rowspan="3" class="px-4 py-2 border-r border-gray-300 w-12 align-middle bg-gray-50">No</th>
+                        <th rowspan="3" class="px-4 py-2 border-r border-gray-300 w-32 align-middle bg-gray-50">NIP</th>
+                        <th rowspan="3" class="px-4 py-2 border-r border-gray-300 w-48 align-middle bg-gray-50">Nama</th>
+                        
+                        <!-- Grup Keuangan -->
                         <th colspan="10" class="px-4 py-2 border-b border-r border-gray-300 bg-blue-50">Rincian Pembayaran</th>
+                        
+                        <!-- Grup Penginapan -->
                         <th colspan="2" class="px-4 py-2 border-b border-r border-gray-300 bg-yellow-50">Penginapan</th>
-                        <th colspan="2" class="px-4 py-2 border-b border-gray-300 bg-green-50">Pesawat</th>
+                        
+                        <!-- Grup Transportasi (BARU) -->
+                        <th colspan="6" class="px-4 py-2 border-b border-gray-300 bg-green-50">Transportasi</th>
                     </tr>
                     <tr>
-                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-blue-100 text-blue-900">Jumlah Dibayarkan</th>
+                        <!-- LEVEL 2: SUB HEADER KEUANGAN -->
+                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-blue-100 text-blue-900 align-middle">Total Dibayarkan</th>
                         <th colspan="8" class="px-4 py-2 border-b border-r border-gray-300 bg-white">Rincian Biaya (Rp)</th>
-                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 text-red-600 bg-red-50">SSPB</th>
-                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-white">Nama Hotel</th>
-                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-white">Kota</th>
-                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-white">Kode Tiket</th>
-                        <th rowspan="2" class="px-4 py-2 border-b border-gray-300 bg-white">Maskapai</th>
+                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 text-red-600 bg-red-50 align-middle">SSPB</th>
+                        
+                        <!-- LEVEL 2: SUB HEADER PENGINAPAN -->
+                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-white align-middle">Nama Hotel</th>
+                        <th rowspan="2" class="px-4 py-2 border-r border-b border-gray-300 bg-white align-middle">Kota</th>
+                        
+                        <!-- LEVEL 2: SUB HEADER TRANSPORTASI -->
+                        <th colspan="3" class="px-4 py-1 border-b border-r border-gray-300 bg-green-100 text-green-800">Pergi</th>
+                        <th colspan="3" class="px-4 py-1 border-b border-gray-300 bg-green-100 text-green-800">Pulang</th>
                     </tr>
                     <tr class="bg-white">
-                        <th class="px-4 py-2 border-r border-gray-200">Tiket</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Uang Harian</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Penginapan</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Uang Rep.</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Transport</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Sewa Kend.</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Riil</th>
-                        <th class="px-4 py-2 border-r border-gray-200">Lainnya</th>
+                        <!-- LEVEL 3: DETAIL KEUANGAN -->
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Tiket</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Uang Harian</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Penginapan</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Uang Rep.</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Transport</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Sewa Kend.</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[100px]">Riil</th>
+                        <th class="px-4 py-2 border-r border-gray-200 min-w-[80px]">Lainnya</th>
+                        
+                        <!-- LEVEL 3: DETAIL PERGI -->
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis</th>
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[100px]">Kode Tiket</th>
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Nama Transport</th>
+
+                        <!-- LEVEL 3: DETAIL PULANG -->
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis</th>
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[100px]">Kode Tiket</th>
+                        <th class="px-3 py-2 border-gray-200 min-w-[120px]">Nama Transport</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,7 +88,9 @@
                     <tr class="border-b hover:bg-gray-50 text-center text-xs">
                         <td class="px-4 py-3 border-r">{{ $index + 1 }}</td>
                         <td class="px-4 py-3 border-r font-mono">{{ $data['nip'] }}</td>
-                        <td class="px-4 py-3 border-r text-left font-bold text-gray-800">{{ $data['nama'] }}</td>
+                        <td class="px-4 py-3 border-r text-left font-bold text-gray-800 whitespace-nowrap">{{ $data['nama'] }}</td>
+                        
+                        <!-- Total & Rincian -->
                         <td class="px-4 py-3 border-r font-bold bg-blue-50 text-blue-800 text-sm">
                             {{ number_format($data['biaya']['Total'], 0, ',', '.') }}
                         </td>
@@ -78,10 +103,20 @@
                         <td class="px-4 py-3 border-r">{{ number_format($data['biaya']['Pengeluaran Riil'], 0, ',', '.') }}</td>
                         <td class="px-4 py-3 border-r">-</td> 
                         <td class="px-4 py-3 text-red-500 border-r font-bold bg-red-50">{{ number_format($data['biaya']['SSPB'], 0, ',', '.') }}</td>
+                        
+                        <!-- Info Penginapan -->
                         <td class="px-4 py-3 border-r text-gray-700">{{ $data['info']['Nama Penginapan'] }}</td>
                         <td class="px-4 py-3 border-r text-gray-700">{{ $data['info']['Kota'] }}</td>
-                        <td class="px-4 py-3 border-r text-gray-700">{{ $data['info']['Kode Tiket'] }}</td>
-                        <td class="px-4 py-3 text-gray-700">{{ $data['info']['Maskapai'] }}</td>
+                        
+                        <!-- Info Pergi -->
+                        <td class="px-3 py-3 border-r text-gray-700">{{ $data['info']['Jenis Transportasi(Pergi)'] }}</td>
+                        <td class="px-3 py-3 border-r text-gray-700 font-mono">{{ $data['info']['Kode Tiket(Pergi)'] }}</td>
+                        <td class="px-3 py-3 border-r text-gray-700">{{ $data['info']['Nama Transportasi(Pergi)'] }}</td>
+
+                        <!-- Info Pulang -->
+                        <td class="px-3 py-3 border-r text-gray-700">{{ $data['info']['Jenis Transportasi(Pulang)'] }}</td>
+                        <td class="px-3 py-3 border-r text-gray-700 font-mono">{{ $data['info']['Kode Tiket(Pulang)'] }}</td>
+                        <td class="px-3 py-3 text-gray-700">{{ $data['info']['Nama Transportasi(Pulang)'] }}</td>
                     </tr>
                     @endforeach
                 </tbody>

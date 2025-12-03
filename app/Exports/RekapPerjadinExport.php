@@ -83,6 +83,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 pd.tgl_mulai,
                 pd.tgl_selesai,
                 pd.tujuan,
+                pd.dalam_rangka,
 
                 u.nama                 AS nama_pegawai,
                 u.nip                  AS nip,
@@ -152,7 +153,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             $row->nama_pegawai,                                // Nama Lengkap Tanpa Gelar
             $row->nip,                                         // NIP
             $row->pangkat_golongan ?? '-',                     // Pangkat Golongan
-            $row->tujuan ?? '-',                               // Dalam Rangka  (pakai tujuan)
+            $row->dalam_rangka ?? '-',                               // Dalam Rangka  (pakai tujuan)
             'Jakarta',                                         // Daerah Asal (statis)
             $row->tujuan ?? '-',                               // Daerah Tujuan (pakai tujuan lagi)
             $mulai   ? $mulai->format('d-m-Y') : '-',          // Tgl SPD Brgkt
