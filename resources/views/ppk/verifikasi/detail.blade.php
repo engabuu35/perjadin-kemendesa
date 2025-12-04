@@ -73,14 +73,14 @@
                         <th class="px-4 py-2 border-r border-gray-200 min-w-[80px]">Lainnya</th>
                         
                         <!-- LEVEL 3: DETAIL PERGI -->
-                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis</th>
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis Transportasi</th>
                         <th class="px-3 py-2 border-r border-gray-200 min-w-[100px]">Kode Tiket</th>
                         <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Nama Transport</th>
 
                         <!-- LEVEL 3: DETAIL PULANG -->
-                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis</th>
+                        <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis Transportasi</th>
                         <th class="px-3 py-2 border-r border-gray-200 min-w-[100px]">Kode Tiket</th>
-                        <th class="px-3 py-2 border-gray-200 min-w-[120px]">Nama Transport</th>
+                        <th class="px-3 py-2 border-gray-200 min-w-[12  0px]">Nama Transport</th>
                     </tr>
                 </thead>
                 <tbody>

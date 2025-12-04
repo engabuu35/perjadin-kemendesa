@@ -113,8 +113,8 @@
                             </th>
 
                             {{-- Pesawat --}}
-                            <th colspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                Pesawat
+                            <th colspan="6" class="px-3 py-2 border-2 border-gray-300 align-middle">
+                                Transportasi
                             </th>
                         </tr>
 
@@ -163,11 +163,11 @@
                             </th>
 
                             {{-- Pesawat --}}
-                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                Kode Tiket
+                            <th colspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">
+                                Pergi
                             </th>
-                            <th rowspan="2" class="px-3 py-2 border-2 border-gray-300 align-middle">
-                                Maskapai
+                            <th colspan="3" class="px-3 py-2 border-2 border-gray-300 align-middle">
+                                Pulang
                             </th>
                         </tr>
 
@@ -186,11 +186,21 @@
                             <th class="px-3 py-2 border-2 border-gray-300">Sewa Kendaraan</th>
                             <th class="px-3 py-2 border-2 border-gray-300">Pengeluaran Riil</th>
                             <th class="px-3 py-2 border-2 border-gray-300">SSPB</th>
-                        </tr>
+
+                            <!-- LEVEL 3: DETAIL PERGI -->
+                            <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis</th>
+                            <th class="px-3 py-2 border-r border-gray-200 min-w-[100px]">Kode Tiket</th>
+                            <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Nama Transport</th>
+
+                            <!-- LEVEL 3: DETAIL PULANG -->
+                            <th class="px-3 py-2 border-r border-gray-200 min-w-[120px]">Jenis</th>
+                            <th class="px-3 py-2 border-r border-gray-200 min-w-[100px]">Kode Tiket</th>
+                            <th class="px-3 py-2 border-gray-200 min-w-[120px]">Nama Transport</th>
+                            </tr>
 
                         {{-- BARIS HEADER 4 (NOMOR KOLOM 0–27) --}}
                         <tr style="background-color:#f4c6f4;" class="font-bold text-center">
-                            @for($i = 0; $i <= 27; $i++)
+                            @for($i = 0; $i <= 31; $i++)
                                 <th class="px-1 py-1 border-2 border-gray-300 text-[10px]">{{ $i }}</th>
                             @endfor
                         </tr>
@@ -266,18 +276,36 @@
 
                                 {{-- 25–26: Penginapan --}}
                                 <td class="px-3 py-2 border text-center">
-                                    {{ $row->nama_hotel ?? '-' }}
+                                    {{ $row->nama_penginapan ?? '-' }}
                                 </td>
                                 <td class="px-3 py-2 border text-center">
-                                    {{ $row->kota_hotel ?? '-' }}
+                                    {{ $row->kota ?? '-' }}
                                 </td>
 
                                 {{-- 27–28: Pesawat --}}
-                                <td class="px-3 py-2 border text-center">
+                                {{-- <td class="px-3 py-2 border text-center">
                                     {{ $row->kode_tiket ?? '-' }}
                                 </td>
                                 <td class="px-3 py-2 border text-center">
                                     {{ $row->maskapai ?? '-' }}
+                                </td> --}}
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $row->jenis_transportasi_pergi ?? '-' }}
+                                </td>
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $row->kode_tiket_pergi ?? '-' }}
+                                </td>
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $row->nama_transportasi_pergi ?? '-' }}      
+                                </td>
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $row->jenis_transportasi_pulang ?? '-' }}
+                                </td>
+                                <td class="px-3 py-2 border text-center">   
+                                    {{ $row->kode_tiket_pulang ?? '-' }}
+                                </td>
+                                <td class="px-3 py-2 border text-center">   
+                                    {{ $row->nama_transportasi_pulang ?? '-' }}
                                 </td>
                             </tr>
                         @empty

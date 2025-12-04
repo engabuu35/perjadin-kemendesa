@@ -221,10 +221,20 @@ class PPKController extends Controller
                 // Jumlah dibayarkan = semua nominal > 0 kecuali SSPB
                 DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori <> 'SSPB' THEN bukti_laporan.nominal ELSE 0 END) AS jumlah_dibayarkan"),
                 // Informasi non-nominal diambil dari keterangan
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Penginapan' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_hotel"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kota' THEN bukti_laporan.keterangan ELSE NULL END) AS kota_hotel"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket"),
-                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Maskapai' THEN bukti_laporan.keterangan ELSE NULL END) AS maskapai")
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Penginapan' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_penginapan"),
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kota' THEN bukti_laporan.keterangan ELSE NULL END) AS kota"),
+                // DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket"),
+                // DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Maskapai' THEN bukti_laporan.keterangan ELSE NULL END) AS maskapai"),
+
+                // untuk pergi
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Jenis Transportasi(Pergi)' THEN bukti_laporan.keterangan ELSE NULL END) AS jenis_transportasi_pergi"),
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket(Pergi)' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket_pergi"),
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Transportasi(Pergi)' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_transportasi_pergi"),
+
+                // untuk pulang
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Jenis Transportasi(Pulang)' THEN bukti_laporan.keterangan ELSE NULL END) AS jenis_transportasi_pulang"),
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket(Pulang)' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket_pulang"),
+                DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Transportasi(Pulang)' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_transportasi_pulang")
             )
             ->groupBy('laporan_perjadin.id_perjadin', 'laporan_perjadin.id_user');
 
@@ -270,12 +280,17 @@ class PPKController extends Controller
                 DB::raw('COALESCE(agg.biaya_pengeluaran_riil, 0)   as biaya_pengeluaran_riil'),
                 DB::raw('COALESCE(agg.biaya_sspb, 0)               as biaya_sspb'),
                 DB::raw('COALESCE(agg.jumlah_dibayarkan, 0)        as jumlah_dibayarkan'),
-                'agg.nama_hotel',
-                'agg.kota_hotel',
-                'agg.kode_tiket',
-                'agg.maskapai'
+                'agg.nama_penginapan',
+                'agg.kota',
+                // 'agg.kode_tiket',
+                // 'agg.maskapai'
+                'agg.jenis_transportasi_pergi',
+                'agg.kode_tiket_pergi',
+                'agg.nama_transportasi_pergi',
+                'agg.jenis_transportasi_pulang',
+                'agg.kode_tiket_pulang',
+                'agg.nama_transportasi_pulang'
             );
-
         // Filter tahun
         if ($tahun) {
             $query->whereYear('perjalanandinas.tgl_mulai', $tahun);
