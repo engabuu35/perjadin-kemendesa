@@ -7,7 +7,7 @@
 --}}
 <main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <!-- Judul -->
-       <x-page-title 
+      <x-page-title 
         title="Perjalanan Dinas"
         subtitle="Daftar penugasan perjalanan dinas Anda." />
 
@@ -22,7 +22,7 @@
                 message="Saat ini Anda tidak memiliki jadwal perjalanan dinas aktif."
             />
             @endforelse
-         </div>
+        </div>
 
         </div>
 </main>

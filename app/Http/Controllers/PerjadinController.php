@@ -8,10 +8,12 @@ use App\Models\PerjalananDinas;
 use App\Models\LaporanPerjadin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Models\Notifikasi;
 use App\Notifications\PerjalananAssignedNotification;
+use App\Models\User;
 
 class PerjadinController extends Controller
 {
@@ -131,30 +133,97 @@ class PerjadinController extends Controller
 
         $period = CarbonPeriod::create($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
         $geotagHistory = [];
-        $hariKe = 1;
 
         $today = Carbon::today();
-        $sudahAbsenHariIni = Geotagging::where('id_perjadin', $id)
+        $now   = Carbon::now();
+
+        // Hitung total geotagging hari ini (dengan atau tanpa foto)
+        $jumlahGeotagHariIni = Geotagging::where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->whereDate('created_at', $today)
-            ->exists();
+            ->count();
 
+        $sudahAbsenHariIni     = $jumlahGeotagHariIni > 0;
+        $sudahMaksAbsenHariIni = $jumlahGeotagHariIni >= 2;
+
+        // Cek apakah ada geotagging hari ini yang belum punya foto
+        $geotagTanpaFotoHariIni = Geotagging::where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->whereDate('created_at', $today)
+            ->whereNull('foto')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $adaGeotagTanpaFotoHariIni = (bool) $geotagTanpaFotoHariIni;
+
+        // Ambil geotag terakhir hari ini untuk cek jeda 15 menit
+        $lastGeotagHariIni = Geotagging::where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->whereDate('created_at', $today)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $bolehGeotagSekarang = true;
+
+        if ($sudahMaksAbsenHariIni) {
+            $bolehGeotagSekarang = false;
+        } elseif ($adaGeotagTanpaFotoHariIni) {
+            // Wajib foto dulu sebelum geotagging berikutnya
+            $bolehGeotagSekarang = false;
+        } elseif ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(5))) {
+            // Belum lewat 5 menit sejak geotag terakhir
+            $bolehGeotagSekarang = false;
+        }
+
+        // ---- Build geotagHistory: 2 slot per day (slot 1 & 2).
+        $dayNumber = 1;
         foreach ($period as $date) {
-            $tag = Geotagging::where('id_perjadin', $id)
+            $tagsForDay = Geotagging::where('id_perjadin', $id)
                 ->where('id_user', $userNip)
                 ->whereDate('created_at', $date)
-                ->first();
+                ->orderBy('created_at')
+                ->get();
 
-            $geotagHistory[] = [
-                'hari_ke' => $hariKe++,
-                'tanggal' => $date->format('d M Y'),
-                // Kirim raw latitude/longitude agar bisa dipakai JS
-                'lat_raw' => $tag ? $tag->latitude : null,
-                'long_raw'=> $tag ? $tag->longitude : null,
-                'lokasi'  => $tag ? "Lat: {$tag->latitude}, Long: {$tag->longitude}" : '-',
-                'waktu'   => $tag ? Carbon::parse($tag->created_at)->format('H:i') : '-',
-                'status'  => $tag ? 'Sudah' : 'Belum'
-            ];
+            // ensure we have an indexed collection (0-based)
+            // create exactly 2 slots per day
+            for ($slot = 1; $slot <= 2; $slot++) {
+                $tag = $tagsForDay->get($slot - 1); // null if not exists
+
+                if ($tag) {
+                    $photoUrls = [];
+                    if (!empty($tag->foto)) {
+                        $photoUrls[] = Storage::disk('public')->url($tag->foto);
+                    }
+
+                    $geotagHistory[] = [
+                        // gunakan format label H{hari}-{slot} agar blade lama tetap kompatibel
+                        'hari_ke'    => "{$dayNumber}-{$slot}",
+                        'tanggal'    => Carbon::parse($tag->created_at)->format('d M Y'),
+                        'lat_raw'    => $tag->latitude,
+                        'long_raw'   => $tag->longitude,
+                        'lokasi'     => "Lat: {$tag->latitude}, Long: {$tag->longitude}",
+                        'waktu'      => Carbon::parse($tag->created_at)->format('H:i'),
+                        'status'     => 'Sudah',
+                        'photo_urls' => $photoUrls,
+                        'foto_count' => count($photoUrls),
+                    ];
+                } else {
+                    // placeholder card (Belum)
+                    $geotagHistory[] = [
+                        'hari_ke'    => "{$dayNumber}-{$slot}",
+                        'tanggal'    => $date->format('d M Y'),
+                        'lat_raw'    => null,
+                        'long_raw'   => null,
+                        'lokasi'     => '-',
+                        'waktu'      => '-',
+                        'status'     => 'Belum',
+                        'photo_urls' => [],
+                        'foto_count' => 0,
+                    ];
+                }
+            }
+
+            $dayNumber++;
         }
 
         $laporanSaya = LaporanPerjadin::firstOrNew([
@@ -163,6 +232,7 @@ class PerjadinController extends Controller
         ]);
 
         $isTodayInPeriod = $today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai);
+        $bolehFotoSekarang = $adaGeotagTanpaFotoHariIni && $isTodayInPeriod && !$isMyTaskFinished;
         $isLastDay = $today->isSameDay($perjalanan->tgl_selesai);
         $isPastEnd = $today->gt($perjalanan->tgl_selesai);
 
@@ -221,6 +291,9 @@ class PerjadinController extends Controller
             'canFinishTask',
             'geotagHistory',
             'sudahAbsenHariIni',
+            'sudahMaksAbsenHariIni',
+            'bolehGeotagSekarang',
+            'bolehFotoSekarang',
             'laporanSaya',
             'isTodayInPeriod',
             'isMyTaskFinished',
@@ -228,7 +301,8 @@ class PerjadinController extends Controller
             'statusMessage',
             'statusPegawai',
             'statusBadgeClass',
-            'finishMessage'  // <-- kirim finishMessage ke view
+            'finishMessage',
+            'lastGeotagHariIni',
         ));
     }
 
@@ -346,16 +420,49 @@ class PerjadinController extends Controller
 
         $perjalanan = PerjalananDinas::findOrFail($id);
         $today = Carbon::today();
+        $now   = Carbon::now();
 
         if (!$today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai)) {
             return response()->json(['status' => 'error', 'message' => 'Di luar jadwal.'], 403);
         }
 
-        if (Geotagging::where('id_perjadin', $id)
+        // Tidak boleh geotag lagi jika masih ada geotag hari ini yang belum punya foto
+        $geotagTanpaFotoHariIni = Geotagging::where('id_perjadin', $id)
             ->where('id_user', Auth::user()->nip)
             ->whereDate('created_at', $today)
-            ->exists()) {
-            return response()->json(['status' => 'error', 'message' => 'Sudah absen.'], 400);
+            ->whereNull('foto')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($geotagTanpaFotoHariIni) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Silakan ambil foto terlebih dahulu untuk geotagging sebelumnya sebelum melakukan geotagging lagi.'
+            ], 400);
+        }
+
+        // Batas total geotag (dengan/ tanpa foto) per hari: 2
+        $jumlahGeotagHariIni = Geotagging::where('id_perjadin', $id)
+            ->where('id_user', Auth::user()->nip)
+            ->whereDate('created_at', $today)
+            ->count();
+
+        if ($jumlahGeotagHariIni >= 2) {
+            return response()->json(['status' => 'error', 'message' => 'Batas geotagging hari ini sudah 2x.'], 400);
+        }
+
+        // Cek jeda waktu minimal 5 menit dari geotag terakhir
+        $lastGeotagHariIni = Geotagging::where('id_perjadin', $id)
+            ->where('id_user', Auth::user()->nip)
+            ->whereDate('created_at', $today)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(5))) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Geotagging berikutnya hanya bisa dilakukan minimal 5 menit setelah geotagging terakhir.'
+            ], 400);
         }
 
         Geotagging::create([
@@ -367,6 +474,86 @@ class PerjadinController extends Controller
         ]);
 
         return response()->json(['status' => 'success', 'message' => 'Hadir!']);
+    }
+
+    /**
+     * SIMPAN FOTO GEOTAGGING (MAKS 2 FOTO PER HARI)
+     */
+    public function storeFotoGeotagging(Request $request, $id)
+    {
+        $request->validate([
+            'image'     => 'required|string', // data URL base64
+            'latitude'  => 'required',
+            'longitude' => 'required',
+        ]);
+
+        $userNip = Auth::user()->nip;
+        $perjalanan = PerjalananDinas::findOrFail($id);
+        $today = Carbon::today();
+
+        if (!$today->between($perjalanan->tgl_mulai, $perjalanan->tgl_selesai)) {
+            return response()->json(['status' => 'error', 'message' => 'Di luar jadwal.'], 403);
+        }
+
+        // Pastikan user terdaftar di perjalanan ini dan belum finished
+        $cek = DB::table('pegawaiperjadin')
+            ->where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->first();
+
+        if (!$cek) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak terdaftar pada perjalanan ini.'], 403);
+        }
+
+        if ($cek->is_finished ?? false) {
+            return response()->json(['status' => 'error', 'message' => 'Tugas Anda sudah selesai, tidak bisa upload foto lagi.'], 400);
+        }
+
+        // Cari geotagging hari ini yang belum memiliki foto
+        $geotagTanpaFoto = Geotagging::where('id_perjadin', $id)
+            ->where('id_user', $userNip)
+            ->whereDate('created_at', $today)
+            ->whereNull('foto')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$geotagTanpaFoto) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Anda belum melakukan geotagging atau foto untuk geotagging sebelumnya sudah diambil.'
+            ], 400);
+        }
+
+        $imageData = $request->image;
+        if (!preg_match('/^data:image\/jpe?g;base64,/', $imageData)) {
+            return response()->json(['status' => 'error', 'message' => 'Format gambar tidak valid (hanya JPG).'], 422);
+        }
+
+        $imageData = substr($imageData, strpos($imageData, ',') + 1);
+        $binary = base64_decode($imageData);
+
+        if ($binary === false) {
+            return response()->json(['status' => 'error', 'message' => 'Data gambar tidak bisa didecode.'], 422);
+        }
+
+        $extension = 'jpg';
+        $fileName = 'geotag_' . $id . '_' . $userNip . '_' . now()->format('Ymd_His') . '.' . $extension;
+        $path = 'geotagging/' . $fileName;
+
+        Storage::disk('public')->put($path, $binary);
+
+        // Update baris geotagging terakhir tanpa foto dengan data foto & koordinat dari kamera
+        $geotagTanpaFoto->update([
+            'latitude'  => $request->latitude,
+            'longitude' => $request->longitude,
+            'foto'      => $path,
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Foto geotagging tersimpan.',
+            'path'    => $path,
+        ]);
     }
 
     public function assign(Request $request, PerjalananDinas $perjalanan)

@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/hadir', [PerjadinController::class, 'tandaiKehadiran'])->name('hadir');
         Route::post('/{id}/uraian', [PerjadinController::class, 'storeUraian'])->name('storeUraian');
         Route::post('/{id}/bukti', [PerjadinController::class, 'storeBukti'])->name('storeBukti');
+        Route::post('/{id}/foto-geotag', [PerjadinController::class, 'storeFotoGeotagging'])->name('fotoGeotag');
         
         // Route Selesaikan (Finalisasi)
         Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanTugasSaya'])->name('selesaikan');
