@@ -26,13 +26,13 @@ class PerjalananAssignedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
-                    ->subject('Penugasan Perjalanan Dinas')
-                    ->line('Anda ditugaskan perjalanan dinas.')
-                    ->line('Tujuan: ' . $this->perjalanan->tujuan)
-                    ->line('Tanggal: ' . $this->perjalanan->tgl_mulai . ' s/d ' . $this->perjalanan->tgl_selesai)
-                    ->action('Lihat Detail', url('/perjalanan/' . $this->perjalanan->id));
+        return (new \Illuminate\Notifications\Messages\MailMessage)
+            ->subject('Penugasan Perjalanan Dinas')
+            ->view('emails.perjalanan_tailwind', [
+                'perjalanan' => $this->perjalanan
+            ]);
     }
+
 
     public function toArray($notifiable)
     {
