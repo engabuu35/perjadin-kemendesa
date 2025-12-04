@@ -20,7 +20,7 @@ return new class extends Migration
         // 2. Tambah kolom 'selesaikan_manual' ke tabel perjalanandinas
         Schema::table('perjalanandinas', function (Blueprint $table) {
             // Boolean flag (0 = Normal, 1 = Diselesaikan Manual oleh Admin/PIC)
-            $table->string('selesaikan_manual, 255')->nullable()->after('id_status');
+            $table->string('selesaikan_manual', 255)->nullable()->after('id_status');
         });
     }
 
