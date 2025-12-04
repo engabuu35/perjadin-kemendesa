@@ -28,7 +28,7 @@ class PerjalananAssignedNotification extends Notification implements ShouldQueue
     {
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject('Penugasan Perjalanan Dinas')
-            ->view('emails.perjalanan_tailwind', [
+            ->view('emails.perjadin-email', [
                 'perjalanan' => $this->perjalanan
             ]);
     }
