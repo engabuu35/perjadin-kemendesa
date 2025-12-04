@@ -32,10 +32,10 @@ return new class extends Migration
     {
         Schema::table('geotagging', function (Blueprint $table) {
             $table->dropColumn('foto');
-        });
+            });
 
-        Schema::table('perjalanandinas', function (Blueprint $table) {
-            $table->dropColumn('selesaikan_manual');
-        });
+            Schema::table('perjalanandinas', function (Blueprint $table) {
+                $table->dropColumn('selesaikan_manual');
+            });
     }
 };
