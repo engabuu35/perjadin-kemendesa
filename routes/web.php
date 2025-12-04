@@ -14,6 +14,14 @@ use App\Http\Controllers\PelaporanController;
 use App\Http\Controllers\ManagePegawaiController;
 use App\Http\Controllers\ProfileController;
 
+// hapus klo ga kepake ini untuk testing aja
+Route::get('/preview-email-tailwind', function () {
+    $perjalanan = \App\Models\PerjalananDinas::first();
+
+    return view('emails.perjadin-email', compact('perjalanan'));
+});
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes (FULL)
