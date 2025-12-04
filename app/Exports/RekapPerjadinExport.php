@@ -188,10 +188,10 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             // $row->maskapai   ?? '-',
             $row->jenis_transportasi_pergi ?? '-',
             $row->kode_tiket_pergi ?? '-',
-            $row->nama_transportasi_pergi ?? '-',   
+            $row->nama_transportasi_pergi ?? '-', 
+            $row->jenis_transportasi_pulang ?? '-',  
             $row->kode_tiket_pulang ?? '-',
             $row->nama_transportasi_pulang ?? '-',
-            $row->jenis_transportasi_pulang ?? '-',
         ];
     }
 
