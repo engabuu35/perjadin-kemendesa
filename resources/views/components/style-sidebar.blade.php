@@ -267,17 +267,34 @@
         /* Mobile: Sidebar keluar dari kiri */
         @media (max-width: 640px) {
             .sidebar {
+                position: fixed;
+                left: 0;
+                top: 50px !important;
+                width: 240px;
+                height: calc(100dvh - 50px);
                 transform: translateX(-100%);
+                transition: transform 0.3s ease;
                 display: block !important; /* Override hidden */
-                top: 60px !important; /* Turun dari top navbar (50px tinggi navbar) */
-                height: calc(100vh - 60px) !important; /* Kurangi tinggi sesuai navbar */
-                padding-top: 1rem; /* Tambah padding top */
+                
             }
             
             .sidebar.active {
                 transform: translateX(0);
+                width: 240px;
+            }
+
+            /* Menu text langsung terlihat di mobile */
+            .sidebar .sidebar-menu span:last-child {
+                opacity: 1 !important;
+            }
+
+            /* Sembunyikan user profile di mobile */
+            .sidebar .user-profile {
+                display: none !important;
             }
         }
+
+
 
         /* Ripple effect animation */
         @keyframes ripple-effect-1 {

@@ -13,7 +13,7 @@
             font-family: sans-serif;
             background-color: #e8e9f0;
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="2" fill="%23d0d0dc" opacity="0.3"/></svg>');
-            padding-top: 50px;
+            padding-top: 35px;
         }
         
         /* Animasi untuk hamburger menu */

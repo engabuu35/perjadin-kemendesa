@@ -2,7 +2,8 @@
 @section('title','Manajemen Pegawai')
 
 @section('content')
-<main class="ml-0 sm:ml-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+<main class="transition-all duration-300 ml-0 sm:ml-[60px]">
+    <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
     <div class="flex flex-col gap-0.5 mb-1">
         <x-page-title 
@@ -239,4 +240,5 @@ document.addEventListener('keydown', function(e){
     }
 });
 </script>
+</div>
 @endpush

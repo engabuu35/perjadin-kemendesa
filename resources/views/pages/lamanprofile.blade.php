@@ -3,7 +3,8 @@
 @section('title', 'Profile')
 
 @section('content')
-<main class="max-w-6xl mx-auto px-5 py-8 min-h-screen">
+<main class="transition-all duration-300 ml-0 sm:ml-[60px]">
+    <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
     <!-- ALERT SECTION -->
     @if(session('success'))
@@ -25,7 +26,6 @@
 
     <div class="flex items-center justify-between mb-6">
         <x-page-title title="Edit Profil" />
-
         <div class="shrink-0">
             <x-back-button />
         </div>
@@ -37,7 +37,7 @@
 
         <!-- Profile Card -->
         <div class="bg-white rounded-3xl shadow-2xl p-10 mb-10">
-            <div class="flex flex-col lg:flex-row gap-12 items-start">
+            <div class="flex flex-col lg:flex-row gap-12 items-start lg:items-center">
                 
                 <!-- Profile Picture Section -->
                 <div class="flex flex-col items-center lg:items-start flex-shrink-0">
@@ -125,6 +125,7 @@
             </button>
         </div>
     </form>
+    </div>    
 </main>
 
 <!-- SCRIPTS: PREVIEW IMAGE & TOGGLE PASSWORD -->
