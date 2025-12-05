@@ -104,18 +104,56 @@
                 SIPERDIN
             </div>
         </div>
-
+        <!-- sapaan navbar/avatar-->
         <div class="user-info flex items-center gap-2 text-sm mr-3">
             <span class="hidden md:inline font-light tracking-wide font-semibold text-white/95">
                 Selamat {{ $greeting }}, {{ Auth::user()->nama }}!
             </span>
+            <!-- Avatar Mobile (hanya muncul di mobile) -->
+            <div class="relative sm:hidden">
+                <button id="mobileAvatarBtn"
+                    class="w-9 h-9 rounded-full overflow-hidden bg-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" class="w-full h-full object-cover">
+                    @else
+                        <i class="fas fa-user text-white text-lg"></i>
+                    @endif
+                </button>
+
+                <!-- POPUP (ambil dari komponenmu) -->
+                <div id="mobileProfilePopup" class="absolute right-0 top-[50px] bg-white text-gray-800 rounded-xl shadow-lg py-1.5 w-[160px] opacity-0 invisible transition-all duration-300 z-[9999]">
+
+                    <!-- Profil Saya -->
+                    <a href="{{ route('profile') }}"
+                    class="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-user"></i>
+                        <span>Profil Saya</span>
+                    </a>
+
+                    <!-- Logout -->
+                    <button id="popupLogout"
+                        class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Global function untuk toggle sidebar
         function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay');
             const menuIcon = document.querySelector('.menu-icon');
             const iconElement = menuIcon.querySelector('i');
+            
+            // Toggle sidebar & overlay
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
             
             menuIcon.classList.toggle('active');
             
@@ -127,10 +165,49 @@
                 iconElement.classList.remove('fa-bars-staggered');
                 iconElement.classList.add('fa-bars');
             }
-            
-            // Fungsi ini akan terhubung dengan sidebar
-            console.log('Toggle sidebar');
         }
+
+        // Mobile Avatar & Popup
+        document.addEventListener("DOMContentLoaded", () => {
+            const mobileBtn = document.getElementById("mobileAvatarBtn");
+            const mobilePopup = document.getElementById("mobileProfilePopup");
+            const mobileLogout = document.getElementById("mobilePopupLogout");
+
+            if (mobileBtn && mobilePopup) {
+                // Click avatar to toggle popup
+                mobileBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    mobilePopup.classList.toggle("opacity-0");
+                    mobilePopup.classList.toggle("invisible");
+                });
+
+                // Stop propagation on popup
+                mobilePopup.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                });
+
+                // Click outside to close
+                document.addEventListener("click", (e) => {
+                    if (!mobilePopup.contains(e.target) && !mobileBtn.contains(e.target)) {
+                        mobilePopup.classList.add("opacity-0", "invisible");
+                    }
+                });
+            }
+
+            // Mobile logout button
+            if (mobileLogout) {
+                mobileLogout.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    mobilePopup.classList.add("opacity-0", "invisible");
+                    
+                    const logoutModal = document.getElementById("logoutModal");
+                    if (logoutModal) {
+                        logoutModal.classList.remove("opacity-0", "invisible");
+                        logoutModal.classList.add("opacity-100", "visible");
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
