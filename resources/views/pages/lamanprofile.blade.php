@@ -71,6 +71,18 @@
 
                 <!-- Profile Information Inputs -->
                 <div class="flex-1 space-y-5 w-full">
+                    <!-- Nama Lengkap (Editable) -->
+                    <div class="flex flex-col sm:flex-row rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 focus-within:ring-2 focus-within:ring-blue-400">
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 font-bold flex items-center justify-center sm:w-48 text-center text-lg">
+                            <i class="fas fa-user-circle mr-2"></i>Nama
+                        </div>
+                        <div class="bg-blue-50 px-8 py-4 flex-1 flex items-center">
+                            <input type="text" name="nama" value="{{ old('nama', $user->nama) }}" 
+                                class="bg-transparent w-full text-gray-800 font-medium text-lg focus:outline-none placeholder-gray-400"
+                                placeholder="Nama Lengkap">
+                        </div>
+                    </div>
+                    
                     <!-- NIP (Readonly) -->
                     <div class="flex flex-col sm:flex-row rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                         <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 font-bold flex items-center justify-center sm:w-48 text-center text-lg">
@@ -100,18 +112,6 @@
                             <input type="text" name="no_telp" value="{{ old('no_telp', $user->no_telp) }}" 
                                 class="bg-transparent w-full text-gray-800 font-medium text-lg focus:outline-none placeholder-gray-400"
                                 placeholder="08xxxxxxxx">
-                        </div>
-                    </div>
-
-                    <!-- Nama Lengkap (Editable) -->
-                    <div class="flex flex-col sm:flex-row rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 focus-within:ring-2 focus-within:ring-blue-400">
-                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 font-bold flex items-center justify-center sm:w-48 text-center text-lg">
-                            <i class="fas fa-user-circle mr-2"></i>Nama
-                        </div>
-                        <div class="bg-blue-50 px-8 py-4 flex-1 flex items-center">
-                            <input type="text" name="nama" value="{{ old('nama', $user->nama) }}" 
-                                class="bg-transparent w-full text-gray-800 font-medium text-lg focus:outline-none placeholder-gray-400"
-                                placeholder="Nama Lengkap">
                         </div>
                     </div>
                 </div>
