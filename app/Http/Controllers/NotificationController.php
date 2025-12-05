@@ -32,17 +32,7 @@ class NotificationController extends Controller
 
     public function __construct()
     {
-        // Ambil notifikasi user yang login
-        $user = Auth::user();
-        $notifications = $user()
-            ->notifications()
-            ->latest()
-            ->take(10)
-            ->get();
-        
-        $unreadCount = $user()->unreadNotifications->count();
-        
-        return view('dashboard', compact('notifications', 'unreadCount'));
+        // No service needed
     }
 
     private function getNotificationsQuery()
