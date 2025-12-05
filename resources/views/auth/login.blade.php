@@ -12,7 +12,8 @@
     <div class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg p-8 pt-12 pb-12 w-[400px] z-10">
         <div class="flex flex-col items-center">
             <img src="{{ asset('img/logo_kementerian_desa.png') }}" alt="Logo" class="w-24 h-24 mt-1 mb-5 drop-shadow" />
-
+            <p class="text-center text-xl text-[#2954B0] font-bold">Inspektorat Jenderal </p>
+            <p class="text-center text-sm text-gray-700 font-medium mb-5"> Kementerian Desa dan Pembangunan Daerah Tertinggal Republik Indonesia</p>
             @if(session('status'))
                 <div class="mb-4 text-sm text-green-600">
                     {{ session('status') }}
