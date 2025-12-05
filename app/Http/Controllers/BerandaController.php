@@ -19,7 +19,7 @@ class BerandaController extends Controller
                 $q->where('nip', $user->nip);
             })
             ->whereHas('status', function ($q) {
-                $q->where('nama_status', '!=', 'Selesai');
+                $q->whereNotIn('nama_status', ['Selesai', 'Dibatalkan']);
             })
             ->orderBy('tgl_mulai', 'asc')
             ->get();

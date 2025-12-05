@@ -197,7 +197,8 @@ class PerjadinController extends Controller
                 if ($tag) {
                     $photoUrls = [];
                     if (!empty($tag->foto)) {
-                        $photoUrls[] = Storage::disk('public')->url($tag->foto);
+                        // $photoUrls[] = Storage::disk('public')->url($tag->foto);
+                        $photoUrls[] = asset('storage/' . $tag->foto);
                     }
 
                     $geotagHistory[] = [
