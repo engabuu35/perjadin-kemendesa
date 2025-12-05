@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Notifikasi;
+
+class GeotaggingNotification
+{
+    private $user;
+    private $perjalanan;
+
+    public function __construct($user, $perjalanan)
+    {
+        $this->user = $user;
+        $this->perjalanan = $perjalanan;
+    }
+
+    public function send()
+    {
+        return Notifikasi::create([
+            'user_id' => $this->user->nip,
+            'type' => 'geotagging',
+            'title' => 'Pengingat Geotagging',
+            'message' => "Jangan lupa untuk melakukan geotagging untuk perjalanan dinas {$this->perjalanan->nomor}",
+            'icon' => '📍',
+            'color' => 'yellow',
+            'action_url' => "/geotagging/{$this->perjalanan->id}",
+            'data' => $this->perjalanan->toArray(),
+        ]);
+    }
+}

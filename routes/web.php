@@ -13,6 +13,7 @@ use App\Http\Controllers\PPKController;
 use App\Http\Controllers\PelaporanController;
 use App\Http\Controllers\ManagePegawaiController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
 
 // hapus klo ga kepake ini untuk testing aja
 Route::get('/preview-email-tailwind', function () {
@@ -43,8 +44,8 @@ Route::get('/reset-password/{token}', [PasswordResetController::class, 'showRese
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.store');
 
 // Confirm password (protected)
-Route::get('/confirm-password', [AuthController::class,'showConfirmForm'])->middleware('auth')->name('password.confirm');
-Route::post('/confirm-password', [AuthController::class,'confirm'])->middleware('auth')->name('password.confirm.post');
+Route::get('/confirm-password', [AuthController::class, 'showConfirmForm'])->middleware('auth')->name('password.confirm');
+Route::post('/confirm-password', [AuthController::class, 'confirm'])->middleware('auth')->name('password.confirm.post');
 
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +55,7 @@ Route::post('/confirm-password', [AuthController::class,'confirm'])->middleware(
 Route::middleware('auth')->group(function () {
     // Common dashboard
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
-    Route::get('/beranda', [BerandaController::class, 'index'])->middleware('auth')->name('pages.beranda');
+    Route::get('/beranda', [BerandaController::class, 'index'])->name('pages.beranda');
 
     // Profile & Bantuan
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
@@ -63,6 +64,18 @@ Route::middleware('auth')->group(function () {
 
     // Riwayat 
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat');
+
+    // =================================================================
+    // NOTIFICATION ROUTES
+    // =================================================================
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread', [NotificationController::class, 'unread'])->name('unread');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unreadCount');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('markAsRead');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
+        Route::delete('/{id}', [NotificationController::class, 'delete'])->name('delete');
+    });
 
     // =================================================================
     // ROUTE PERJALANAN DINAS & LAPORAN (PEGAWAI)
@@ -103,8 +116,8 @@ Route::middleware(['auth', 'role:PIMPINAN'])->prefix('pimpinan')->name('pimpinan
 });
 
 // PIC (Person In Charge)
-Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(function () {
-    Route::get('/manajemen-perjadin', [\App\Http\Controllers\PerjadinController::class, 'index'])->name('penugasan');
+Route::middleware(['auth', 'role:PIC'])->prefix('pic')->name('pic.')->group(function () {
+    Route::get('/manajemen-perjadin', [PerjadinController::class, 'index'])->name('penugasan');
     Route::get('/penugasan-perjadin/create', [\App\Http\Controllers\PerjadinTambahController::class, 'create'])->name('penugasan.create');
     Route::post('/penugasan-perjadin', [\App\Http\Controllers\PerjadinTambahController::class, 'store'])->name('penugasan.store');
     Route::get('/penugasan-perjadin/{id}/edit', [\App\Http\Controllers\PerjadinTambahController::class, 'edit'])->name('penugasan.edit');
@@ -119,29 +132,29 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
 
     // Route untuk menyimpan data keuangan manual oleh PIC
-    Route::post('penugasan-perjadin/{id}/simpan-manual', [App\Http\Controllers\PerjadinTambahController::class, 'simpanKeuanganManual'])->name('penugasan.simpanManual');
+    Route::post('penugasan-perjadin/{id}/simpan-manual', [\App\Http\Controllers\PerjadinTambahController::class, 'simpanKeuanganManual'])->name('penugasan.simpanManual');
 
     // View routes (server-rendered)
-    Route::get('/pegawai', [\App\Http\Controllers\ManagePegawaiController::class, 'index'])->name('pegawai.index');
-    Route::get('/pegawai/tambah', [\App\Http\Controllers\ManagePegawaiController::class, 'create'])->name('pegawai.create');
-    Route::post('/pegawai', [\App\Http\Controllers\ManagePegawaiController::class, 'store'])->name('pegawai.store');
-    Route::get('/pegawai/{nip}/edit', [\App\Http\Controllers\ManagePegawaiController::class, 'edit'])->name('pegawai.edit');
-    Route::patch('/pegawai/{nip}', [\App\Http\Controllers\ManagePegawaiController::class, 'update'])->name('pegawai.update');
-    Route::delete('/pegawai/{nip}', [\App\Http\Controllers\ManagePegawaiController::class, 'destroy'])->name('pegawai.destroy');
+    Route::get('/pegawai', [ManagePegawaiController::class, 'index'])->name('pegawai.index');
+    Route::get('/pegawai/tambah', [ManagePegawaiController::class, 'create'])->name('pegawai.create');
+    Route::post('/pegawai', [ManagePegawaiController::class, 'store'])->name('pegawai.store');
+    Route::get('/pegawai/{nip}/edit', [ManagePegawaiController::class, 'edit'])->name('pegawai.edit');
+    Route::patch('/pegawai/{nip}', [ManagePegawaiController::class, 'update'])->name('pegawai.update');
+    Route::delete('/pegawai/{nip}', [ManagePegawaiController::class, 'destroy'])->name('pegawai.destroy');
 
     // Bulk delete (form submit)
-    Route::post('/pegawai/bulk-delete', [\App\Http\Controllers\ManagePegawaiController::class, 'bulkDelete'])->name('pegawai.bulkDelete');
+    Route::post('/pegawai/bulk-delete', [ManagePegawaiController::class, 'bulkDelete'])->name('pegawai.bulkDelete');
     // [ROUTE BARU] Aksi Simpan & Hapus Bukti oleh PIC
     Route::post('/pelaporan-keuangan/{id}/store', [PelaporanController::class, 'storeBukti'])->name('pelaporan.storeBukti');
     Route::get('/pelaporan-keuangan/delete/{id}', [PelaporanController::class, 'deleteBukti'])->name('pelaporan.deleteBukti');
 
     Route::post('/pelaporan-keuangan/{id}/submit', [PelaporanController::class, 'submitToPPK'])->name('pelaporan.submit');
 
-    Route::post('/pelaporan-keuangan/{id}/store-bulk', [App\Http\Controllers\PelaporanController::class, 'storeBulk'])->name('pelaporan.storeBulk');
+    Route::post('/pelaporan-keuangan/{id}/store-bulk', [PelaporanController::class, 'storeBulk'])->name('pelaporan.storeBulk');
 });
 
 // PPK
-Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(function () {
+Route::middleware(['auth', 'role:PPK'])->prefix('ppk')->name('ppk.')->group(function () {
 
     // VERIFIKASI & INPUT SPM/SP2D
     Route::get('/verifikasi', [PPKController::class, 'index'])->name('verifikasi.index');
@@ -166,5 +179,3 @@ Route::middleware(['auth','role:PPK'])->prefix('ppk')->name('ppk.')->group(funct
     Route::get('/tabelrekap/export', [PPKController::class, 'exportRekap'])->name('tabelrekap.export');
 
 });
-
-

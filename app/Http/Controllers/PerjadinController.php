@@ -14,6 +14,7 @@ use Carbon\CarbonPeriod;
 use App\Models\Notifikasi;
 use App\Notifications\PerjalananAssignedNotification;
 use App\Models\User;
+use App\Http\Controllers\NotificationController;
 
 class PerjadinController extends Controller
 {
@@ -358,6 +359,24 @@ class PerjadinController extends Controller
             $statusNext = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
             if ($statusNext) {
                 $perjalanan->update(['id_status' => $statusNext]);
+
+                $picUsers = User::whereHas('roles', function($q) {
+                    $q->where('kode', 'PIC');
+                })->pluck('nip')->toArray();
+
+                if (!empty($picUsers)) {
+                    app(NotificationController::class)->sendFromTemplate(
+                        'laporan_selesai_pegawai',
+                        $picUsers,
+                        [
+                            'nomor_st' => $perjalanan->nomor_surat ?? '-',
+                            'tujuan' => $perjalanan->tujuan ?? '-',
+                        ],
+                        ['action_url' => '/pic/pelaporan-keuangan/' . $id]
+                    );
+                }
+                // <END CHANGE>
+
                 return back()->with('success', 'Tugas Anda selesai! Laporan diteruskan ke PIC.');
             }
         }
@@ -514,7 +533,7 @@ class PerjadinController extends Controller
         }
 
         $extension = 'jpg';
-        $fileName = 'geotag_' . $id . '' . $userNip . '' . now()->format('Ymd_His') . '.' . $extension;
+        $fileName = 'geotag_' . $id . '_' . $userNip . '_' . now()->format('Ymd_His') . '.' . $extension;
         $path = 'geotagging/' . $fileName;
 
         Storage::disk('public')->put($path, $binary);

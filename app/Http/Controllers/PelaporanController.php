@@ -7,6 +7,7 @@ use App\Models\PerjalananDinas;
 use App\Models\LaporanPerjadin;
 use App\Models\BuktiLaporan;
 use App\Models\LaporanKeuangan;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +25,6 @@ class PelaporanController extends Controller
                   'laporankeuangan.id as id_keuangan'
                );
 
-        // LOGIKA FILTER STATUS: Termasuk "Diselesaikan Manual"
         $query->where(function($q) {
             $q->whereIn('statusperjadin.nama_status', [
                 'Pembuatan Laporan', 
@@ -47,7 +47,6 @@ class PelaporanController extends Controller
         $laporanList = $query->orderBy('updated_at', 'desc')->paginate(12);
         
         $laporanList->getCollection()->transform(function ($item) {
-            // LOGIKA TAMPILAN STATUS BARU
             if ($item->nama_status == 'Diselesaikan Manual') {
                 if ($item->id_keuangan) {
                     $item->custom_status = 'Menunggu PPK';
@@ -216,6 +215,21 @@ class PelaporanController extends Controller
         if (!$idLapPPK) $idLapPPK = 3; 
 
         LaporanKeuangan::updateOrCreate(['id_perjadin' => $id], ['id_status' => $idLapPPK, 'updated_at' => now()]);
+
+        $ppkUsers = User::whereHas('roles', function($q) {
+            $q->where('kode', 'PPK');
+        })->pluck('nip')->toArray();
+
+        if (!empty($ppkUsers)) {
+            app(NotificationController::class)->sendFromTemplate(
+                'laporan_masuk_ppk',
+                $ppkUsers,
+                [
+                    'nomor_st' => $perjalanan->nomor_st ?? $perjalanan->tujuan ?? 'N/A',
+                ],
+                ['action_url' => '/ppk/verifikasi/' . $id]
+            );
+        }
 
         return redirect()->route('pic.pelaporan.index')->with('success', 'Laporan berhasil dikirim ke PPK.');
     }

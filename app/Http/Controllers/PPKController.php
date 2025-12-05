@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\PerjalananDinas;
 use App\Models\LaporanKeuangan;
 use App\Models\BuktiLaporan;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\RekapPerjadinExport;
@@ -21,7 +22,6 @@ class PPKController extends Controller
               ->leftJoin('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
               ->select('perjalanandinas.*', 'statusperjadin.nama_status');
 
-        // LOGIKA FILTER BARU: Sertakan status Manual JIKA sudah ada laporan keuangan (Menunggu Verifikasi)
         $query->where(function($q) {
             $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi'])
               ->orWhere(function($sub) {
@@ -137,22 +137,48 @@ class PPKController extends Controller
         $idSelesai = DB::table('statusperjadin')->where('nama_status', 'Selesai')->value('id');
         $perjalanan->update(['id_status' => $idSelesai]);
 
+        $pesertaNips = DB::table('pegawaiperjadin')
+            ->where('id_perjadin', $id)
+            ->pluck('id_user')
+            ->toArray();
+        
+        if (!empty($pesertaNips)) {
+            app(NotificationController::class)->sendFromTemplate(
+                'laporan_selesai',  // ganti template ke 'laporan_selesai'
+                $pesertaNips,
+                [
+                    'tujuan' => $perjalanan->tujuan,
+                    'tanggal' => $perjalanan->tgl_mulai ? date('d M Y', strtotime($perjalanan->tgl_mulai)) : '-',
+                ],
+                ['action_url' => '/perjalanan/' . $id]
+            );
+        }
+
+        $picUsers = User::whereHas('roles', function($q) {
+            $q->where('kode', 'PIC');
+        })->pluck('nip')->toArray();
+        
+        if (!empty($picUsers)) {
+            app(NotificationController::class)->send(
+                $picUsers,
+                'verifikasi',
+                'Laporan Disetujui PPK',
+                'Laporan perjalanan ke ' . $perjalanan->tujuan . ' telah disetujui oleh PPK.',
+                ['id_perjadin' => $id, 'tujuan' => $perjalanan->tujuan],
+                [
+                    'icon' => '✅',
+                    'color' => 'green',
+                    // tidak ada action_url - notifikasi ini hanya informasi saja
+                ]
+            );
+        }
+
         return redirect()->route('ppk.verifikasi.index')->with('success', 'Pembayaran disetujui. Data masuk Riwayat.');
     }
 
     public function reject(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
-        
-        $idRevisi = DB::table('statusperjadin')->where('nama_status', 'Perlu Revisi')->value('id');
-        if (!$idRevisi) {
-            $idRevisi = DB::table('statusperjadin')->insertGetId(['nama_status' => 'Perlu Revisi']);
-        }
-
-        $perjalanan->update([
-            'id_status' => $idRevisi,
-            'catatan_penolakan' => $request->alasan_penolakan,
-        ]);
 
         $idLapRevisi = DB::table('statuslaporan')->where('nama_status', 'Perlu Revisi')->value('id');
         if (!$idLapRevisi) {
@@ -160,6 +186,42 @@ class PPKController extends Controller
         }
         
         LaporanKeuangan::updateOrCreate(['id_perjadin' => $id], ['id_status' => $idLapRevisi]);
+
+        $pesertaNips = DB::table('pegawaiperjadin')
+            ->where('id_perjadin', $id)
+            ->pluck('id_user')
+            ->toArray();
+        
+        if (!empty($pesertaNips)) {
+            app(NotificationController::class)->sendFromTemplate(
+                'laporan_dikembalikan',
+                $pesertaNips,
+                [
+                    'tujuan' => $perjalanan->tujuan,
+                    'alasan' => $request->alasan_penolakan ?? 'Perlu perbaikan',
+                ],
+                ['action_url' => '/perjalanan/' . $id]
+            );
+        }
+
+        $picUsers = User::whereHas('roles', function($q) {
+            $q->where('kode', 'PIC');
+        })->pluck('nip')->toArray();
+        
+        if (!empty($picUsers)) {
+            app(NotificationController::class)->send(
+                $picUsers,
+                'verifikasi',
+                'Laporan Dikembalikan PPK',
+                'Laporan perjalanan ke ' . $perjalanan->tujuan . ' dikembalikan oleh PPK. Alasan: ' . ($request->alasan_penolakan ?? 'Perlu perbaikan'),
+                ['id_perjadin' => $id, 'tujuan' => $perjalanan->tujuan, 'alasan' => $request->alasan_penolakan],
+                [
+                    'icon' => '🔄',
+                    'color' => 'orange',
+                    'action_url' => '/pic/pelaporan-keuangan/' . $id,
+                ]
+            );
+        }
 
         return redirect()->route('ppk.verifikasi.index')->with('warning', 'Laporan dikembalikan ke PIC untuk perbaikan.');
     }

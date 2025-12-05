@@ -15,11 +15,7 @@ class ProfileController extends Controller
      */
     public function edit()
     {
-        // Ambil user yang sedang login
         $user = Auth::user();
-        
-        // Return view dengan data user
-        // Pastikan nama view sesuai dengan lokasi file blade kamu
         return view('pages.lamanprofile', compact('user'));
     }
 
@@ -30,42 +26,44 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         
-        // Validasi input
         $request->validate([
             'nama' => 'required|string|max:255',
             'no_telp' => 'nullable|string|max:20',
-            // Validasi password (opsional)
             'password' => 'nullable|min:6|confirmed', 
-            // Validasi foto (Security Layer): Max 2MB (2048 KB)
-            // Meskipun di frontend sudah dicek JS, di backend WAJIB tetap ada.
             'foto' => 'nullable|image|max:2048', 
         ]);
 
         /** @var \App\Models\User $user */
         
-        // Update data dasar
         $user->nama = $request->nama;
         $user->no_telp = $request->no_telp;
 
-        // Cek jika user input password baru
+        $passwordChanged = false;
         if ($request->filled('password')) {
             $user->password_hash = Hash::make($request->password);
+            $passwordChanged = true;
         }
 
-        // --- LOGIKA UPLOAD FOTO (Disiapkan) ---
         if ($request->hasFile('foto')) {
-            // Hapus foto lama jika ada
             if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
                 Storage::disk('public')->delete($user->foto_profil);
             }
-            // Simpan foto baru
             $path = $request->file('foto')->store('profile_photos', 'public');
             $user->foto_profil = $path;
         }
 
-        // Simpan ke database
-        // Karena model User kamu menggunakan primary key 'nip' (string), pastikan save() berjalan aman.
         $user->save();
+
+        if ($passwordChanged) {
+            app(NotificationController::class)->sendFromTemplate(
+                'perubahan_password',
+                [$user->nip],
+                [
+                    'waktu' => now()->format('d M Y H:i'),
+                    'ip' => $request->ip()
+                ]
+            );
+        }
 
         return back()->with('success', 'Profil berhasil diperbarui!');
     }

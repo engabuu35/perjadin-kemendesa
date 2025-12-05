@@ -21,7 +21,7 @@ class PerjalananAssignedNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['mail', 'database']; // kirim via email + simpan di database
+        return ['mail', 'database'];
     }
 
     public function toMail($notifiable)
@@ -33,13 +33,18 @@ class PerjalananAssignedNotification extends Notification implements ShouldQueue
             ]);
     }
 
-
     public function toArray($notifiable)
     {
         return [
             'perjalanan_id' => $this->perjalanan->id,
+            'type' => 'penugasan_perjalanan',
+            'category' => 'persiapan',
             'title' => 'Penugasan Perjalanan Dinas',
-            'message' => 'Anda ditugaskan perjalanan dinas.',
+            'message' => 'Anda ditugaskan perjalanan dinas ke ' . $this->perjalanan->kota_tujuan . ' pada tanggal ' . $this->perjalanan->tanggal_berangkat,
+            'icon' => 'briefcase',
+            'color' => 'blue',
+            'priority' => 'high',
+            'action_url' => '/perjadin/' . $this->perjalanan->id,
         ];
     }
 }

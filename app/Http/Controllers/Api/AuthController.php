@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Controllers\NotificationController;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -26,6 +27,16 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        app(NotificationController::class)->sendFromTemplate(
+            'login_baru',
+            [$user->nip],
+            [
+                'waktu' => now()->format('d M Y H:i'),
+                'ip' => $request->ip(),
+                'browser' => $request->header('User-Agent'),
+            ]
+        );
 
         return response()->json([
             'message' => 'Login berhasil',

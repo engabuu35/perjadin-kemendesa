@@ -107,13 +107,15 @@
         </div>
 
         @else
-        <!-- Tombol Tolak dan Setujui -->
+        <!-- Memperbaiki form tag yang hilang untuk tombol Tolak dan Setujui -->
         <div class="flex gap-3 mt-8">
+            <form method="POST" action="{{ route('pic.pelaporan-keuangan.tolak', $pelaporan->id ?? 1) }}" class="w-full">
                 @csrf
                 <button type="submit" class="w-full py-3.5 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition">
                     Tolak
                 </button>
             </form>
+            <form method="POST" action="{{ route('pic.pelaporan-keuangan.submit', $pelaporan->id ?? 1) }}" class="w-full">
                 @csrf
                 <button type="submit" class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition">
                     Setujui

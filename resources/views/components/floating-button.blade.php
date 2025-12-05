@@ -1,24 +1,13 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floating Action Button</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen">
-
 <!-- Modal Notifikasi - Positioned near FAB -->
 <div id="notificationModal" class="hidden fixed bottom-24 right-6 transform transition-all duration-300 scale-95 opacity-0" style="z-index: 1005 !important;">
-    <div class="bg-white rounded-xl shadow-2xl w-80 max-w-[calc(100vw-3rem)]" id="modalContent" onclick="event.stopPropagation()">
+    <div class="bg-white rounded-xl shadow-2xl w-96 max-w-[calc(100vw-2rem)]" id="modalContent" onclick="event.stopPropagation()">
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 gap-3">
             <h3 class="text-lg font-bold text-gray-900">
                 Notifikasi
             </h3>
             <div class="flex items-center gap-2">
-                <button onclick="refreshNotifications()" class="text-gray-500 hover:text-gray-700 transition-colors p-1.5 hover:bg-gray-100 rounded-full" title="Refresh">
+                <button onclick="refreshNotifications()" class="text-gray-500 hover:text-gray-700 transition-colors p-1.5 hover:bg-gray-100 rounded-full" title="Refresh" id="refreshBtn">
                     <i class="fas fa-sync-alt text-sm"></i>
                 </button>
                 <button onclick="closeNotificationModal()" class="text-gray-500 hover:text-gray-700 transition-colors p-1.5 hover:bg-gray-100 rounded-full" title="Tutup">
@@ -28,7 +17,7 @@
         </div>
         
         <!-- Tab Filter -->
-        <div class="flex gap-2 px-3 py-2 border-b border-gray-200 bg-gray-50">
+        <div class="flex gap-2 px-4 py-2.5 border-b border-gray-200 bg-gray-50">
             <button onclick="filterNotifications('thisWeek')" class="tab-btn flex-1 py-2 px-3 text-xs font-semibold rounded-lg transition-all bg-blue-600 text-white" data-tab="thisWeek">
                 This Week
             </button>
@@ -40,20 +29,31 @@
             </button>
         </div>
 
-        <!-- Content -->
-        <div class="overflow-y-auto p-3 space-y-2.5" style="height: 45vh; max-height: 45vh;">
-            <!-- Empty State -->
-            <div class="text-center flex flex-col items-center justify-center" style="height: 100%;">
+        <!-- Content - Dynamic notification container -->
+        <div id="notificationContainer" class="overflow-y-auto p-4 space-y-2" style="height: 45vh; max-height: 45vh;">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center flex flex-col items-center justify-center" style="height: 100%;">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
+                </div>
+                <h4 class="text-gray-600 font-semibold text-sm mb-1">Memuat Notifikasi...</h4>
+            </div>
+            
+            <!-- Empty State (hidden by default) -->
+            <div id="emptyState" class="hidden text-center flex flex-col items-center justify-center" style="height: 100%;">
                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-bell-slash text-gray-400 text-2xl"></i>
                 </div>
                 <h4 class="text-gray-600 font-semibold text-sm mb-1">Tidak Ada Notifikasi</h4>
                 <p class="text-gray-500 text-xs">Semua notifikasi sudah dibaca</p>
             </div>
+            
+            <!-- Notifications will be rendered here -->
+            <div id="notificationList"></div>
         </div>
         
         <!-- Footer -->
-        <div class="p-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+        <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
             <button onclick="markAllAsRead()" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm hover:shadow-md">
                 <i class="fas fa-check-double mr-1.5 text-xs"></i>
                 Tandai Semua Sudah Dibaca
@@ -106,7 +106,7 @@
                         aria-label="Notifikasi">
                         <i class="fas fa-bell text-xl transition-all duration-300"></i>
                         <!-- Badge Counter -->
-                        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse">0</span>
+                        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">0</span>
                     </button>
                 </div>
             </div>
@@ -129,6 +129,8 @@
                 style="background: linear-gradient(to bottom, #366bbcff, #3A6FBD);"
                 aria-label="Menu Utama">
                 <i id="mainIcon" class="fas fa-star text-xl transition-all duration-500"></i>
+                <!-- Badge Counter untuk tombol bintang -->
+                <span id="mainBtnBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">0</span>
             </button>
         </div>
 
@@ -188,9 +190,9 @@
 
     /* Notifikasi yang sudah dibaca */
     .notif-card[data-read="true"] {
-        background: #f3f4f6 !important;
-        opacity: 0.7;
-        border-color: #d1d5db !important;
+        background: #f9fafb !important;
+        opacity: 0.85;
+        border-color: #e5e7eb !important;
     }
 
     .notif-card[data-read="true"] h4,
@@ -199,16 +201,79 @@
         color: #9ca3af !important;
     }
 
-    .notif-card[data-read="true"] .w-8 {
-        background: #9ca3af !important;
+    /* ICON WRAPPER - Background abu-abu */
+    .notif-card[data-read="true"] .icon-wrapper {
+        background: #9ca3af !important; /* Abu-abu */
+    }
+
+    /* ICON - Warna putih */
+    .notif-card[data-read="true"] .icon-wrapper i,
+    .notif-card[data-read="true"] .icon-wrapper span {
+        color: #ffffff !important; /* Putih */
     }
 
     .notif-card[data-read="true"] button {
         color: #9ca3af !important;
     }
+
+    /* Notification card hover effect */
+    .notif-card:hover {
+        transform: translateX(2px);
+    }
+
+    /* Tambah margin antar card notifikasi */
+    .notif-card {
+        margin-bottom: 12px;
+    }
+    
+    .notif-card:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Refresh button spinning animation */
+    .refreshing .fa-sync-alt {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Line clamp untuk message - gunakan CSS untuk truncation */
+    .notif-message {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+        text-align: justify; /* Tambah text justify */
+        margin-right: 24px; /* Tambah margin-right agar tidak terlalu dekat dengan tombol X */
+    }
+
+    .notif-message.expanded {
+        display: block;
+        -webkit-line-clamp: unset;
+        overflow: visible;
+    }
+
+    /* Tombol selengkapnya */
+    .read-more-btn {
+        transition: all 0.2s ease;
+    }
+
+    .read-more-btn:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <script>
+    const API_BASE_URL = '/notifications';
+    
+    let allNotifications = [];
+    let currentFilter = 'thisWeek';
+    let expandedNotifications = new Set();
+
     // Inisialisasi elemen DOM
     const mainBtn = document.getElementById('mainBtn');
     const mainIcon = document.getElementById('mainIcon');
@@ -219,96 +284,450 @@
     const backdrop = document.getElementById('backdrop');
     const faqBtn = document.getElementById('faqBtn');
     const notifBtn = document.getElementById('notifBtn');
+    const mainBtnBadge = document.getElementById('mainBtnBadge');
     
     let isOpen = false;
 
     // Array menu items untuk animasi bertahap
     const menuItems = [
-        { element: notifWrapper, delay: 0 },    // Muncul pertama (paling bawah)
-        { element: faqWrapper, delay: 80 }      // Muncul kedua (paling atas)
+        { element: notifWrapper, delay: 0 },
+        { element: faqWrapper, delay: 80 }
     ];
 
-    // Fungsi toggle menu
-    function toggleMenu() {
-        isOpen = !isOpen;
-        
-        if (isOpen) {
-            openMenu();
-        } else {
-            closeMenu();
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
+    async function fetchNotifications() {
+        try {
+            const response = await fetch(`${API_BASE_URL}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) throw new Error('Failed to fetch notifications');
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                allNotifications = data.data || [];
+                updateNotificationBadge(data.unread_count || 0);
+                renderNotifications();
+                updateMainBtnBadge(data.unread_count || 0);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+            showErrorState();
         }
     }
 
-    // Fungsi buka menu
+    async function fetchUnreadCount() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/unread-count`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) throw new Error('Failed to fetch unread count');
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                updateNotificationBadge(data.count || 0);
+                updateMainBtnBadge(data.count || 0);
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    }
+
+    function getColorClass(color) {
+        const colors = {
+            'blue': 'bg-blue-500',
+            'green': 'bg-green-500',
+            'red': 'bg-red-500',
+            'orange': 'bg-orange-500',
+            'yellow': 'bg-yellow-500',
+            'purple': 'bg-purple-500',
+            'gray': 'bg-gray-500'
+        };
+        return colors[color] || 'bg-blue-500';
+    }
+
+    function getNotificationPeriod(createdAt) {
+        const now = new Date();
+        const notifDate = new Date(createdAt);
+        const diffTime = Math.abs(now - notifDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Get start of this week (Sunday)
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        // Get start of last week
+        const startOfLastWeek = new Date(startOfWeek);
+        startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+        
+        if (notifDate >= startOfWeek) {
+            return 'thisWeek';
+        } else if (notifDate >= startOfLastWeek) {
+            return 'lastWeek';
+        } else {
+            return 'earlier';
+        }
+    }
+
+    function needsReadMore(text) {
+        // Estimasi: jika lebih dari 80 karakter, kemungkinan besar akan terpotong dengan line-clamp-2
+        return text.length > 80;
+    }
+
+    function toggleExpand(notifId, event) {
+        event.stopPropagation();
+        
+        if (expandedNotifications.has(notifId)) {
+            expandedNotifications.delete(notifId);
+        } else {
+            expandedNotifications.add(notifId);
+        }
+        
+        const messageEl = document.querySelector(`.notif-message[data-id="${notifId}"]`);
+        const btnEl = document.querySelector(`.read-more-btn[data-id="${notifId}"]`);
+        
+        if (messageEl && btnEl) {
+            if (expandedNotifications.has(notifId)) {
+                messageEl.classList.add('expanded');
+                btnEl.textContent = 'Sembunyikan';
+            } else {
+                messageEl.classList.remove('expanded');
+                btnEl.textContent = 'Selengkapnya';
+            }
+        }
+    }
+
+    function renderNotificationCard(notification) {
+        const period = getNotificationPeriod(notification.created_at);
+        const colorClass = getColorClass(notification.color);
+        const isRead = notification.is_read;
+        const actionUrl = notification.action_url || '';
+        const isExpanded = expandedNotifications.has(notification.id);
+        
+        const showReadMore = needsReadMore(notification.message);
+        
+        return `
+            <div class="notif-card bg-white rounded-lg p-3 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer" 
+                 data-id="${notification.id}" 
+                 data-read="${isRead}"
+                 data-period="${period}"
+                 onclick="handleNotificationClick(${notification.id}, '${actionUrl.replace(/'/g, "\\'")}')"
+                 style="display: ${period === currentFilter ? 'block' : 'none'};">
+                <div class="flex items-start gap-3">
+                    <div class="icon-wrapper w-8 h-8 ${colorClass} rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-sm">${notification.icon}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-2">
+                            <h4 class="text-sm font-semibold text-gray-900 leading-tight">${notification.title}</h4>
+                            <button onclick="event.stopPropagation(); deleteNotification(${notification.id})" 
+                                    class="text-gray-400 hover:text-red-500 transition-colors p-1 -mr-1 -mt-2.5 flex-shrink-0" 
+                                    title="Hapus">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- Selalu tampilkan teks penuh, CSS line-clamp yang handle truncation -->
+                        <p class="notif-message text-xs text-gray-600 mt-1 ${isExpanded ? 'expanded' : ''}" data-id="${notification.id}">${notification.message}</p>
+                        ${showReadMore ? `
+                            <button onclick="toggleExpand(${notification.id}, event)" 
+                                    class="read-more-btn text-xs text-blue-600 hover:text-blue-700 font-medium mt-1" 
+                                    data-id="${notification.id}">
+                                ${isExpanded ? 'Sembunyikan' : 'Selengkapnya'}
+                            </button>
+                        ` : ''}
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-xs text-gray-400">${notification.time_ago}</span>
+                            ${!isRead ? '<span class="w-2 h-2 bg-blue-500 rounded-full"></span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderNotifications() {
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const notificationList = document.getElementById('notificationList');
+        
+        // Hide loading
+        loadingState.classList.add('hidden');
+        
+        // Filter notifications by current period
+        const filteredNotifications = allNotifications.filter(n => 
+            getNotificationPeriod(n.created_at) === currentFilter
+        );
+        
+        if (filteredNotifications.length === 0) {
+            emptyState.classList.remove('hidden');
+            notificationList.innerHTML = '';
+        } else {
+            emptyState.classList.add('hidden');
+            notificationList.innerHTML = allNotifications.map(n => renderNotificationCard(n)).join('');
+        }
+    }
+
+    function filterNotifications(period) {
+        currentFilter = period;
+        
+        // Update tab styles
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.dataset.tab === period) {
+                btn.classList.add('bg-blue-600', 'text-white');
+                btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            } else {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            }
+        });
+        
+        // Show/hide notifications based on period
+        document.querySelectorAll('.notif-card').forEach(card => {
+            if (card.dataset.period === period) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Check if there are any visible notifications
+        const visibleCards = document.querySelectorAll(`.notif-card[data-period="${period}"]`);
+        const emptyState = document.getElementById('emptyState');
+        
+        if (visibleCards.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+        }
+    }
+
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById('notifBadge');
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    function updateMainBtnBadge(count) {
+        if (count > 0) {
+            mainBtnBadge.textContent = count > 99 ? '99+' : count;
+            mainBtnBadge.classList.remove('hidden');
+        } else {
+            mainBtnBadge.classList.add('hidden');
+        }
+    }
+
+    async function handleNotificationClick(id, actionUrl) {
+        await markAsRead(id);
+        if (actionUrl) {
+            window.location.href = actionUrl;
+        }
+    }
+
+    async function markAsRead(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                const card = document.querySelector(`.notif-card[data-id="${id}"]`);
+                if (card) {
+                    card.dataset.read = 'true';
+                    const dot = card.querySelector('.bg-blue-500.rounded-full');
+                    if (dot) dot.remove();
+                }
+                fetchUnreadCount();
+            }
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
+    }
+
+    async function markAllAsRead() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/read-all`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                document.querySelectorAll('.notif-card').forEach(card => {
+                    card.dataset.read = 'true';
+                    const dot = card.querySelector('.bg-blue-500.rounded-full');
+                    if (dot) dot.remove();
+                });
+                updateNotificationBadge(0);
+                updateMainBtnBadge(0);
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    }
+
+    async function deleteNotification(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                const card = document.querySelector(`.notif-card[data-id="${id}"]`);
+                if (card) {
+                    card.remove();
+                }
+                allNotifications = allNotifications.filter(n => n.id !== id);
+                fetchUnreadCount();
+                
+                // Check if list is empty
+                const visibleCards = document.querySelectorAll(`.notif-card[data-period="${currentFilter}"]`);
+                if (visibleCards.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+        }
+    }
+
+    function refreshNotifications() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        refreshBtn.classList.add('refreshing');
+        
+        const loadingState = document.getElementById('loadingState');
+        const notificationList = document.getElementById('notificationList');
+        
+        loadingState.classList.remove('hidden');
+        notificationList.innerHTML = '';
+        
+        fetchNotifications().finally(() => {
+            setTimeout(() => {
+                refreshBtn.classList.remove('refreshing');
+            }, 500);
+        });
+    }
+
+    function showErrorState() {
+        const loadingState = document.getElementById('loadingState');
+        const notificationList = document.getElementById('notificationList');
+        
+        loadingState.classList.add('hidden');
+        notificationList.innerHTML = `
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                </div>
+                <h4 class="text-gray-600 font-semibold text-sm mb-1">Gagal Memuat</h4>
+                <p class="text-gray-500 text-xs mb-3">Terjadi kesalahan saat memuat notifikasi</p>
+                <button onclick="refreshNotifications()" class="text-blue-600 text-xs font-semibold hover:underline">
+                    <i class="fas fa-redo mr-1"></i> Coba Lagi
+                </button>
+            </div>
+        `;
+    }
+
+    // Toggle menu
+    function toggleMenu() {
+        if (isOpen) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    }
+
     function openMenu() {
         isOpen = true;
-        
-        // Rotasi ikon utama
-        mainIcon.style.transform = 'rotate(45deg)';
-        
-        // Tampilkan backdrop
         backdrop.classList.remove('hidden');
         
-        // Animasi background container
-        menuBackground.style.height = '220px';
+        // Rotate icon
+        mainIcon.style.transform = 'rotate(180deg)';
+        
+        // Hide badge when menu is open
+        mainBtnBadge.classList.add('hidden');
+        
+        // Expand background
+        menuBackground.style.height = '180px';
         menuBackground.style.opacity = '1';
         
-        // Pindahkan container menu items ke atas
-        menuItemsContainer.style.bottom = '70px';
-        
-        // Animasi menu items dari bawah ke atas dengan delay
+        // Animate menu items with stagger
         menuItems.forEach((item, index) => {
             setTimeout(() => {
                 item.element.style.opacity = '1';
                 item.element.style.transform = 'scale(1)';
             }, item.delay);
         });
+        
+        // Move container up
+        menuItemsContainer.style.bottom = '80px';
     }
 
-    // Fungsi tutup menu
     function closeMenu() {
         isOpen = false;
-        
-        // Rotasi ikon utama kembali
-        mainIcon.style.transform = 'rotate(0deg)';
-        
-        // Sembunyikan backdrop
         backdrop.classList.add('hidden');
         
-        // Animasi background container
+        // Reset icon rotation only
+        mainIcon.style.transform = 'rotate(0deg)';
+        
+        // Show badge again if there are unread notifications
+        fetchUnreadCount();
+        
+        // Collapse background
         menuBackground.style.height = '0';
         menuBackground.style.opacity = '0';
         
-        // Kembalikan posisi container menu items
-        menuItemsContainer.style.bottom = '0';
-        
-        // Animasi menu items dari atas ke bawah dengan delay (reverse)
-        const reversedItems = [...menuItems].reverse();
-        reversedItems.forEach((item, index) => {
+        // Hide menu items with reverse stagger
+        [...menuItems].reverse().forEach((item, index) => {
             setTimeout(() => {
                 item.element.style.opacity = '0';
                 item.element.style.transform = 'scale(0.5)';
-            }, index * 80);
+            }, index * 50);
         });
+        
+        // Move container down
+        menuItemsContainer.style.bottom = '0';
     }
 
-    // Event listeners
-    mainBtn.addEventListener('click', toggleMenu);
-
-    faqBtn.addEventListener('click', function() {
-        window.location.href = '/laman-bantuan';
-    });
-
-    notifBtn.addEventListener('click', function() {
-        openNotificationModal();
-    });
-
-    // Fungsi untuk membuka modal notifikasi
     function openNotificationModal() {
         const modal = document.getElementById('notificationModal');
-        const badge = document.getElementById('notifBadge');
-        
-        // Tampilkan modal
         modal.classList.remove('hidden');
         
         // Trigger animation
@@ -316,126 +735,39 @@
             modal.classList.remove('scale-95', 'opacity-0');
             modal.classList.add('scale-100', 'opacity-100');
         }, 10);
-
-        // Sembunyikan badge saat modal dibuka
-        if (badge) {
-            badge.classList.add('opacity-0');
-            setTimeout(() => {
-                badge.classList.add('hidden');
-            }, 300);
-        }
-
-        // Tutup menu FAB jika terbuka
-        if (isOpen) {
-            closeMenu();
-        }
-
-        // Tambahkan event listener untuk menutup modal saat klik di luar
-        setTimeout(() => {
-            document.addEventListener('click', closeModalOnClickOutside);
-        }, 100);
-    }
-
-    // Fungsi untuk menutup modal saat klik di luar
-    function closeModalOnClickOutside(event) {
-        const modal = document.getElementById('notificationModal');
-        const modalContent = document.getElementById('modalContent');
         
-        // Cek apakah klik di luar modal content dan bukan tombol notif
-        if (modal && !modal.classList.contains('hidden') && 
-            !modalContent.contains(event.target) && 
-            event.target.id !== 'notifBtn' &&
-            !event.target.closest('#notifBtn')) {
-            closeNotificationModal();
-        }
+        // Fetch notifications
+        fetchNotifications();
+        
+        // Close menu
+        closeMenu();
     }
 
-    // Fungsi untuk menutup modal notifikasi
     function closeNotificationModal() {
         const modal = document.getElementById('notificationModal');
-        
-        // Tutup modal
         modal.classList.remove('scale-100', 'opacity-100');
         modal.classList.add('scale-95', 'opacity-0');
         
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 300);
-
-        // Hapus event listener
-        document.removeEventListener('click', closeModalOnClickOutside);
     }
 
-    // Fungsi untuk tandai semua sebagai dibaca
-    function markAllAsRead() {
-        const badge = document.getElementById('notifBadge');
-        if (badge) {
-            badge.classList.add('hidden');
+    // Event listeners
+    mainBtn.addEventListener('click', toggleMenu);
+    notifBtn.addEventListener('click', openNotificationModal);
+    faqBtn.addEventListener('click', () => {
+        window.location.href = '/faq';
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('notificationModal');
+        if (!modal.classList.contains('hidden') && !modal.contains(e.target) && !notifBtn.contains(e.target)) {
+            closeNotificationModal();
         }
-        
-        // Tandai semua notifikasi sebagai dibaca
-        const allNotifs = document.querySelectorAll('.notif-card');
-        allNotifs.forEach(notif => {
-            notif.setAttribute('data-read', 'true');
-        });
-        
-        alert('Semua notifikasi telah ditandai sebagai dibaca');
-        
-        // Update badge menjadi 0
-        updateNotificationBadge(0);
-    }
+    });
 
-    // Fungsi refresh notifikasi
-    function refreshNotifications() {
-        alert('Refresh notifikasi...');
-    }
-
-    // Fungsi filter notifikasi berdasarkan periode
-    let currentFilter = 'thisWeek';
-    
-    function filterNotifications(period) {
-        currentFilter = period;
-        
-        // Update active tab
-        const tabs = document.querySelectorAll('.tab-btn');
-        tabs.forEach(tab => {
-            if (tab.dataset.tab === period) {
-                tab.classList.add('active', 'bg-blue-600', 'text-white');
-                tab.classList.remove('text-gray-600', 'hover:bg-gray-100');
-            } else {
-                tab.classList.remove('active', 'bg-blue-600', 'text-white');
-                tab.classList.add('text-gray-600', 'hover:bg-gray-100');
-            }
-        });
-        
-        // Filter notifikasi cards
-        const notifications = document.querySelectorAll('[data-period]');
-        notifications.forEach(notif => {
-            if (notif.dataset.period === period) {
-                notif.style.display = 'block';
-            } else {
-                notif.style.display = 'none';
-            }
-        });
-    }
-
-    // Update badge counter (panggil fungsi ini dari Laravel)
-    function updateNotificationBadge(count) {
-        const badge = document.getElementById('notifBadge');
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-    }
-
-    // Demo: Set badge counter untuk testing
-    // Uncomment baris di bawah untuk testing
-    // updateNotificationBadge(5);
+    // Initial fetch for unread count
+    fetchUnreadCount();
 </script>
-
-</body>
-</html>

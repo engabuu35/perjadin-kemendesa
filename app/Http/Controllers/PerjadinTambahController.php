@@ -120,10 +120,17 @@ class PerjadinTambahController extends Controller
                     'id_user' => $pegawai['nip'],
                 ];
                 
-                $user = User::find($pegawai['nip']);
-                if ($user) {
-                    $user->notify(new \App\Notifications\PerjalananAssignedNotification($perjalanan));
-                }
+                app(NotificationController::class)->sendFromTemplate(
+                    'penugasan_perjalanan',
+                    [$pegawai['nip']],
+                    [
+                        'lokasi' => $perjalanan->tujuan,
+                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y')
+                    ],
+                    [
+                        'action_url' => '/perjalanan/' . $perjalanan->id
+                    ]
+                );
 
                 $insertLaporan[] = [
                     'id_perjadin' => $perjalanan->id,
@@ -172,21 +179,18 @@ class PerjadinTambahController extends Controller
             ->select('u.nip', 'u.nama', 'pp.role_perjadin')
             ->get();
 
-        // LOGIKA PERSISTENCE: Ambil data Bukti Laporan existing untuk ditampilkan kembali
         foreach ($pegawaiList as $p) {
             $laporan = LaporanPerjadin::where('id_perjadin', $id)->where('id_user', $p->nip)->first();
             $buktiMap = [];
             if ($laporan) {
-                // Ambil semua bukti dan map berdasarkan kategori
                 $buktis = BuktiLaporan::where('id_laporan', $laporan->id)->get();
                 foreach ($buktis as $b) {
                     $buktiMap[$b->kategori] = $b; 
                 }
             }
-            $p->buktiMap = $buktiMap; // Inject ke object pegawai
+            $p->buktiMap = $buktiMap;
         }
 
-        // Data Kategori untuk Form Manual
         $catBiaya = ['Tiket', 'Uang Harian', 'Penginapan', 'Uang Representasi', 'Sewa Kendaraan', 'Pengeluaran Riil', 'Transport', 'SSPB'];
         $catPendukung = [
             'Jenis Transportasi(Pergi)', 'Kode Tiket(Pergi)', 'Nama Transportasi(Pergi)',
@@ -265,7 +269,6 @@ class PerjadinTambahController extends Controller
                 $perjalanan->save();
             }
 
-            // Hapus pegawai lama (untuk simplifikasi update)
             DB::table('pegawaiperjadin')->where('id_perjadin', $perjalanan->id)->delete();
             
             $insertPegawai = [];
@@ -278,10 +281,17 @@ class PerjadinTambahController extends Controller
                     'id_user' => $pegawai['nip'],
                 ];
 
-                $user = User::find($pegawai['nip']);
-                if ($user) {
-                    $user->notify(new \App\Notifications\PerjalananAssignedNotification($perjalanan));
-                }
+                app(NotificationController::class)->sendFromTemplate(
+                    'penugasan_perjalanan',
+                    [$pegawai['nip']],
+                    [
+                        'lokasi' => $perjalanan->tujuan,
+                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y')
+                    ],
+                    [
+                        'action_url' => '/perjalanan/' . $perjalanan->id
+                    ]
+                );
 
                 $exists = DB::table('laporan_perjadin')
                     ->where('id_perjadin', $perjalanan->id)
@@ -344,9 +354,6 @@ class PerjadinTambahController extends Controller
         return response()->json(['message' => 'Status berhasil diperbarui']);
     }
 
-    /**
-     * Menyimpan data keuangan yang diinput manual oleh PIC
-     */
     public function simpanKeuanganManual(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
@@ -359,7 +366,6 @@ class PerjadinTambahController extends Controller
         
         DB::transaction(function() use ($perjalanan, $items) {
             foreach ($items as $nip => $categories) {
-                // 1. Buatkan Laporan Perjadin (Header)
                 $laporan = LaporanPerjadin::firstOrCreate(
                     ['id_perjadin' => $perjalanan->id, 'id_user' => $nip],
                     [
@@ -370,9 +376,7 @@ class PerjadinTambahController extends Controller
                     ]
                 );
 
-                // 2. Simpan Rincian Biaya
                 foreach ($categories as $kategori => $val) {
-                    // Bersihkan format rupiah
                     $nominalStr = $val['nominal'] ?? '0';
                     $nominal = (int) str_replace(['.', ','], '', $nominalStr);
                     $keterangan = $val['text'] ?? null; 
@@ -390,8 +394,6 @@ class PerjadinTambahController extends Controller
                 }
             }
 
-            // 3. Update Laporan Keuangan ke "Menunggu Verifikasi" (ID 3)
-            // Agar masuk ke dashboard PIC Pelaporan & PPK
             $idMenunggu = DB::table('statuslaporan')->where('nama_status', 'Menunggu Verifikasi')->value('id');
             if (!$idMenunggu) $idMenunggu = 3; 
             

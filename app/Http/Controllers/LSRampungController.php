@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\LaporanPerjadin;
-use App\Models\User; // Asumsi model user ada
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class LSRampungController extends Controller
 {
@@ -22,7 +22,7 @@ class LSRampungController extends Controller
             'Uang Harian' => 0,
             'Penginapan' => 0,
             'Uang Representasi' => 0,
-            'Transport' => 0, // Asumsi kategori lain masuk sini atau kategori khusus
+            'Transport' => 0,
             'Sewa Kendaraan' => 0,
             'Pengeluaran Riil' => 0,
             'SSPB' => 0,
@@ -42,14 +42,9 @@ class LSRampungController extends Controller
                     // Masukkan ke rekap biaya jika kategorinya dikenali
                     if (isset($rekapBiaya[$kategori])) {
                         $rekapBiaya[$kategori] += $nominal;
-                    } else {
-                        // Jika ada kategori lain yang tidak standar, mungkin masuk ke Lain-lain atau Transport
-                        // Disini saya asumsikan kategori sesuai inputan dropdown di detailperjadin
-                        // Jika kategori tidak ada di key array, kita abaikan atau buat logic lain
                     }
                     
-                    // Hitung Total Keseluruhan (Kecuali SSPB biasanya pengembalian, tapi tergantung aturan)
-                    // Disini saya asumsi Total = Jumlah semua pengeluaran riil
+                    // Hitung Total Keseluruhan (Kecuali SSPB)
                     if ($kategori !== 'SSPB') {
                         $rekapBiaya['Total'] += $nominal;
                     }
