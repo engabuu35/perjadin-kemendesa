@@ -1,20 +1,39 @@
     <script>
         // Ripple effect saat klik di sidebar
         const sidebar = document.querySelector('.sidebar');
-        const logoutBtn = document.querySelector('.logout-btn');
         const logoutForm = document.getElementById('logoutForm');
         const logoutModal = document.getElementById('logoutModal');
         const cancelLogout = document.getElementById('cancelLogout');
         const confirmLogout = document.getElementById('confirmLogout');
 
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                logoutModal.classList.remove('opacity-0', 'invisible');
-                logoutModal.classList.add('opacity-100', 'visible');
-            });
-        }
+        // Handle SEMUA button logout (sidebar, popup desktop, popup mobile)
+        const logoutBtns = document.querySelectorAll('.logout-btn, #popupLogout, #mobilePopupLogout');
+
+        logoutBtns.forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    // Tutup semua popup yang mungkin terbuka
+                    const profilePopup = document.getElementById('profilePopup');
+                    const mobileProfilePopup = document.getElementById('mobileProfilePopup');
+                    
+                    if (profilePopup) {
+                        profilePopup.classList.add('opacity-0', 'invisible');
+                        profilePopup.classList.remove('opacity-100', 'visible');
+                    }
+                    if (mobileProfilePopup) {
+                        mobileProfilePopup.classList.add('opacity-0', 'invisible');
+                        mobileProfilePopup.classList.remove('opacity-100', 'visible');
+                    }
+                    
+                    // Tampilkan modal logout
+                    logoutModal.classList.remove('opacity-0', 'invisible');
+                    logoutModal.classList.add('opacity-100', 'visible');
+                });
+            }
+        });
 
         // Tutup modal saat klik Batal
         cancelLogout.addEventListener('click', (e) => {
@@ -187,15 +206,7 @@
                 profilePopup.classList.add('opacity-100', 'visible');
             }
         });
-
-
-        // klik Logout dari popup
-        popupLogout.addEventListener('click', function (e) {
-            e.stopPropagation();
-            logoutModal.classList.remove('opacity-0', 'invisible');
-            logoutModal.classList.add('opacity-100', 'visible');
-        });
-
+        
         // Klik di luar popup → tutup
         document.addEventListener('click', function (e) {
             if (!profilePopup.contains(e.target) && !avatarBtn.contains(e.target)) {
