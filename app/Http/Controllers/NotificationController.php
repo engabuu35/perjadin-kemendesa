@@ -279,6 +279,17 @@ class NotificationController extends Controller
             self::TYPE_LAPORAN_SELESAI_PEGAWAI => '<i class="fas fa-clipboard-check"></i>',
         ];
 
+        $categoryMap = [
+            self::TYPE_PENUGASAN => 'info',
+            self::TYPE_REMINDER_GEOTAGGING => 'warning',
+            self::TYPE_REMINDER_LAPORAN => 'warning',
+            self::TYPE_PERINGATAN_LAPORAN => 'danger',
+            self::TYPE_KONFIRMASI_LAPORAN => 'success',
+            self::TYPE_STATUS_VERIFIKASI_PPK => 'success',
+            self::TYPE_RINGKASAN_BULANAN => 'info',
+            // tambahkan mapping lain sesuai bisnis
+        ];
+
         foreach ($userIds as $userId) {
             $notificationId = DB::table('notifications')->insertGetId([
                 'user_id' => $userId,
@@ -289,6 +300,7 @@ class NotificationController extends Controller
                 'icon' => $options['icon'] ?? ($iconMap[$type] ?? '🔔'),
                 'color' => $options['color'] ?? 'blue',
                 'action_url' => $options['action_url'] ?? null,
+                'category'   => $options['category'] ?? ($categoryMap[$type] ?? 'info'),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
