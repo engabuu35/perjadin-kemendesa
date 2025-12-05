@@ -9,7 +9,7 @@ use App\Models\BuktiLaporan;
 use App\Models\LaporanKeuangan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage; // Pastikan import ini ada
+use Illuminate\Support\Facades\Storage;
 
 class PelaporanController extends Controller
 {
@@ -24,13 +24,17 @@ class PelaporanController extends Controller
                   'laporankeuangan.id as id_keuangan'
                );
 
-        $query->whereIn('statusperjadin.nama_status', [
-            'Pembuatan Laporan', 
-            'Menunggu Verifikasi Laporan',
-            'Perlu Revisi',
-            'Menunggu Verifikasi',
-            'Menunggu Validasi PPK'
-        ]);
+        // LOGIKA FILTER STATUS: Termasuk "Diselesaikan Manual"
+        $query->where(function($q) {
+            $q->whereIn('statusperjadin.nama_status', [
+                'Pembuatan Laporan', 
+                'Menunggu Verifikasi Laporan',
+                'Perlu Revisi',
+                'Menunggu Verifikasi',
+                'Menunggu Validasi PPK'
+            ])
+            ->orWhere('statusperjadin.nama_status', 'Diselesaikan Manual');
+        });
 
         if ($request->has('q')) {
             $q = $request->q;
@@ -43,7 +47,19 @@ class PelaporanController extends Controller
         $laporanList = $query->orderBy('updated_at', 'desc')->paginate(12);
         
         $laporanList->getCollection()->transform(function ($item) {
-            if ($item->nama_status == 'Perlu Revisi') {
+            // LOGIKA TAMPILAN STATUS BARU
+            if ($item->nama_status == 'Diselesaikan Manual') {
+                if ($item->id_keuangan) {
+                    $item->custom_status = 'Menunggu PPK';
+                    $item->status_color  = 'yellow';
+                    $item->status_icon   = '<i class="fa-solid fa-clock"></i>';
+                } else {
+                    $item->custom_status = 'Perlu Input Manual';
+                    $item->status_color  = 'blue';
+                    $item->status_icon   = '<i class="fa-solid fa-pen"></i>';
+                }
+            } 
+            elseif ($item->nama_status == 'Perlu Revisi') {
                 $item->custom_status = 'Perlu Revisi';
                 $item->status_color  = 'red'; 
                 $item->status_icon   = '<i class="fa-solid fa-triangle-exclamation"></i>';
@@ -84,32 +100,28 @@ class PelaporanController extends Controller
             ->select('users.nip', 'users.nama as name', 'pegawaiperjadin.role_perjadin')
             ->get();
 
-        // Siapkan Data Existing untuk Form Bulk
         foreach($allPeserta as $peserta) {
             $laporan = LaporanPerjadin::with('bukti')->where('id_perjadin', $id)->where('id_user', $peserta->nip)->first();
             $peserta->laporan = $laporan;
             
-            // Map bukti ke array assoc biar gampang dipanggil di view: $buktiMap['Tiket']
             $buktiMap = [];
             $total = 0;
             if($laporan && $laporan->bukti) {
                 foreach($laporan->bukti as $b) {
                     $buktiMap[$b->kategori] = $b;
-                    if ($b->kategori != 'SSPB') $total += $b->nominal; // Hitung total
+                    if ($b->kategori != 'SSPB') $total += $b->nominal; 
                 }
             }
             $peserta->buktiMap = $buktiMap;
             $peserta->total_biaya = $total;
         }
 
-        // Definisi Kategori agar view dinamis
         $catBiaya = ['Tiket', 'Uang Harian', 'Penginapan', 'Uang Representasi', 'Sewa Kendaraan', 'Pengeluaran Riil', 'Transport', 'SSPB'];
-        $catPendukung = ['Maskapai', 'Kode Tiket', 'Nama Penginapan', 'Kota'];
+        $catPendukung = ['Jenis Transportasi(Pergi)', 'Kode Tiket(Pergi)', 'Nama Transportasi(Pergi)', 'Jenis Transportasi(Pulang)', 'Kode Tiket(Pulang)', 'Nama Transportasi(Pulang)', 'Nama Penginapan', 'Kota'];
 
         return view('pic.pelaporan.detail', compact('perjalanan', 'allPeserta', 'statusText', 'isReadOnly', 'catBiaya', 'catPendukung'));
     }
 
-    // --- FUNGSI BARU: SIMPAN MASSAL ---
     public function storeBulk(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
@@ -119,7 +131,6 @@ class PelaporanController extends Controller
             return back()->with('error', 'Data terkunci. Tidak bisa diedit.');
         }
 
-        // 2. SIMPAN DATA KEUANGAN PEGAWAI
         $items = $request->input('items', []);
         $allFiles = $request->file('items') ?? [];
 
@@ -136,7 +147,6 @@ class PelaporanController extends Controller
                 $pathFile = null;
                 $namaFile = null;
 
-                // Ambil data bukti lama
                 $bukti = BuktiLaporan::where('id_laporan', $laporan->id)
                                      ->where('kategori', str_replace('_', ' ', $kategori))
                                      ->first();
@@ -175,7 +185,6 @@ class PelaporanController extends Controller
             }
         }
 
-        // Update status laporan keuangan
         $statusAwal = DB::table('statuslaporan')->where('nama_status', 'Perlu Tindakan')->value('id') ?? 2;
         LaporanKeuangan::firstOrCreate(['id_perjadin' => $id], ['id_status' => $statusAwal, 'created_at' => now()]);
 
@@ -183,7 +192,6 @@ class PelaporanController extends Controller
     }
 
     public function deleteBukti($idBukti) {
-        // Method ini mungkin jarang dipakai di mode bulk, tapi biarkan saja
         $bukti = BuktiLaporan::find($idBukti);
         if($bukti) { $bukti->delete(); return back()->with('success', 'Dihapus'); }
         return back();

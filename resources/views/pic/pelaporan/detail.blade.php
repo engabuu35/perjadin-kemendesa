@@ -84,10 +84,16 @@
                                     <!-- Input Nominal -->
                                     <div class="relative mb-2">
                                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold">Rp</span>
-                                        <input type="number" 
+                                        <input type="text" 
                                             name="items[{{ $peserta->nip }}][{{ $kategori }}][nominal]" 
-                                            value="{{ $nominal }}" 
-                                            class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                            @php
+                                                $angka = is_numeric($nominal) ? $nominal : (int) str_replace('.', '', $nominal);
+                                            @endphp
+
+                                            value="{{ number_format($angka, 0, ',', '.') }}"
+
+                                            {{-- value="{{ number_format($nominal, 0, ',', '.') }}" --}}
+                                            class="format-rupiah w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                                             placeholder="0"
                                             {{ $isReadOnly ? 'readonly' : '' }}>
                                     </div>
@@ -135,6 +141,11 @@
                             <i class="fa-solid fa-circle-info text-blue-500"></i> Informasi Tambahan
                         </h4>
 
+
+                        @php
+                            $transportOptions = ['Pesawat', 'Kereta', 'Bus', 'Kapal'];
+                        @endphp
+
                         <div class="space-y-4">
                             @foreach($catPendukung as $kategori)
                                 @php 
@@ -143,12 +154,32 @@
                                 @endphp
                                 <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">{{ $kategori }}</label>
-                                    <input type="text" 
-                                        name="items[{{ $peserta->nip }}][{{ $kategori }}][text]" 
-                                        value="{{ $text }}" 
-                                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                                        placeholder="-"
-                                        {{ $isReadOnly ? 'readonly' : '' }}>
+                                    {{-- Jika kategori Jenis Transportasi, pakai dropdown --}}
+                                    @if($kategori === 'Jenis Transportasi(Pergi)' || $kategori === 'Jenis Transportasi(Pulang)')
+                                        <select 
+                                            name="items[{{ $peserta->nip }}][{{ $kategori }}][text]"
+                                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                            {{ $isReadOnly ? 'disabled' : '' }}>
+
+                                            <option value="">-</option>
+
+                                            @foreach($transportOptions as $option)
+                                                <option value="{{ $option }}" 
+                                                    {{ $text == $option ? 'selected' : '' }}>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+
+                                    {{-- Selain itu tetap input text --}}
+                                    @else
+                                        <input type="text" 
+                                            name="items[{{ $peserta->nip }}][{{ $kategori }}][text]" 
+                                            value="{{ $text }}" 
+                                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                            placeholder="-"
+                                            {{ $isReadOnly ? 'readonly' : '' }}>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -233,5 +264,21 @@
             label.classList.add('text-gray-500');
         }
     }
+
+    document.querySelectorAll('.format-rupiah').forEach(function(input) {
+        input.addEventListener('input', function () {
+            // hapus semua selain angka
+            let value = this.value.replace(/[^0-9]/g, '');
+
+            // kalau kosong, tampilkan kosong
+            if (!value) {
+                this.value = '';
+                return;
+            }
+
+            // format angka dengan pemisah ribuan
+            this.value = new Intl.NumberFormat('id-ID').format(value);
+        });
+    });
 </script>
 @endsection

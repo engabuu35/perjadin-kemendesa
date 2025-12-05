@@ -30,6 +30,7 @@ class PerjalananDinas extends Model
         'surat_tugas',
         'catatan_penolakan',
         'dalam_rangka',
+        'selesaikan_manual', // PENAMBAHAN BARU BY ELLA 
     ];
 
     protected $casts = [

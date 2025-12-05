@@ -58,10 +58,14 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 SUM(CASE WHEN bl.nominal > 0 AND bl.kategori <> "SSPB" THEN bl.nominal ELSE 0 END) AS jumlah_dibayarkan,
 
                 -- Info tambahan yang disimpan di kolom keterangan
-                MAX(CASE WHEN bl.kategori = "Nama Penginapan" THEN bl.keterangan ELSE NULL END) AS nama_hotel,
-                MAX(CASE WHEN bl.kategori = "Kota Penginapan" THEN bl.keterangan ELSE NULL END) AS kota_hotel,
-                MAX(CASE WHEN bl.kategori = "Kode Tiket"      THEN bl.keterangan ELSE NULL END) AS kode_tiket,
-                MAX(CASE WHEN bl.kategori = "Maskapai"        THEN bl.keterangan ELSE NULL END) AS maskapai
+                MAX(CASE WHEN bl.kategori = "Nama Penginapan" THEN bl.keterangan ELSE NULL END) AS nama_penginapan,
+                MAX(CASE WHEN bl.kategori = "Kota" THEN bl.keterangan ELSE NULL END) AS kota,
+                MAX(CASE WHEN bl.kategori = "Jenis Transportasi(Pergi)" THEN bl.keterangan ELSE NULL END) AS jenis_transportasi_pergi,
+                MAX(CASE WHEN bl.kategori = "Kode Tiket(Pergi)" THEN bl.keterangan ELSE NULL END) AS kode_tiket_pergi,
+                MAX(CASE WHEN bl.kategori = "Nama Transportasi(Pergi)" THEN bl.keterangan ELSE NULL END) AS nama_transportasi_pergi,
+                MAX(CASE WHEN bl.kategori = "Jenis Transportasi(Pulang)" THEN bl.keterangan ELSE NULL END) AS jenis_transportasi_pulang,
+                MAX(CASE WHEN bl.kategori = "Kode Tiket(Pulang)" THEN bl.keterangan ELSE NULL END) AS kode_tiket_pulang,
+                MAX(CASE WHEN bl.kategori = "Nama Transportasi(Pulang)" THEN bl.keterangan ELSE NULL END) AS nama_transportasi_pulang   
             ')
             ->groupBy('lp.id_perjadin', 'lp.id_user');
 
@@ -83,6 +87,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 pd.tgl_mulai,
                 pd.tgl_selesai,
                 pd.tujuan,
+                pd.dalam_rangka,
 
                 u.nama                 AS nama_pegawai,
                 u.nip                  AS nip,
@@ -101,10 +106,14 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 COALESCE(b.biaya_sspb,             0) AS biaya_sspb,
                 COALESCE(b.jumlah_dibayarkan,      0) AS jumlah_dibayarkan,
 
-                b.nama_hotel,
-                b.kota_hotel,
-                b.kode_tiket,
-                b.maskapai,
+                b.nama_penginapan,
+                b.kota,
+                b.jenis_transportasi_pergi,
+                b.kode_tiket_pergi,
+                b.nama_transportasi_pergi,
+                b.jenis_transportasi_pulang,
+                b.kode_tiket_pulang,
+                b.nama_transportasi_pulang,
 
                 lk.nomor_spm,
                 lk.nomor_sp2d,
@@ -152,7 +161,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             $row->nama_pegawai,                                // Nama Lengkap Tanpa Gelar
             $row->nip,                                         // NIP
             $row->pangkat_golongan ?? '-',                     // Pangkat Golongan
-            $row->tujuan ?? '-',                               // Dalam Rangka  (pakai tujuan)
+            $row->dalam_rangka ?? '-',                               // Dalam Rangka  (pakai tujuan)
             'Jakarta',                                         // Daerah Asal (statis)
             $row->tujuan ?? '-',                               // Daerah Tujuan (pakai tujuan lagi)
             $mulai   ? $mulai->format('d-m-Y') : '-',          // Tgl SPD Brgkt
@@ -173,10 +182,16 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             $row->biaya_sspb             ?: 0,
 
             // 25–28: Penginapan & Pesawat
-            $row->nama_hotel ?? '-',
-            $row->kota_hotel ?? '-',
-            $row->kode_tiket ?? '-',
-            $row->maskapai   ?? '-',
+            $row->nama_penginapan ?? '-',
+            $row->kota ?? '-',
+            // $row->kode_tiket ?? '-',
+            // $row->maskapai   ?? '-',
+            $row->jenis_transportasi_pergi ?? '-',
+            $row->kode_tiket_pergi ?? '-',
+            $row->nama_transportasi_pergi ?? '-', 
+            $row->jenis_transportasi_pulang ?? '-',  
+            $row->kode_tiket_pulang ?? '-',
+            $row->nama_transportasi_pulang ?? '-',
         ];
     }
 
@@ -197,13 +212,15 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 'No SP2D',
                 'Jumlah SP2D (Rp)',
 
-                'Surat Perjalanan Dinas', '', '', '', '', '', '', '', // G–O
+                'Surat Perjalanan Dinas', '', '', '', '', '', '', '','', // G–O
 
-                'Rincian Pembayaran / Rincian Biaya (Rp)', '', '', '', '', '', '', '', '', // P–X
+                'Rincian Pembayaran', '', '', '', '', '', '', '', '', // P–X
 
-                'Penginapan', '', // Y–Z
-                'Pesawat',   '', // AA–AB
+                'Penginapan', '',
+
+                'Transportasi', '', '', '', '', '', // AA–AF (6 kolom)
             ],
+
 
             // Baris header 2 (nama kolom persis urutan 0–27)
             [
@@ -220,11 +237,38 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 'Dalam Rangka',
                 'Daerah Asal',
                 'Daerah Tujuan',
-                'Tgl SPD Brgkt',
-                'Tgl SPD Kmbl',
+                'Tgl SPD ','',
                 'Lama Hari',
 
                 'Jumlah Dibayarkan (Rp)',
+                'Rincian Biaya','','','','','','','',
+
+                'Nama Penginapan',
+                'Kota',
+
+                'Pergi','','',
+                'Pulang','','',
+            ],
+
+            [
+                'No',
+                'Nama UKE-1',
+                'Nama UKE-2',
+                'No SPM',
+                'No SP2D',
+                'Jumlah SP2D (Rp)',
+
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                'Brgkt',
+                'Kmbl',
+                '',
+
+                '',
                 'Tiket',
                 'Uang Harian',
                 'Penginapan',
@@ -234,11 +278,16 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
                 'Pengeluaran Riil',
                 'SSPB',
 
-                'Nama Hotel',
-                'Kota',
-                'Kode Tiket',
-                'Maskapai',
-            ],
+                '',
+                '',
+
+                'Jenis (Pergi)',
+                'Kode Tiket (Pergi)',
+                'Nama Transport (Pergi)',
+                'Jenis (Pulang)',
+                'Kode Tiket (Pulang)',
+                'Nama Transport (Pulang)',
+            ]
         ];
     }
 
@@ -251,20 +300,45 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                // Merge header vertical untuk kolom yang tidak punya sub-kolom (baris 1–2)
+                // Merge header vertical untuk kolom yang tidak punya sub-kolom (baris 1–3)
                 $mergeVertical = ['A', 'B', 'C', 'D', 'E', 'F'];
                 foreach ($mergeVertical as $col) {
-                    $sheet->mergeCells("{$col}1:{$col}2");
+                    $sheet->mergeCells("{$col}1:{$col}3");
                 }
 
                 // Merge grup besar
                 $sheet->mergeCells('G1:O1');   // Surat Perjalanan Dinas
-                $sheet->mergeCells('P1:X1');   // Rincian Pembayaran / Biaya
-                $sheet->mergeCells('Y1:Z1');   // Penginapan
-                $sheet->mergeCells('AA1:AB1'); // Pesawat
+                $sheet->mergeCells('M2:N2');   //TGL SPD
+
+                $sheet->mergeCells('G2:G3');
+                $sheet->mergeCells('H2:H3');
+                $sheet->mergeCells('I2:I3');
+                $sheet->mergeCells('J2:J3');
+                $sheet->mergeCells('K2:K3');
+                $sheet->mergeCells('L2:L3');
+                $sheet->mergeCells('O2:O3');
+                
+                $sheet->mergeCells('P1:X1');   // Rincian Pembayaran
+                $sheet->mergeCells('P2:P3');   // Jumlah Dibayarkan
+                $sheet->mergeCells('Q2:X2');   // Rincian Biaya
+
+                // Penginapan
+                $sheet->mergeCells('Y1:Z1');
+                $sheet->mergeCells('Y2:Y3');  // Nama Penginapan
+                $sheet->mergeCells('Z2:Z3');  // Kota
+
+                // Transportasi (6 kolom)
+                $sheet->mergeCells('AA1:AF1');
+
+                // Pergi (di dalam Transportasi)
+                $sheet->mergeCells('AA2:AC2');
+
+                // Pulang
+                $sheet->mergeCells('AD2:AF2');
+
 
                 // Range header keseluruhan
-                $headerRange = 'A1:AB2';
+                $headerRange = 'A1:AF3';
 
                 // Warna background + alignment + border tebal
                 $sheet->getStyle($headerRange)->applyFromArray([
@@ -291,7 +365,7 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
 
                 // Border untuk seluruh data (header + isi)
                 $highestRow = $sheet->getHighestRow();
-                $fullRange  = "A1:AB{$highestRow}";
+                $fullRange  = "A1:AF{$highestRow}";
                 $sheet->getStyle($fullRange)->applyFromArray([
                     'borders' => [
                         'allBorders' => [

@@ -14,6 +14,14 @@ use App\Http\Controllers\PelaporanController;
 use App\Http\Controllers\ManagePegawaiController;
 use App\Http\Controllers\ProfileController;
 
+// hapus klo ga kepake ini untuk testing aja
+Route::get('/preview-email-tailwind', function () {
+    $perjalanan = \App\Models\PerjalananDinas::first();
+
+    return view('emails.perjadin-email', compact('perjalanan'));
+});
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes (FULL)
@@ -64,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/hadir', [PerjadinController::class, 'tandaiKehadiran'])->name('hadir');
         Route::post('/{id}/uraian', [PerjadinController::class, 'storeUraian'])->name('storeUraian');
         Route::post('/{id}/bukti', [PerjadinController::class, 'storeBukti'])->name('storeBukti');
+        Route::post('/{id}/foto-geotag', [PerjadinController::class, 'storeFotoGeotagging'])->name('fotoGeotag');
         
         // Route Selesaikan (Finalisasi)
         Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanTugasSaya'])->name('selesaikan');
@@ -108,6 +117,9 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     // PELAPORAN KEUANGAN PIC (MANUAL)
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
     Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
+
+    // Route untuk menyimpan data keuangan manual oleh PIC
+    Route::post('penugasan-perjadin/{id}/simpan-manual', [App\Http\Controllers\PerjadinTambahController::class, 'simpanKeuanganManual'])->name('penugasan.simpanManual');
 
     // View routes (server-rendered)
     Route::get('/pegawai', [\App\Http\Controllers\ManagePegawaiController::class, 'index'])->name('pegawai.index');

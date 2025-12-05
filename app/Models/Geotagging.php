@@ -31,6 +31,7 @@ class Geotagging extends Model
         'id_tipe',
         'latitude',
         'longitude',
+        'foto',
     ];
 
     /**
