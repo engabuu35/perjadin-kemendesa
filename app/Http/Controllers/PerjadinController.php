@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Geotagging;
 use App\Models\PerjalananDinas;
 use App\Models\LaporanPerjadin;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -15,10 +16,6 @@ use App\Notifications\PerjalananAssignedNotification;
 
 class PerjadinController extends Controller
 {
-    /**
-     * LIST PENUGASAN
-     * Tidak ada auto-update status di sini.
-     */
     public function index(Request $request)
     {
         $q = $request->query('q');
@@ -34,23 +31,25 @@ class PerjadinController extends Controller
         $suratMissing  = [];
         $conflicts     = [];
 
-        $allPerjadin = PerjalananDinas::select('id', 'tgl_mulai', 'tgl_selesai')->get();
-
         foreach ($penugasans as $p) {
-
             $pegs = DB::table('pegawaiperjadin')
                 ->where('id_perjadin', $p->id)
                 ->pluck('id_user')
                 ->toArray();
 
-            $missingUraian[$p->id] = DB::table('laporan_perjadin')
-                ->where('id_perjadin', $p->id)
-                ->where(function ($q) {
-                    $q->whereNull('uraian')
-                      ->orWhereRaw("TRIM(IFNULL(uraian,'')) = ''");
-                })
-                ->pluck('id_user')
-                ->toArray();
+            // LOGIKA BARU: Jika status manual (ID 7), anggap uraian lengkap
+            if ($p->id_status == 7) {
+                $missingUraian[$p->id] = [];
+            } else {
+                $missingUraian[$p->id] = DB::table('laporan_perjadin')
+                    ->where('id_perjadin', $p->id)
+                    ->where(function ($q) {
+                        $q->whereNull('uraian')
+                          ->orWhereRaw("TRIM(IFNULL(uraian,'')) = ''");
+                    })
+                    ->pluck('id_user')
+                    ->toArray();
+            }
 
             $suratMissing[$p->id] = empty($p->surat_tugas);
 
@@ -75,10 +74,6 @@ class PerjadinController extends Controller
         ));
     }
 
-    /**
-     * DETAIL PERJALANAN
-     * Update status DIIZINKAN sekali saat halaman ini dibuka.
-     */
     public function show($id)
     {
         $user    = Auth::user();
@@ -86,13 +81,11 @@ class PerjadinController extends Controller
 
         $perjalanan = PerjalananDinas::findOrFail($id);
 
-        // Refresh status perjadin
         if (method_exists($perjalanan, 'updateStatus')) {
             $perjalanan->updateStatus();
             $perjalanan->refresh();
         }
 
-        // Ambil role utama user (kalau ada)
         $roleKode = DB::table('penugasanperan')
             ->join('roles', 'penugasanperan.role_id', '=', 'roles.id')
             ->where('penugasanperan.user_id', $userNip)
@@ -100,7 +93,6 @@ class PerjadinController extends Controller
 
         $roleKode = $roleKode ? strtoupper($roleKode) : null;
 
-        // Cek apakah user adalah anggota tim perjadin (tabel pivot)
         $dataSaya = DB::table('pegawaiperjadin')
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
@@ -110,22 +102,15 @@ class PerjadinController extends Controller
         $isPembuat  = $perjalanan->id_pembuat === $userNip;
         $isPrivRole = in_array($roleKode, ['PIC', 'PPK', 'PIMPINAN']);
 
-        // Kalau bukan anggota, bukan pembuat, dan bukan role istimewa → dilarang
         if (!$isAnggota && !$isPembuat && !$isPrivRole) {
             abort(403);
         }
 
-        // Flag status tugas saya (kalau user bukan anggota, anggap false)
         $isMyTaskFinished = $dataSaya ? ($dataSaya->is_finished == 1) : false;
 
-        // --- status perjadin (riwayat atau belum) ---
-        $idStatusSelesai = DB::table('statusperjadin')
-            ->where('nama_status', 'Selesai')
-            ->value('id');
-
+        $idStatusSelesai = DB::table('statusperjadin')->where('nama_status', 'Selesai')->value('id');
         $isRiwayatPerjadin = $perjalanan->id_status == $idStatusSelesai;
 
-        // Flag global untuk view: boleh edit atau tidak
         $canEditUraian   = !$isRiwayatPerjadin && !$isMyTaskFinished;
         $canFinishTask   = !$isRiwayatPerjadin && !$isMyTaskFinished;
 
@@ -148,7 +133,6 @@ class PerjadinController extends Controller
             $geotagHistory[] = [
                 'hari_ke' => $hariKe++,
                 'tanggal' => $date->format('d M Y'),
-                // Kirim raw latitude/longitude agar bisa dipakai JS
                 'lat_raw' => $tag ? $tag->latitude : null,
                 'long_raw'=> $tag ? $tag->longitude : null,
                 'lokasi'  => $tag ? "Lat: {$tag->latitude}, Long: {$tag->longitude}" : '-',
@@ -168,34 +152,26 @@ class PerjadinController extends Controller
 
         $canFinish = ($isLastDay && $sudahAbsenHariIni) || $isPastEnd;
 
-        // ---------- finishMessage: alasan tombol belum aktif ----------
         $finishMessage = null;
         if (!$canFinish) {
             if ($today->lt($perjalanan->tgl_mulai)) {
-                $finishMessage = 'Belum bisa diselesaikan: tugas belum dimulai (mulai ' . Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') . ').';
+                $finishMessage = 'Belum bisa diselesaikan: tugas belum dimulai.';
             } elseif ($today->gt($perjalanan->tgl_selesai)) {
-                // meskipun lewat tanggal selesai, canFinish akan true karena isPastEnd => jarang sampai sini,
-                // tetap sediakan fallback
-                $finishMessage = 'Periode tugas telah berakhir pada ' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . '.';
+                $finishMessage = 'Periode tugas telah berakhir.';
             } elseif (!$isLastDay && !$isPastEnd) {
-                $finishMessage = 'Tombol hanya aktif pada hari terakhir tugas atau setelah tugas selesai.';
+                $finishMessage = 'Tombol hanya aktif pada hari terakhir tugas.';
             } elseif ($isLastDay && !$sudahAbsenHariIni) {
-                $finishMessage = 'Hari ini hari terakhir tugas, tetapi Anda belum melakukan geotagging hari ini.';
-            } else {
-                $finishMessage = 'Belum memenuhi syarat untuk menyelesaikan tugas.';
+                $finishMessage = 'Anda belum melakukan geotagging hari ini.';
             }
         }
-        // ---------------------------------------------------------------
 
-        // ----- tambahan: status message + badge -----
+        $statusMessage = null;
         if (!$isTodayInPeriod) {
             if ($today->lt($perjalanan->tgl_mulai)) {
-                $statusMessage = 'Tugas belum dimulai. Periode: ' . Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') . ' — ' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . '.';
+                $statusMessage = 'Tugas belum dimulai.';
             } else {
-                $statusMessage = 'Periode tugas telah berakhir pada ' . Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') . '.';
+                $statusMessage = 'Periode tugas telah berakhir.';
             }
-        } else {
-            $statusMessage = null;
         }
 
         if ($isMyTaskFinished) {
@@ -211,7 +187,6 @@ class PerjadinController extends Controller
             $statusPegawai = 'Belum Hadir';
             $statusBadgeClass = 'bg-yellow-50 text-yellow-700 border border-yellow-100';
         }
-        // --------------------------------------------
 
         return view('pages.detailperjadin', compact(
             'perjalanan',
@@ -228,114 +203,68 @@ class PerjadinController extends Controller
             'statusMessage',
             'statusPegawai',
             'statusBadgeClass',
-            'finishMessage'  // <-- kirim finishMessage ke view
+            'finishMessage'
         ));
     }
 
-
-    /**
-     * FINISH TUGAS SAYA
-     * Tidak update status langsung — model yang menangani.
-     */
     public function selesaikanTugasSaya(Request $request, $id)
     {
         $userNip = Auth::user()->nip;
         $perjalanan = PerjalananDinas::findOrFail($id);
         $today = Carbon::today();
 
-        // 1. Validasi Waktu
         if (!$today->isSameDay($perjalanan->tgl_selesai) && !$today->gt($perjalanan->tgl_selesai)) {
             return back()->with('error', 'Hanya bisa diselesaikan pada atau setelah tanggal selesai.');
         }
 
-        // 2. Validasi Uraian Kegiatan
         $laporan = LaporanPerjadin::where('id_perjadin', $id)->where('id_user', $userNip)->first();
         
         if (!$laporan || empty($laporan->uraian)) {
-            return back()->with('error', 'Anda belum mengisi uraian kegiatan. Silakan isi terlebih dahulu.');
+            return back()->with('error', 'Anda belum mengisi uraian kegiatan.');
         }
 
         $jumlahKata = str_word_count(strip_tags($laporan->uraian));
         if ($jumlahKata < 100) {
-            $kurang = 100 - $jumlahKata;
-            return back()->with('error', "Uraian kegiatan belum cukup detail. Minimal 100 kata. Anda menulis {$jumlahKata} kata (kurang {$kurang} kata lagi).");
+            return back()->with('error', "Uraian kegiatan minimal 100 kata.");
         }
 
-        // 3. Update status pegawai ini jadi finished
         DB::table('pegawaiperjadin')
             ->where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->update(['is_finished' => 1]);
 
-
-        // 3.5. Update Status Laporan (Tabel Laporan - IS FINAL)
-        // PERBAIKAN: Ubah is_final menjadi 1 (True)
         $laporan->update(['is_final' => 1]);
 
-        // 4. Cek apakah SEMUA pegawai dalam tim sudah selesai?
         $totalPegawai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->count();
         $totalSelesai = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('is_finished', 1)->count();
 
         if ($totalPegawai == $totalSelesai) {
-            // JIKA SEMUA SELESAI -> Masuk ke Dashboard PIC
-            
-            // PERBAIKAN DI SINI:
-            // Prioritas 1: Cari 'Pembuatan Laporan' (Agar statusnya jadi ID 3)
             $statusNext = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
-            
-            // Prioritas 2: Fallback ke 'Menunggu Verifikasi Laporan' jika yang atas tidak ada
-            // if (!$statusNext) {
-            //     $statusNext = DB::table('statusperjadin')->where('nama_status', 'Menunggu Verifikasi Laporan')->value('id');
-            // }
-
             if ($statusNext) {
                 $perjalanan->update(['id_status' => $statusNext]);
-                return back()->with('success', 'Tugas Anda selesai! Laporan diteruskan ke PIC (Status: Pembuatan Laporan).');
+                return back()->with('success', 'Tugas Anda selesai! Laporan diteruskan ke PIC.');
             }
         }
 
-        return back()->with('success', 'Tugas Anda selesai. Menunggu rekan tim lain.');
+        return back()->with('success', 'Tugas Anda selesai.');
     }
 
-    /**
-     * SIMPAN URAIAN PER USER
-     */
     public function storeUraian(Request $request, $id)
     {
         $request->validate(['uraian' => 'nullable|string']);
-
         $nip = Auth::user()->nip;
 
-        $cek = DB::table('pegawaiperjadin')
-            ->where('id_perjadin', $id)
-            ->where('id_user', $nip)
-            ->first();
+        $cek = DB::table('pegawaiperjadin')->where('id_perjadin', $id)->where('id_user', $nip)->first();
+        if (!$cek) return back()->with('error', 'Anda tidak terdaftar.');
+        if ($cek->is_finished) return back()->with('error', 'Sudah selesai, tidak bisa edit.');
 
-        if (!$cek) {
-            return back()->with('error', 'Anda tidak terdaftar pada perjalanan ini.');
-        }
-
-        if ($cek->is_finished) {
-            return back()->with('error', 'Sudah selesai, tidak bisa edit.');
-        }
-
-        $laporan = LaporanPerjadin::firstOrNew([
-            'id_perjadin' => $id,
-            'id_user'     => $nip
-        ]);
-
+        $laporan = LaporanPerjadin::firstOrNew(['id_perjadin' => $id, 'id_user' => $nip]);
         $laporan->uraian = $request->uraian;
         $laporan->save();
-
-        $perjalanan = PerjalananDinas::find($id);
-        $perjalanan?->updateStatus();
 
         return back()->with('success', 'Uraian tersimpan.');
     }
 
-    /**
-     * ABSENSI / GEOTAGGING
-     */
     public function tandaiKehadiran(Request $request, $id)
     {
         $request->validate([
@@ -351,10 +280,7 @@ class PerjadinController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Di luar jadwal.'], 403);
         }
 
-        if (Geotagging::where('id_perjadin', $id)
-            ->where('id_user', Auth::user()->nip)
-            ->whereDate('created_at', $today)
-            ->exists()) {
+        if (Geotagging::where('id_perjadin', $id)->where('id_user', Auth::user()->nip)->whereDate('created_at', $today)->exists()) {
             return response()->json(['status' => 'error', 'message' => 'Sudah absen.'], 400);
         }
 
@@ -371,18 +297,10 @@ class PerjadinController extends Controller
 
     public function assign(Request $request, PerjalananDinas $perjalanan)
     {
-        // Ambil user yang ditugaskan
         $user = User::find($request->input('user_id'));
-
         if ($user) {
-            // Simpan data lama perjalanan untuk payload
-            $oldData = $perjalanan->only(['tgl_mulai','tgl_selesai','tujuan']);
-
-            // Kirim notifikasi email langsung ke user
             $user->notify(new PerjalananAssignedNotification($perjalanan));
         }
-
-        return back()->with('success', 'Perjalanan berhasil ditugaskan dan notifikasi dikirim.');
+        return back()->with('success', 'Perjalanan berhasil ditugaskan.');
     }
-
 }

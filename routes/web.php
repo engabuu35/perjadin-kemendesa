@@ -117,6 +117,9 @@ Route::middleware(['auth','role:PIC'])->prefix('pic')->name('pic.')->group(funct
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
     Route::get('/pelaporan-keuangan/{id}', [PelaporanController::class, 'show'])->name('pelaporan.detail');
 
+    // Route untuk menyimpan data keuangan manual oleh PIC
+    Route::post('penugasan-perjadin/{id}/simpan-manual', [App\Http\Controllers\PerjadinTambahController::class, 'simpanKeuanganManual'])->name('penugasan.simpanManual');
+
     // View routes (server-rendered)
     Route::get('/pegawai', [\App\Http\Controllers\ManagePegawaiController::class, 'index'])->name('pegawai.index');
     Route::get('/pegawai/tambah', [\App\Http\Controllers\ManagePegawaiController::class, 'create'])->name('pegawai.create');

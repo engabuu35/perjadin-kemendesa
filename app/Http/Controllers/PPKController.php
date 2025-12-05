@@ -17,13 +17,18 @@ class PPKController extends Controller
     {
         $query = PerjalananDinas::query();
         $query->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
+              ->leftJoin('laporankeuangan', 'perjalanandinas.id', '=', 'laporankeuangan.id_perjadin')
+              ->leftJoin('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
               ->select('perjalanandinas.*', 'statusperjadin.nama_status');
 
-        // Hanya status yang perlu divalidasi PPK
-        $query->whereIn('statusperjadin.nama_status', [
-            'Menunggu Validasi PPK',
-            'Menunggu Verifikasi'
-        ]);
+        // LOGIKA FILTER BARU: Sertakan status Manual JIKA sudah ada laporan keuangan (Menunggu Verifikasi)
+        $query->where(function($q) {
+            $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi'])
+              ->orWhere(function($sub) {
+                  $sub->where('statusperjadin.nama_status', 'Diselesaikan Manual')
+                      ->where('statuslaporan.nama_status', 'Menunggu Verifikasi');
+              });
+        });
 
         if ($request->has('q')) {
             $q = $request->q;
@@ -68,30 +73,15 @@ class PPKController extends Controller
                 ->get();
 
             $biaya = [
-                'Tiket'            => 0,
-                'Uang Harian'      => 0,
-                'Penginapan'       => 0,
-                'Uang Representasi'=> 0,
-                'Transport'        => 0,
-                'Sewa Kendaraan'   => 0,
-                'Pengeluaran Riil' => 0,
-                'SSPB'             => 0,
-                'Total'            => 0,
+                'Tiket'            => 0, 'Uang Harian' => 0, 'Penginapan' => 0,
+                'Uang Representasi'=> 0, 'Transport' => 0, 'Sewa Kendaraan' => 0,
+                'Pengeluaran Riil' => 0, 'SSPB' => 0, 'Total' => 0,
             ];
 
             $info = [
-                'Nama Penginapan'        => '-', 
-                'Kota'                   => '-', 
-                
-                // Transportasi Pergi
-                'Jenis Transportasi(Pergi)'  => '-', 
-                'Kode Tiket(Pergi)'       => '-',
-                'Nama Transportasi(Pergi)'   => '-', 
-                
-                // Transportasi Pulang
-                'Jenis Transportasi(Pulang)' => '-', 
-                'Kode Tiket(Pulang)'      => '-',
-                'Nama Transportasi(Pulang)'  => '-'
+                'Nama Penginapan' => '-', 'Kota' => '-', 
+                'Jenis Transportasi(Pergi)' => '-', 'Kode Tiket(Pergi)' => '-', 'Nama Transportasi(Pergi)' => '-', 
+                'Jenis Transportasi(Pulang)' => '-', 'Kode Tiket(Pulang)' => '-', 'Nama Transportasi(Pulang)' => '-'
             ];
 
             foreach ($buktis as $b) {
@@ -128,8 +118,6 @@ class PPKController extends Controller
     public function approve(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
-
-        // Status laporan keuangan -> Selesai
         $idLapSelesai = DB::table('statuslaporan')->where('nama_status', 'Selesai')->value('id') ?? 5;
 
         LaporanKeuangan::updateOrCreate(
@@ -146,21 +134,16 @@ class PPKController extends Controller
             ]
         );
 
-        // Status perjadin (surat) -> Selesai
         $idSelesai = DB::table('statusperjadin')->where('nama_status', 'Selesai')->value('id');
         $perjalanan->update(['id_status' => $idSelesai]);
 
-        return redirect()
-            ->route('ppk.verifikasi.index')
-            ->with('success', 'Pembayaran disetujui. Data masuk Riwayat.');
+        return redirect()->route('ppk.verifikasi.index')->with('success', 'Pembayaran disetujui. Data masuk Riwayat.');
     }
 
     public function reject(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
         
-        // Status Perjadin -> 'Perlu Revisi'
-
         $idRevisi = DB::table('statusperjadin')->where('nama_status', 'Perlu Revisi')->value('id');
         if (!$idRevisi) {
             $idRevisi = DB::table('statusperjadin')->insertGetId(['nama_status' => 'Perlu Revisi']);
@@ -168,12 +151,9 @@ class PPKController extends Controller
 
         $perjalanan->update([
             'id_status' => $idRevisi,
-            'catatan_penolakan' => $request->alasan_penolakan, // Pastikan kolom ini ada di DB dan $fillable model
-            'id_status'         => $idRevisi,
             'catatan_penolakan' => $request->alasan_penolakan,
         ]);
 
-        // Status Laporan Keuangan -> 'Perlu Revisi'
         $idLapRevisi = DB::table('statuslaporan')->where('nama_status', 'Perlu Revisi')->value('id');
         if (!$idLapRevisi) {
             $idLapRevisi = DB::table('statuslaporan')->insertGetId(['nama_status' => 'Perlu Revisi']);
@@ -182,14 +162,6 @@ class PPKController extends Controller
         LaporanKeuangan::updateOrCreate(['id_perjadin' => $id], ['id_status' => $idLapRevisi]);
 
         return redirect()->route('ppk.verifikasi.index')->with('warning', 'Laporan dikembalikan ke PIC untuk perbaikan.');
-        LaporanKeuangan::updateOrCreate(
-            ['id_perjadin' => $id],
-            ['id_status' => $idLapRevisi]
-        );
-
-        return redirect()
-            ->route('ppk.verifikasi.index')
-            ->with('warning', 'Laporan dikembalikan ke PIC.');
     }
 
     public function tabelRekap(Request $request)
@@ -198,13 +170,6 @@ class PPKController extends Controller
         $bulanSelesai = $request->input('bulan_selesai');
         $tahun        = $request->input('tahun');
 
-        /*
-         * SUBQUERY: agregasi bukti_laporan per (id_perjadin, id_user)
-         * menghasilkan kolom:
-         *   biaya_tiket, biaya_uang_harian, biaya_penginapan, biaya_uang_representasi,
-         *   biaya_transport, biaya_sewa_kendaraan, biaya_pengeluaran_riil, biaya_sspb,
-         *   jumlah_dibayarkan, nama_hotel, kota_hotel, kode_tiket, maskapai
-         */
         $agg = DB::table('laporan_perjadin')
             ->join('bukti_laporan', 'laporan_perjadin.id', '=', 'bukti_laporan.id_laporan')
             ->select(
@@ -218,37 +183,25 @@ class PPKController extends Controller
                 DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Sewa Kendaraan' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_sewa_kendaraan"),
                 DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'Pengeluaran Riil' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_pengeluaran_riil"),
                 DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori = 'SSPB' THEN bukti_laporan.nominal ELSE 0 END) AS biaya_sspb"),
-                // Jumlah dibayarkan = semua nominal > 0 kecuali SSPB
                 DB::raw("SUM(CASE WHEN bukti_laporan.nominal > 0 AND bukti_laporan.kategori <> 'SSPB' THEN bukti_laporan.nominal ELSE 0 END) AS jumlah_dibayarkan"),
-                // Informasi non-nominal diambil dari keterangan
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Penginapan' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_penginapan"),
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kota' THEN bukti_laporan.keterangan ELSE NULL END) AS kota"),
-                // DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket"),
-                // DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Maskapai' THEN bukti_laporan.keterangan ELSE NULL END) AS maskapai"),
-
-                // untuk pergi
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Jenis Transportasi(Pergi)' THEN bukti_laporan.keterangan ELSE NULL END) AS jenis_transportasi_pergi"),
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket(Pergi)' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket_pergi"),
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Transportasi(Pergi)' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_transportasi_pergi"),
-
-                // untuk pulang
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Jenis Transportasi(Pulang)' THEN bukti_laporan.keterangan ELSE NULL END) AS jenis_transportasi_pulang"),
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Kode Tiket(Pulang)' THEN bukti_laporan.keterangan ELSE NULL END) AS kode_tiket_pulang"),
                 DB::raw("MAX(CASE WHEN bukti_laporan.kategori = 'Nama Transportasi(Pulang)' THEN bukti_laporan.keterangan ELSE NULL END) AS nama_transportasi_pulang")
             )
             ->groupBy('laporan_perjadin.id_perjadin', 'laporan_perjadin.id_user');
 
-        /*
-         * QUERY UTAMA: join perjalanandinas + laporankeuangan + pegawaiperjadin + users
-         * + (unitkerja induk dan anak) + pangkatgolongan + subquery agg di atas.
-         */
         $query = DB::table('laporankeuangan')
             ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
             ->join('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
             ->join('pegawaiperjadin', 'pegawaiperjadin.id_perjadin', '=', 'perjalanandinas.id')
             ->join('users', 'pegawaiperjadin.id_user', '=', 'users.nip')
-            ->leftJoin('unitkerja as uke2', 'users.id_uke', '=', 'uke2.id')          // UKE-2 (unit langsung)
-            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')        // UKE-1 (induk)
+            ->leftJoin('unitkerja as uke2', 'users.id_uke', '=', 'uke2.id')
+            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')
             ->leftJoin('pangkatgolongan', 'users.pangkat_gol_id', '=', 'pangkatgolongan.id')
             ->leftJoinSub($agg, 'agg', function ($join) {
                 $join->on('agg.id_perjadin', '=', 'perjalanandinas.id');
@@ -270,7 +223,6 @@ class PPKController extends Controller
                 DB::raw('uke1.nama_uke as nama_uke1'),
                 DB::raw('uke2.nama_uke as nama_uke2'),
                 DB::raw('pangkatgolongan.nama_pangkat as pangkat_golongan'),
-                // Rincian biaya dari subquery
                 DB::raw('COALESCE(agg.biaya_tiket, 0)              as biaya_tiket'),
                 DB::raw('COALESCE(agg.biaya_uang_harian, 0)        as biaya_uang_harian'),
                 DB::raw('COALESCE(agg.biaya_penginapan, 0)         as biaya_penginapan'),
@@ -280,43 +232,21 @@ class PPKController extends Controller
                 DB::raw('COALESCE(agg.biaya_pengeluaran_riil, 0)   as biaya_pengeluaran_riil'),
                 DB::raw('COALESCE(agg.biaya_sspb, 0)               as biaya_sspb'),
                 DB::raw('COALESCE(agg.jumlah_dibayarkan, 0)        as jumlah_dibayarkan'),
-                'agg.nama_penginapan',
-                'agg.kota',
-                // 'agg.kode_tiket',
-                // 'agg.maskapai'
-                'agg.jenis_transportasi_pergi',
-                'agg.kode_tiket_pergi',
-                'agg.nama_transportasi_pergi',
-                'agg.jenis_transportasi_pulang',
-                'agg.kode_tiket_pulang',
-                'agg.nama_transportasi_pulang'
+                'agg.nama_penginapan', 'agg.kota',
+                'agg.jenis_transportasi_pergi', 'agg.kode_tiket_pergi', 'agg.nama_transportasi_pergi',
+                'agg.jenis_transportasi_pulang', 'agg.kode_tiket_pulang', 'agg.nama_transportasi_pulang'
             );
-        // Filter tahun
-        if ($tahun) {
-            $query->whereYear('perjalanandinas.tgl_mulai', $tahun);
-        }
 
-        // Filter range bulan
+        if ($tahun) $query->whereYear('perjalanandinas.tgl_mulai', $tahun);
         if ($bulanMulai && $bulanSelesai) {
             $query->whereMonth('perjalanandinas.tgl_mulai', '>=', $bulanMulai)
                   ->whereMonth('perjalanandinas.tgl_mulai', '<=', $bulanSelesai);
         }
 
-        $rekap = $query
-            ->orderBy('perjalanandinas.tgl_mulai')
-            ->orderBy('users.nama')
-            ->get();
-
-        // Total jumlah dibayarkan (per pegawai) dari kolom hasil agregasi
+        $rekap = $query->orderBy('perjalanandinas.tgl_mulai')->orderBy('users.nama')->get();
         $totalDibayarkan = $rekap->sum('jumlah_dibayarkan');
 
-        return view('ppk.tabelRekap', compact(
-            'rekap',
-            'totalDibayarkan',
-            'bulanMulai',
-            'bulanSelesai',
-            'tahun'
-        ));
+        return view('ppk.tabelRekap', compact('rekap', 'totalDibayarkan', 'bulanMulai', 'bulanSelesai', 'tahun'));
     }
 
     public function exportRekap(Request $request) {
