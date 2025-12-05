@@ -82,7 +82,7 @@
                             class="w-full {{ (!$isTodayInPeriod || !$bolehGeotagSekarang) ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' }} font-bold py-3 px-6 rounded-xl transition flex justify-center items-center gap-2">
                             
                             <i class="fa-solid fa-location-dot"></i>
-                            @if($sudahAbsenHariIni)  
+                            @if($sudahMaksAbsenHariIni)  
                                 Lokasi Hari Ini Tercatat 
                             @else  
                                 Tandai Lokasi Saya 
@@ -812,8 +812,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // run immediately and tiap 1 detik
-    tickCountdown();
-    const countIv = setInterval(tickCountdown, 1000);
+    <?php if(!$sudahMaksAbsenHariIni): ?>
+        // run immediately dan tiap 1 detik
+        tickCountdown();
+        const countIv = setInterval(tickCountdown, 1000);
+    <?php endif; ?>
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
