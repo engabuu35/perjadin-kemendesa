@@ -2,27 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Http\Request;  
+use Illuminate\Support\Facades\Auth;  
 
 class NotificationController extends Controller
 {
     public function index()
     {
         // Ambil notifikasi user yang login
-        $notifications = auth()->user()
+        $user = Auth::user();
+        $notifications = $user()
             ->notifications()
             ->latest()
             ->take(10)
             ->get();
         
-        $unreadCount = auth()->user()->unreadNotifications->count();
+        $unreadCount = $user()->unreadNotifications->count();
         
         return view('dashboard', compact('notifications', 'unreadCount'));
     }
 
     public function markAllRead()
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        Auth::user()->unreadNotifications->markAsRead();
         
         return response()->json([
             'success' => true,
