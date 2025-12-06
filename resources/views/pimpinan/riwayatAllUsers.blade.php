@@ -12,14 +12,17 @@
             <x-page-title
                 title="Riwayat Perjalanan Dinas" />
 
-            <!-- Info Box -->
+           {{-- Info Box --}}
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3 mb-3 flex items-start gap-3 hover:bg-blue-100 transition-colors">
                 <i class="fa-solid fa-circle-info text-blue-600 text-lg mt-0.5 flex-shrink-0"></i>
                 <p class="text-blue-800 text-sm">
-                    Riwayat perjalanan dinas yang ditampilkan mencakup perjalanan dinas yang telah <strong>berstatus Selesai</strong> dalam 1 tahun terakhir.
-                    Tab <strong>Pribadi</strong> menampilkan perjalanan yang melibatkan Anda, sedangkan tab <strong>Pegawai</strong> menampilkan seluruh perjalanan dinas pegawai.
+                    Riwayat perjalanan dinas yang ditampilkan mencakup perjalanan dinas yang telah
+                    <strong>berstatus Selesai atau Diselesaikan Manual</strong> dalam 1 tahun terakhir.
+                    Tab <strong>Pribadi</strong> menampilkan perjalanan yang melibatkan Anda, sedangkan tab
+                    <strong>Pegawai</strong> menampilkan seluruh perjalanan dinas pegawai.
                 </p>
             </div>
+
 
             <!-- Tabs -->
             <div class="flex gap-3 mb-5">
@@ -81,7 +84,13 @@
 
                             <!-- Info kanan -->
                             <div class="flex flex-col items-start sm:items-end gap-3 sm:min-w-[140px]">
-                                <span class="px-5 py-2 text-sm font-semibold text-white rounded-full bg-green-500 shadow-sm flex items-center gap-2">
+                                {{-- di TAB PRIBADI, ganti span status menjadi: --}}
+                                @php
+                                    $isManual = strtolower($riwayat->status) === 'diselesaikan manual';
+                                    $statusBg = $isManual ? 'bg-amber-500' : 'bg-green-500';
+                                @endphp
+
+                                <span class="px-5 py-2 text-sm font-semibold text-white rounded-full {{ $statusBg }} shadow-sm flex items-center gap-2">
                                     <i class="fa-solid fa-circle text-xs animate-pulse"></i>
                                     {{ $riwayat->status }}
                                 </span>
@@ -178,10 +187,17 @@
 
                             <!-- Info kanan -->
                             <div class="flex flex-col items-start sm:items-end gap-3 sm:min-w-[140px]">
-                                <span class="px-5 py-2 text-sm font-semibold text-white rounded-full bg-green-500 shadow-sm flex items-center gap-2">
+                                {{-- di TAB PRIBADI, ganti span status menjadi: --}}
+                                @php
+                                    $isManual = strtolower($riwayat->status) === 'diselesaikan manual';
+                                    $statusBg = $isManual ? 'bg-amber-500' : 'bg-green-500';
+                                @endphp
+
+                                <span class="px-5 py-2 text-sm font-semibold text-white rounded-full {{ $statusBg }} shadow-sm flex items-center gap-2">
                                     <i class="fa-solid fa-circle text-xs animate-pulse"></i>
                                     {{ $riwayat->status }}
                                 </span>
+
 
                                 <a href="{{ route('pimpinan.detail', $riwayat->id) }}&tab=pegawai"
                                 class="text-gray-200 hover:text-white hover:underline text-sm font-medium transition-all duration-200 flex items-center gap-1.5 group/link">

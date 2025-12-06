@@ -253,6 +253,24 @@ class PimpinanController extends Controller
             abort(404, 'Data perjalanan dinas tidak ditemukan');
         }
 
+        // --- kolom "dalam_rangka" (kalau ada di tabel perjalanandinas) ---
+        $dalamRangka = property_exists($perjadin, 'dalam_rangka')
+            ? $perjadin->dalam_rangka
+            : null;
+
+        // --- status "Diselesaikan Manual" + alasan manual (kalau ada kolomnya) ---
+        $namaStatusPerjadin = $perjadin->nama_status ?? '';
+        $isManualFinished = strcasecmp($namaStatusPerjadin, 'Diselesaikan Manual') === 0;
+
+        $manualFinishReason = null;
+        // sesuaikan nama kolom di sini dengan yang ada di DB-mu
+        foreach (['alasan_selesai_manual', 'alasan_manual', 'keterangan_selesai_manual'] as $col) {
+            if (property_exists($perjadin, $col) && !empty($perjadin->{$col})) {
+                $manualFinishReason = $perjadin->{$col};
+                break;
+            }
+        }
+
         // ==========================
         // 2. Pembuat & Approver
         // ==========================
@@ -356,7 +374,6 @@ class PimpinanController extends Controller
         $hariTerisi = 0;
 
         if ($totalHari > 0 && $totalPegawai > 0) {
-            // Ambil semua geotag dalam rentang tanggal perjadin
             $geotagPerHari = DB::table('geotagging')
                 ->where('id_perjadin', $id)
                 ->whereBetween(DB::raw('DATE(created_at)'), [
@@ -364,21 +381,18 @@ class PimpinanController extends Controller
                     $selesai->format('Y-m-d'),
                 ])
                 ->select(DB::raw('DATE(created_at) as tgl'), 'id_user')
-                ->distinct()                // kombinasi (tgl, user) unik
+                ->distinct()
                 ->get()
-                ->groupBy('tgl');           // group per tanggal
+                ->groupBy('tgl');
 
-            // Loop semua hari dalam rentang perjadin
             $tanggalIter = $mulai->copy();
             while ($tanggalIter->lte($selesai)) {
                 $tglKey = $tanggalIter->format('Y-m-d');
 
-                // Berapa pegawai yang punya geotag di hari ini?
                 $userCountToday = isset($geotagPerHari[$tglKey])
-                    ? $geotagPerHari[$tglKey]->count()   // count kombinasi user unik di tanggal ini
+                    ? $geotagPerHari[$tglKey]->count()
                     : 0;
 
-                // Hari dianggap "terisi" kalau semua pegawai sudah geotag minimal 1x
                 if ($userCountToday >= $totalPegawai) {
                     $hariTerisi++;
                 }
@@ -439,6 +453,10 @@ class PimpinanController extends Controller
             'jumlah_uraian_individu'   => $jumlahUraianTerisi,
             'ada_laporan_keuangan'     => $keuangan['ada_laporan'],
             'status_laporan_keuangan'  => $keuangan['status_laporan'],
+            // tambahan untuk manual finish & dalam rangka
+            'manual_finish'            => $isManualFinished,
+            'manual_finish_reason'     => $manualFinishReason,
+            'dalam_rangka'             => $dalamRangka,
         ];
 
         return view('pimpinan.detail', compact(
@@ -451,7 +469,11 @@ class PimpinanController extends Controller
             'uraianIndividu',
             'keuangan',
             'geotagSummary',
-            'geotagMapData'
+            'geotagMapData',
+            'dalamRangka',          // kirim eksplisit juga supaya mudah dipakai di blade
+            'isManualFinished',
+            'manualFinishReason'
         ));
     }
+
 }

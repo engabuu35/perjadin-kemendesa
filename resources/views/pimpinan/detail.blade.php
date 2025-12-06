@@ -16,6 +16,10 @@
     @php
         use Carbon\Carbon;
 
+        $manualFinish  = $progress['manual_finish'] ?? false;
+        $manualReason  = $progress['manual_finish_reason'] ?? null;
+        $dalamRangka   = $progress['dalam_rangka'] ?? ($dalamRangka ?? null);
+
         $tglMulai   = $progress['mulai'] ? $progress['mulai']->translatedFormat('d M Y') : '-';
         $tglSelesai = $progress['selesai'] ? $progress['selesai']->translatedFormat('d M Y') : '-';
 
@@ -23,7 +27,11 @@
         $statusLabel = $progress['status_perjadin'] ?? $progress['fase'] ?? '-';
         $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
 
-        if (str_contains(strtolower($statusLabel), 'berlangsung')) {
+        $lowerStatus = strtolower($statusLabel);
+
+        if (strtolower($statusLabel) === 'diselesaikan manual' || str_contains(strtolower($statusLabel), 'diselesaikan manual')) {
+            $statusClass = 'bg-amber-100 text-amber-800 border-amber-200';
+        } elseif (str_contains(strtolower($statusLabel), 'berlangsung')) {
             $statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
         } elseif (str_contains(strtolower($statusLabel), 'selesai')) {
             $statusClass = 'bg-green-100 text-green-700 border-green-200';
@@ -33,7 +41,7 @@
             $statusClass = 'bg-red-100 text-red-700 border-red-200';
         }
 
-        // Badge status laporan keuangan
+        // Badge status laporan keuangan (tetap)
         $statusLap = $keuangan['status_laporan'] ?? 'Belum Dibuat';
         $statusLapClass = 'bg-gray-100 text-gray-700 border-gray-200';
 
@@ -47,6 +55,7 @@
             $statusLapClass = 'bg-red-100 text-red-700 border-red-200';
         }
     @endphp
+
 
     {{-- ================= HEADER PERJADIN ================= --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -96,6 +105,50 @@
             </div>
         </div>
     </div>
+
+    {{-- INFO: Diselesaikan Manual --}}
+    @php
+        $isManual = isset($perjadin->nama_status) && strtolower($perjadin->nama_status) === 'diselesaikan manual';
+        $pegawaiBelum = $progress['pegawai_belum'] ?? max($progress['total_pegawai'] - $progress['pegawai_selesai'], 0);
+    @endphp
+
+    @if($isManual)
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <i class="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i>
+                <div>
+                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+                        Perjalanan Dinas Diselesaikan Manual oleh PIC
+                    </p>
+
+                    @php
+                        $alasanManual = trim($perjadin->alasan_selesai_manual ?? '');
+                    @endphp
+
+                    @if($alasanManual !== '')
+                        <p class="text-sm text-amber-800 mt-1">
+                            Alasan PIC: {{ $alasanManual }}
+                        </p>
+                    @else
+                        <p class="text-sm text-amber-800 mt-1">
+                            Perjalanan dinas ini ditandai selesai secara manual oleh PIC sebelum sistem
+                            mencatat seluruh tahapan selesai secara otomatis.
+                        </p>
+                    @endif
+
+                    <p class="text-xs text-amber-700 mt-2">
+                        Terdapat
+                        <strong>{{ $pegawaiBelum }}</strong>
+                        pegawai yang tercatat
+                        <strong>belum menandai selesai / belum mengisi uraian</strong>.  
+                        Detail status masing-masing pegawai dapat dilihat pada bagian
+                        <strong>"Tim Perjalanan Dinas"</strong> di bawah.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {{-- ================= TIM & KONTAK ================= --}}
@@ -230,55 +283,61 @@
             Uraian Pelaksanaan
         </h2>
 
-        {{-- Uraian PIC / perjadin --}}
-        <div class="mb-4">
-            <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
-                Uraian Utama (PIC / Surat Tugas)
-            </p>
-            @if(!empty(trim($uraianPerjadin)))
-                <div class="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
-                    {!! nl2br(e($uraianPerjadin)) !!}
-                </div>
-            @else
-                <p class="text-sm text-gray-400 italic">
-                    Belum ada uraian pelaksanaan yang diisi oleh PIC.
+            {{-- Uraian PIC / perjadin --}}
+            <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                    Uraian Utama (PIC / Surat Tugas)
                 </p>
-            @endif
-        </div>
 
-        {{-- Uraian individu --}}
-        <div>
-            <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-                Uraian Individu Pegawai ({{ $uraianIndividu->count() }})
-            </p>
-            @if($uraianIndividu->isEmpty())
-                <p class="text-sm text-gray-400 italic">
-                    Belum ada uraian individu yang masuk.
-                </p>
-            @else
-                <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
-                    @foreach($uraianIndividu as $lap)
-                        <div class="border border-gray-100 bg-gray-50 rounded-xl px-4 py-3">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <p class="text-sm font-semibold text-gray-800">
-                                    {{ $lap->nama }}
+                @php
+                    $hasDalamRangka     = isset($dalamRangka) && trim($dalamRangka) !== '';
+                    $hasUraianPerjadin  = isset($uraianPerjadin) && trim($uraianPerjadin) !== '';
+                @endphp
+
+                @if($hasDalamRangka || $hasUraianPerjadin)
+                    <div class="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 space-y-3">
+                        @if($hasDalamRangka)
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                                    Dalam Rangka
                                 </p>
-                                <p class="text-[11px] text-gray-400">
-                                    {{ optional($lap->created_at ? Carbon::parse($lap->created_at) : null)->format('d M Y H:i') }}
-                                </p>
+                                <p>{!! nl2br(e($dalamRangka)) !!}</p>
                             </div>
-                            <p class="text-xs text-gray-500 mb-1">
-                                NIP: {{ $lap->nip }}
+                        @endif
+
+                        @if($hasUraianPerjadin)
+                            <div class="{{ $hasDalamRangka ? 'border-t border-dashed border-gray-200 pt-3 mt-1' : '' }}">
+                                <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                                    Uraian Pelaksanaan PIC
+                                </p>
+                                <p>{!! nl2br(e($uraianPerjadin)) !!}</p>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-sm text-gray-400 italic">
+                        Belum ada uraian pelaksanaan yang diisi oleh PIC.
+                    </p>
+                @endif
+
+                @if($manualFinish)
+                    <div class="mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2 rounded-md">
+                        <p class="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1">
+                            Diselesaikan Manual oleh PIC
+                        </p>
+                        @if($manualReason)
+                            <p class="text-xs text-amber-900 leading-relaxed">
+                                Alasan: {!! nl2br(e($manualReason)) !!}
                             </p>
-                            <p class="text-sm text-gray-700 leading-relaxed">
-                                {!! nl2br(e($lap->uraian ?? '')) !!}
+                        @else
+                            <p class="text-xs text-amber-900 leading-relaxed">
+                                Perjalanan dinas ini ditandai selesai secara manual oleh PIC.
                             </p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
 
         {{-- ================= REKAP KEUANGAN & GEOTAG ================= --}}
 

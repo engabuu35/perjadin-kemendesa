@@ -28,10 +28,11 @@ class RiwayatController extends Controller
 
         $search = $request->input('search');
 
-        // ID status "Selesai"
-        $idSelesai = DB::table('statusperjadin')
-            ->where('nama_status', 'Selesai')
-            ->value('id');
+        // ID status selesai (termasuk Diselesaikan Manual)
+        $statusesSelesai = DB::table('statusperjadin')
+            ->whereIn('nama_status', ['Selesai', 'Diselesaikan Manual'])
+            ->pluck('id')
+            ->toArray();
 
         // ============================================================
         //  CASE 1: PIMPINAN  →  gunakan view pimpinan.riwayatAllUsers
@@ -39,10 +40,10 @@ class RiwayatController extends Controller
         if ($roleKode === 'PIMPINAN') {
 
             // Base query: semua perjadin yang sudah selesai, 1 tahun terakhir
-            $baseQuery = function () use ($idSelesai) {
+            $baseQuery = function () use ($statusesSelesai) {
                 return DB::table('perjalanandinas')
                     ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
-                    ->where('perjalanandinas.id_status', $idSelesai)
+                    ->whereIn('perjalanandinas.id_status', $statusesSelesai)
                     ->where('perjalanandinas.created_at', '>=', Carbon::now()->subYear())
                     ->select(
                         'perjalanandinas.*',
@@ -69,17 +70,19 @@ class RiwayatController extends Controller
                 $applySearch($qPribadi);
                 $applySearch($qPegawai);
             }
-            
+
+            // Formatter untuk menambahkan lokasi, tanggal dan status
             $formatter = function ($item) {
-            $mulai   = Carbon::parse($item->tgl_mulai);
-            $selesai = Carbon::parse($item->tgl_selesai);
+                $mulai   = Carbon::parse($item->tgl_mulai);
+                $selesai = Carbon::parse($item->tgl_selesai);
 
-            $item->lokasi  = $item->tujuan;
-            $item->tanggal = $mulai->translatedFormat('d F Y') . ' - ' . $selesai->translatedFormat('d F Y');
-            $item->status  = $item->nama_status ?? 'Selesai';
+                $item->lokasi  = $item->tujuan;
+                $item->tanggal = $mulai->translatedFormat('d F Y') . ' - ' . $selesai->translatedFormat('d F Y');
+                // Gunakan nama_status dari tabel statusperjadin (bisa "Selesai" atau "Diselesaikan Manual")
+                $item->status  = $item->nama_status ?? 'Selesai';
 
-            return $item;
-        };
+                return $item;
+            };
 
             $riwayatPribadi = $qPribadi
                 ->orderBy('perjalanandinas.tgl_mulai', 'desc')
@@ -90,7 +93,6 @@ class RiwayatController extends Controller
                 ->orderBy('perjalanandinas.tgl_mulai', 'desc')
                 ->paginate(10, ['*'], 'pegawai_page')
                 ->through($formatter);
-
 
             return view('pimpinan.riwayatAllUsers', [
                 'riwayatPribadi' => $riwayatPribadi,
@@ -105,7 +107,7 @@ class RiwayatController extends Controller
 
         $query = DB::table('perjalanandinas')
             ->join('statusperjadin', 'perjalanandinas.id_status', '=', 'statusperjadin.id')
-            ->where('perjalanandinas.id_status', $idSelesai) // hanya selesai
+            ->whereIn('perjalanandinas.id_status', $statusesSelesai)
             ->where('perjalanandinas.created_at', '>=', Carbon::now()->subYear())
             ->select(
                 'perjalanandinas.*',
@@ -132,10 +134,10 @@ class RiwayatController extends Controller
 
         // Tambahkan property status agar view lama tetap jalan
         $riwayat_list = $riwayat_list->through(function ($item) {
-            $item->status        = 'Selesai';
-            $item->nama_status   = 'Selesai';
-            $item->custom_status = 'Selesai';
-            $item->status_color  = 'green';
+            // Pakai nama_status asli
+            $item->status        = $item->nama_status ?? 'Selesai';
+            $item->custom_status = $item->status;
+            $item->status_color  = $item->status === 'Diselesaikan Manual' ? 'brown' : 'green';
             return $item;
         });
 
