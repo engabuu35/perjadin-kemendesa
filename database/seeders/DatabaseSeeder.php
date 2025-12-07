@@ -42,24 +42,23 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
         ]);
 
-        // 5. PANGGIL SEEDER DATA TRANSAKSI PERJADIN
-        // PENTING: Ini harus dijalankan setelah Users dan Master
-        // DIUBAH: .call menjadi ->call
-        $this->call([
-            PerjadinDataSeeder::class,
-        ]);
-        
-        // 6. Panggilan ke PenugasanPeranSeeder::class DIHAPUS
+        // // 5. PANGGIL SEEDER DATA TRANSAKSI PERJADIN
+        // // PENTING: Ini harus dijalankan setelah Users dan Master
+        // // DIUBAH: .call menjadi ->call
         // $this->call([
-        //     PenugasanPeranSeeder::class,
+        //     PerjadinDataSeeder::class,
         // ]);
-        $this->call([
-            LaporanKeuanganSeeder::class,
-        ]);
+        
+        // // 6. Panggilan ke PenugasanPeranSeeder::class DIHAPUS
+        // // $this->call([
+        // //     PenugasanPeranSeeder::class,
+        // // ]);
+        // $this->call([
+        //     LaporanKeuanganSeeder::class,
+        // ]);
 
-        $this->call([
-        DummyPegawaiWithPerjadinSeeder::class,
-        ]);
-
+        // $this->call([
+        // DummyPegawaiWithPerjadinSeeder::class,
+        // ]);
     }
 }
