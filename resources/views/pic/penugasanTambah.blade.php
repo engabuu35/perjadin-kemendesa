@@ -218,88 +218,211 @@
         }
 
         // === 2. LOGIKA MODAL MANUAL (EDIT ONLY) ===
-        @if(isset($perjalanan))
-            const perjalananId = {{ $perjalanan->id }};
-            const csrfToken = '{{ csrf_token() }}';
+// === 2. LOGIKA MODAL MANUAL (EDIT ONLY) ===
+@if(isset($perjalanan))
+    const perjalananId = {{ $perjalanan->id }};
+    const csrfToken = '{{ csrf_token() }}';
 
-            const modal = document.createElement('div');
-            modal.id = 'dynamicStatusModal';
-            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[9999]';
-            modal.innerHTML = `
-                <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center relative">
-                    <h3 id="dynModalTitle" class="text-lg font-bold mb-4 text-gray-800"></h3>
-                    <p id="dynModalMessage" class="text-gray-600 mb-5"></p>
-                    <div id="dynAlasanContainer" class="hidden mb-4 text-left">
-                        <label class="text-sm font-semibold text-gray-700 block mb-1">Alasan:</label>
-                        <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-600" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
-                    </div>
-                    <div class="flex justify-between gap-3">
-                        <button id="dynModalCancel" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
-                        <button id="dynModalConfirm" class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Ya</button>
-                    </div>
-                    <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-                </div>`;
-            document.body.appendChild(modal);
+    // Modal Utama untuk Konfirmasi
+    const modal = document.createElement('div');
+    modal.id = 'dynamicStatusModal';
+    modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-md p-6 text-center relative transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+            <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        
+            <h3 id="dynModalTitle" class="text-xl font-bold mb-3 text-gray-800"></h3>
+            <p id="dynModalMessage" class="text-gray-600 mb-4"></p>
+            <div id="dynAlasanContainer" class="hidden mb-5 text-left">
+                <label class="text-sm font-semibold text-gray-700 block mb-2">Alasan:</label>
+                <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="dynModalCancel" class="flex-1 max-w-[150px] py-3 px-6 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">Batal</button>
+                <button id="dynModalConfirm" class="flex-1 max-w-[150px] py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ya</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
 
-            const modalTitle = modal.querySelector('#dynModalTitle');
-            const modalMessage = modal.querySelector('#dynModalMessage');
-            const modalConfirm = modal.querySelector('#dynModalConfirm');
-            const modalCancel = modal.querySelector('#dynModalCancel');
-            const modalClose = modal.querySelector('#dynModalClose');
-            const alasanContainer = modal.querySelector('#dynAlasanContainer');
-            const alasanInput = modal.querySelector('#dynAlasanManual');
-            let statusToUpdate = '';
+    // Modal Response untuk Success/Error
+    const responseModal = document.createElement('div');
+    responseModal.id = 'responseModal';
+    responseModal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]';
+    responseModal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+            <div id="responseIcon" class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"></div>
+            <h3 id="responseTitle" class="text-xl font-bold mb-2 text-gray-800"></h3>
+            <p id="responseMessage" class="text-gray-600 mb-6"></p>
+            <button id="responseOk" class="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">OK</button>
+        </div>`;
+    document.body.appendChild(responseModal);
 
-            function showModal(status) {
-                statusToUpdate = status;
-                alasanInput.value = ''; 
-                if (status === 'Diselesaikan Manual') {
-                    modalTitle.textContent = 'Selesaikan Perjalanan';
-                    modalMessage.textContent = 'Mohon isi alasan penyelesaian manual:';
-                    alasanContainer.classList.remove('hidden');
-                } else {
-                    modalTitle.textContent = 'Batalkan Perjalanan';
-                    modalMessage.textContent = 'Apakah Anda yakin ingin membatalkan perjalanan ini?';
-                    alasanContainer.classList.add('hidden');
-                }
-                modal.classList.remove('opacity-0', 'invisible');
-                modal.classList.add('opacity-100', 'visible');
+    const modalTitle = modal.querySelector('#dynModalTitle');
+    const modalMessage = modal.querySelector('#dynModalMessage');
+    const modalIcon = modal.querySelector('#dynModalIcon');
+    const modalConfirm = modal.querySelector('#dynModalConfirm');
+    const modalCancel = modal.querySelector('#dynModalCancel');
+    const modalClose = modal.querySelector('#dynModalClose');
+    const alasanContainer = modal.querySelector('#dynAlasanContainer');
+    const alasanInput = modal.querySelector('#dynAlasanManual');
+    const modalBox = modal.querySelector('div');
+
+    const responseIcon = responseModal.querySelector('#responseIcon');
+    const responseTitle = responseModal.querySelector('#responseTitle');
+    const responseMessage = responseModal.querySelector('#responseMessage');
+    const responseOk = responseModal.querySelector('#responseOk');
+    const responseBox = responseModal.querySelector('div');
+
+    let statusToUpdate = '';
+
+    // Fungsi show modal utama
+    function showModal(status) {
+        statusToUpdate = status;
+        alasanInput.value = ''; 
+        
+        if (status === 'Diselesaikan Manual') {
+            modalTitle.textContent = 'Selesaikan Perjalanan';
+            modalMessage.textContent = 'Mohon isi alasan penyelesaian manual:';
+            alasanContainer.classList.remove('hidden');
+        } else {
+            modalTitle.textContent = 'Batalkan Perjalanan';
+            modalMessage.textContent = 'Apakah Anda yakin ingin membatalkan perjalanan ini?';
+            modalIcon.className = 'fa-solid fa-exclamation-triangle text-red-600 text-xl';
+            alasanContainer.classList.add('hidden');
+        }
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        setTimeout(() => modalBox.classList.remove('scale-90'), 10);
+        setTimeout(() => modalBox.classList.add('scale-100'), 10);
+    }
+
+    // Fungsi hide modal utama
+    function hideModal() {
+        modalBox.classList.remove('scale-100');
+        modalBox.classList.add('scale-90');
+        setTimeout(() => {
+            modal.classList.remove('opacity-100', 'pointer-events-auto');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            statusToUpdate = '';
+        }, 300);
+    }
+
+    // Fungsi show response modal
+    function showResponse(type, title, message) {
+        if (type === 'success') {
+            responseIcon.className = 'w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center';
+            responseIcon.innerHTML = '<i class="fa-solid fa-check text-green-600 text-2xl"></i>';
+            responseTitle.className = 'text-xl font-bold mb-2 text-green-600';
+        } else {
+            responseIcon.className = 'w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center';
+            responseIcon.innerHTML = '<i class="fa-solid fa-times text-red-600 text-2xl"></i>';
+            responseTitle.className = 'text-xl font-bold mb-2 text-red-600';
+        }
+        
+        responseTitle.textContent = title;
+        responseMessage.textContent = message;
+        
+        responseModal.classList.remove('opacity-0', 'pointer-events-none');
+        responseModal.classList.add('opacity-100', 'pointer-events-auto');
+        setTimeout(() => responseBox.classList.remove('scale-90'), 10);
+        setTimeout(() => responseBox.classList.add('scale-100'), 10);
+    }
+
+    // Fungsi hide response modal
+    function hideResponse() {
+        responseBox.classList.remove('scale-100');
+        responseBox.classList.add('scale-90');
+        setTimeout(() => {
+            responseModal.classList.remove('opacity-100', 'pointer-events-auto');
+            responseModal.classList.add('opacity-0', 'pointer-events-none');
+        }, 300);
+    }
+
+    // Event listeners
+    const btnSelesaikan = document.getElementById('btnSelesaikan');
+    const btnBatalkan = document.getElementById('btnBatalkan');
+
+    if (btnSelesaikan) {
+        btnSelesaikan.addEventListener('click', (e) => {
+            e.preventDefault();
+            showModal('Diselesaikan Manual');
+        });
+    }
+    
+    if (btnBatalkan) {
+        btnBatalkan.addEventListener('click', (e) => {
+            e.preventDefault();
+            showModal('Dibatalkan');
+        });
+    }
+
+    modalCancel.addEventListener('click', hideModal);
+    modalClose.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+    });
+
+    responseOk.addEventListener('click', () => {
+        hideResponse();
+        location.reload();
+    });
+
+    // Konfirmasi submit
+    modalConfirm.addEventListener('click', function () {
+        if (!statusToUpdate) return;
+        
+        const alasanValue = alasanInput.value;
+        if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) {
+            showResponse('error', 'Gagal!', 'Wajib mengisi alasan penyelesaian manual!');
+            hideModal();
+            return;
+        }
+        
+        modalConfirm.textContent = 'Memproses...';
+        modalConfirm.disabled = true;
+
+        fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                status: statusToUpdate,
+                alasan: alasanValue
+            })
+        })
+        .then(async res => {
+            const text = await res.text();
+            let json = null;
+            try {
+                json = text ? JSON.parse(text) : null;
+            } catch(e) {}
+            
+            if (!res.ok) {
+                throw new Error((json && json.message) ? json.message : 'Gagal memperbarui status');
             }
-            function hideModal() { modal.classList.remove('opacity-100', 'visible'); modal.classList.add('opacity-0', 'invisible'); statusToUpdate = ''; }
-
-            const btnSelesaikan = document.getElementById('btnSelesaikan');
-            const btnBatalkan = document.getElementById('btnBatalkan');
-
-            if (btnSelesaikan) { btnSelesaikan.addEventListener('click', (e) => { e.preventDefault(); showModal('Diselesaikan Manual'); }); }
-            if (btnBatalkan) { btnBatalkan.addEventListener('click', (e) => { e.preventDefault(); showModal('Dibatalkan'); }); }
-
-            modalCancel.addEventListener('click', hideModal);
-            modalClose.addEventListener('click', hideModal);
-
-            modalConfirm.addEventListener('click', function () {
-                if (!statusToUpdate) return;
-                const alasanValue = alasanInput.value;
-                if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) { alert('Wajib mengisi alasan!'); return; }
-                
-                modalConfirm.textContent = 'Memproses...'; modalConfirm.disabled = true;
-
-                // Route AJAX ke controller updateStatus (pastikan route di web.php benar)
-                // Default: /pic/penugasan-perjadin/{id}/status
-                fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                    body: JSON.stringify({ status: statusToUpdate, alasan: alasanValue })
-                })
-                .then(async res => {
-                    const text = await res.text(); let json = null;
-                    try { json = text ? JSON.parse(text) : null; } catch(e) {}
-                    if (!res.ok) throw new Error((json && json.message) ? json.message : 'Gagal memperbarui status');
-                    return json;
-                })
-                .then(data => { alert(data?.message || 'Berhasil!'); location.reload(); })
-                .catch(err => { console.error(err); alert('Error: ' + err.message); modalConfirm.textContent = 'Ya'; modalConfirm.disabled = false; });
-            });
-        @endif
+            return json;
+        })
+        .then(data => {
+            hideModal();
+            setTimeout(() => {
+                showResponse('success', 'Berhasil!', data?.message || 'Status berhasil diperbarui!');
+            }, 300);
+        })
+        .catch(err => {
+            console.error(err);
+            hideModal();
+            setTimeout(() => {
+                showResponse('error', 'Error!', err.message || 'Terjadi kesalahan saat memperbarui status');
+            }, 300);
+            modalConfirm.textContent = 'Ya';
+            modalConfirm.disabled = false;
+        });
+    });
+@endif
     });
     </script>
     @endpush

@@ -1,7 +1,7 @@
 @extends('layouts.appPPK') 
 {{-- Kita pakai layout PIC saja karena strukturnya mirip (Sidebar PPK) --}}
 
-@section('title', 'Verifikasi PPK')
+@section('title', 'Verifikasi Keuangan')
 
 @section('content')
 <main class="transition-all duration-300 ml-0 sm:ml-[60px]">

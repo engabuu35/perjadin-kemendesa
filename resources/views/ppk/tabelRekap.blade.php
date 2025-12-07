@@ -1,6 +1,6 @@
 @extends('layouts.appPPK')
 
-@section('title', 'Tabel Rekap Keuangan Perjalanan Dinas')
+@section('title', 'Tabel Rekap Keuangan')
 
 @section('content')
 <main class="transition-all duration-300 ml-0 sm:ml-[60px]">

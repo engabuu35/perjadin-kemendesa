@@ -1,6 +1,6 @@
 @extends('layouts.appPPK')
 
-@section('title', 'Detail Verifikasi PPK')
+@section('title', 'Detail Verifikasi Keuangan')
 
 @section('content')
 <main class="ml-0 sm:ml-[80px] max-w-[98%] mx-auto px-2 py-6">
