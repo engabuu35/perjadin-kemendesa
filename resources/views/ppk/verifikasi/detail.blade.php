@@ -198,11 +198,30 @@
                     <i class="fa-regular fa-circle-xmark"></i> Tolak / Revisi
                 </button>
 
-                <!-- TOMBOL SETUJUI (Submit Form Approve) -->
-                <button type="button" onclick="if(confirm('Setujui pembayaran ini?')) document.getElementById('form-approve').submit()" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
-                    <i class="fa-regular fa-circle-check"></i>
-                    Setujui & Selesaikan
-                </button>
+            <!-- TOMBOL SETUJUI -->
+            <button type="button" id="openApproveModal" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2 transition">
+                <i class="fa-regular fa-circle-check"></i>
+                Setujui & Selesaikan
+            </button>
+
+            <!-- Modal Konfirmasi Approve -->
+            <div id="approveModal" class="fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+                <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-md p-6 text-center transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+                    <div class="w-12 h-12 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fa-solid fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800">Konfirmasi Persetujuan</h3>
+                    <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menyetujui dan menyelesaikan pembayaran ini?</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="cancelApprove" class="flex-1 max-w-[150px] py-3 px-6 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">
+                            Batal
+                        </button>
+                        <button id="confirmApprove" class="flex-1 max-w-[150px] py-3 px-6 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                            Setujui
+                        </button>
+                    </div>
+                </div>
+            </div>
             </div>
 
             <!-- FORM TOLAK (Hidden by default) -->
@@ -222,6 +241,51 @@
             </div>
             @endif
         </div>    
-    </div>          
+    </div>  
+    
+    <script>
+    // Ambil elemen
+    const openApproveModalBtn = document.getElementById('openApproveModal');
+    const approveModal = document.getElementById('approveModal');
+    const approveBox = approveModal.querySelector('div');
+    const cancelApproveBtn = document.getElementById('cancelApprove');
+    const confirmApproveBtn = document.getElementById('confirmApprove');
+
+    // Fungsi buka modal
+    const openApproveModal = () => {
+        approveModal.classList.remove('opacity-0', 'pointer-events-none');
+        approveModal.classList.add('opacity-100', 'pointer-events-auto');
+        setTimeout(() => {
+            approveBox.classList.remove('scale-90');
+            approveBox.classList.add('scale-100');
+        }, 10);
+    };
+
+    // Fungsi tutup modal
+    const closeApproveModal = () => {
+        approveBox.classList.remove('scale-100');
+        approveBox.classList.add('scale-90');
+        setTimeout(() => {
+            approveModal.classList.remove('opacity-100', 'pointer-events-auto');
+            approveModal.classList.add('opacity-0', 'pointer-events-none');
+        }, 300);
+    };
+
+    // Event listeners
+    openApproveModalBtn.addEventListener('click', openApproveModal);
+    cancelApproveBtn.addEventListener('click', closeApproveModal);
+
+    // Tutup modal jika klik di luar
+    approveModal.addEventListener('click', (e) => {
+        if (e.target === approveModal) {
+            closeApproveModal();
+        }
+    });
+
+    // Konfirmasi approve - submit form
+    confirmApproveBtn.addEventListener('click', () => {
+        document.getElementById('form-approve').submit();
+    });
+</script>
 </main>
 @endsection

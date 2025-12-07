@@ -260,6 +260,39 @@
             // - perjadin belum berstatus "Selesai"
             $finalCanFinish = $canFinish && !$isRiwayatPerjadin;
         @endphp
+        <!-- Modal Konfirmasi Selesaikan -->
+        <div id="selesaikanModal" 
+            class="fixed inset-0 bg-black/60 flex items-center justify-center 
+                    opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+
+            <div id="selesaikanBox"
+                class="bg-white rounded-lg shadow-2xl w-[90%] max-w-md p-6 text-center 
+                        transform scale-90 transition-transform duration-300">
+                        
+                <div class="w-12 h-12 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fa-solid fa-check text-blue-600 text-xl"></i>
+                </div>
+
+                <h3 class="text-xl font-bold mb-3 text-gray-800">Konfirmasi Penyelesaian</h3>
+                <p class="text-gray-600 mb-2">Apakah Anda yakin ingin menyelesaikan tugas ini?</p>
+                <p class="text-sm font-semibold text-red-600 mb-6">
+                    Data uraian dan lokasi tidak dapat diubah lagi.
+                </p>
+
+                <div class="flex justify-center gap-4">
+                    <button id="cancelSelesaikan"
+                        class="flex-1 max-w-[150px] py-3 px-6 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">
+                        Batal
+                    </button>
+
+                    <button id="confirmSelesaikan"
+                        class="flex-1 max-w-[150px] py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                        Selesaikan
+                    </button>
+                </div>
+
+            </div>
+        </div>
 
         <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 rounded-2xl shadow-lg text-center relative overflow-hidden">
             <div class="relative z-10">
@@ -280,21 +313,28 @@
                         <span class="text-yellow-300 font-semibold">Data tidak bisa diubah setelah ini.</span>
                     @endif
                 </p>
-                
-                <form action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan tugas ini? Data uraian dan lokasi tidak dapat diubah lagi.')">
-                    @csrf
-                    <button 
-                        type="submit" 
-                        {{ !$finalCanFinish ? 'disabled' : '' }} 
-                        class="{{ !$finalCanFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 shadow-xl' }} px-8 py-3 rounded-xl font-bold transition transform">
-                        
-                        @if(!$finalCanFinish) 
-                            Belum Bisa Selesai 
-                        @else  
-                            ✅ Saya Sudah Selesai 
-                        @endif
-                    </button>
-                </form>
+    
+        <!-- Button untuk membuka modal -->
+        <button 
+            type="button" 
+            id="openSelesaikanModal"
+            {{ !$finalCanFinish ? 'disabled' : '' }} 
+            class="{{ !$finalCanFinish ? 'bg-gray-400 cursor-not-allowed opacity-70' : 'bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 shadow-xl' }} 
+                px-8 py-3 rounded-xl font-bold transition transform">
+
+            @if(!$finalCanFinish)
+                Belum Bisa Selesai
+            @else
+                <i class="fa-solid fa-check mr-1"></i> Saya Sudah Selesai
+            @endif
+
+        </button>
+
+
+        <!-- Form tersembunyi -->
+        <form id="selesaikanForm" action="{{ route('perjalanan.selesaikan', $perjalanan->id) }}" method="POST" style="display: none;">
+            @csrf
+        </form>
             </div>
         </div>
         @endif
@@ -857,6 +897,46 @@ document.addEventListener('DOMContentLoaded', function () {
         const countIv = setInterval(tickCountdown, 1000);
     <?php endif; ?>
 });
+
+    const openBtn = document.getElementById("openSelesaikanModal");
+    const modal = document.getElementById("selesaikanModal");
+    const box = document.getElementById("selesaikanBox");
+    const cancelBtn = document.getElementById("cancelSelesaikan");
+    const confirmBtn = document.getElementById("confirmSelesaikan");
+    const form = document.getElementById("selesaikanForm");
+
+    // Buka modal
+    openBtn.addEventListener("click", () => {
+        modal.classList.remove("opacity-0", "pointer-events-none");
+        modal.classList.add("opacity-100");
+
+        // animasi scale in
+        setTimeout(() => {
+            box.classList.remove("scale-90");
+            box.classList.add("scale-100");
+        }, 10);
+    });
+
+    // Tutup modal
+    function closeModal() {
+        modal.classList.add("opacity-0", "pointer-events-none");
+        modal.classList.remove("opacity-100");
+
+        // scale out
+        box.classList.remove("scale-100");
+        box.classList.add("scale-90");
+    }
+
+    cancelBtn.addEventListener("click", closeModal);
+
+    // klik luar modal → tutup
+    modal.addEventListener("click", closeModal);
+
+    // cegah klik dalam modal menutup modal
+    box.addEventListener("click", (e) => e.stopPropagation());
+
+    // submit form
+    confirmBtn.addEventListener("click", () => form.submit());
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
