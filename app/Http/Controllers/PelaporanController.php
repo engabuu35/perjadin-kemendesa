@@ -79,13 +79,13 @@ class PelaporanController extends Controller
             elseif ($item->nama_status == 'Selesai') {
                 $item->custom_status = 'Selesai';
                 $item->status_color  = 'green'; 
-                $item->status_icon   = '<i class="fa-solid fa-check-double"></i>';
+                $item->status_icon   = '<i class="fa-solid fa-circle-check"></i>';
             }
             else {
                 if (!$item->id_keuangan) {
                     $item->custom_status = 'Perlu Tindakan';
                     $item->status_color  = 'blue'; 
-                    $item->status_icon   = '<i class="fa-solid fa-bolt"></i>';
+                    $item->status_icon = '<i class="fa-solid fa-exclamation-circle"></i>';
                 } else {
                     $item->custom_status = 'Sedang Dilengkapi';
                     $item->status_color  = 'indigo'; 

@@ -28,10 +28,10 @@
 
                         if($item->nama_status == 'Selesai') {
                             $colorClass = 'text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100';
-                            $label = '✓ Terverifikasi';
+                            $label = '<i class="fa-solid fa-circle-check"></i> Terverifikasi';
                         } else {
-                            $colorClass = 'text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100';
-                            $label = '<i class="fa-solid fa-clock"></i> Butuh Validasi';
+                            $colorClass = 'text-yellow-600 bg-yellow-50 px-2 py-1 rounded border border-blue-100';
+                            $label = '<i class="fa-solid fa-exclamation-circle"></i> Butuh Validasi';
                         }
                     @endphp
 
@@ -58,14 +58,14 @@
                 @if($item->nama_status == 'Selesai')
                     {{-- JIKA SELESAI: Tombol "Lihat Data" (Aktif, mengarah ke detail) --}}
                     <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
-                       class="block w-full text-center bg-white border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 rounded-lg transition shadow-sm">
-                        <i class="fa-solid fa-eye mr-1"></i> Lihat Data
+                       class="block w-full text-center bg-green-600 text-white hover:bg-green-700 font-semibold py-2 rounded-lg transition shadow-sm">
+                        Lihat Data
                     </a>
                 @else
                     {{-- JIKA BELUM: Tombol "Verifikasi & Bayar" --}}
                     <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
                         class="block w-full text-center bg-yellow-600 text-white hover:bg-yellow-700 font-semibold py-2 rounded-lg transition shadow-sm">
-                        Verifikasi & Bayar
+                        Verifikasi
                     </a>
                 @endif
             </div>

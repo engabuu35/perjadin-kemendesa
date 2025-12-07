@@ -66,7 +66,7 @@
                     {{-- Ganti button disabled menjadi <a> agar bisa diklik --}}
                     <a href="{{ route('pic.pelaporan.detail', $item->id) }}" 
                        class="block w-full text-center bg-white border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 rounded-lg transition shadow-sm">
-                        <i class="fa-solid fa-eye mr-1"></i> Lihat Laporan
+                        Lihat Laporan
                     </a>
 
                     @else
