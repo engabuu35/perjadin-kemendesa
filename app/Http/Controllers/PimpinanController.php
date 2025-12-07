@@ -241,7 +241,7 @@ class PimpinanController extends Controller
             ->where('pd.id', $id)
             ->select(
                 'pd.*',
-                'sp.nama_status', // nama status perjadin
+                'sp.nama_status', // nama status perjadin (Selesai, Diselesaikan Manual, dst)
                 'lk.id as id_laporan_keu',
                 'lk.biaya_rampung',
                 'lk.created_at as laporan_keu_created_at',
@@ -253,21 +253,20 @@ class PimpinanController extends Controller
             abort(404, 'Data perjalanan dinas tidak ditemukan');
         }
 
-        // --- kolom "dalam_rangka" (kalau ada di tabel perjalanandinas) ---
-        $dalamRangka = property_exists($perjadin, 'dalam_rangka')
-            ? $perjadin->dalam_rangka
-            : null;
+        // --- DALAM RANGKA (kolom pd.dalam_rangka) ---
+        $dalamRangka = $perjadin->dalam_rangka ?? null;
 
-        // --- status "Diselesaikan Manual" + alasan manual (kalau ada kolomnya) ---
+        // --- STATUS "DISELESAIKAN MANUAL" + ALASAN ---
+        // deteksi status manual
         $namaStatusPerjadin = $perjadin->nama_status ?? '';
-        $isManualFinished = strcasecmp($namaStatusPerjadin, 'Diselesaikan Manual') === 0;
+        $isManualFinished   = strcasecmp($namaStatusPerjadin, 'Diselesaikan Manual') === 0;
 
+        // alasan manual → langsung dari kolom `selesaikan_manual`
         $manualFinishReason = null;
-        // sesuaikan nama kolom di sini dengan yang ada di DB-mu
-        foreach (['alasan_selesai_manual', 'alasan_manual', 'keterangan_selesai_manual'] as $col) {
-            if (property_exists($perjadin, $col) && !empty($perjadin->{$col})) {
-                $manualFinishReason = $perjadin->{$col};
-                break;
+        if (property_exists($perjadin, 'selesaikan_manual')) {
+            $val = trim((string) ($perjadin->selesaikan_manual ?? ''));
+            if ($val !== '') {
+                $manualFinishReason = $val;
             }
         }
 
@@ -453,7 +452,8 @@ class PimpinanController extends Controller
             'jumlah_uraian_individu'   => $jumlahUraianTerisi,
             'ada_laporan_keuangan'     => $keuangan['ada_laporan'],
             'status_laporan_keuangan'  => $keuangan['status_laporan'],
-            // tambahan untuk manual finish & dalam rangka
+
+            // tambahan untuk tampilan
             'manual_finish'            => $isManualFinished,
             'manual_finish_reason'     => $manualFinishReason,
             'dalam_rangka'             => $dalamRangka,
@@ -470,10 +470,9 @@ class PimpinanController extends Controller
             'keuangan',
             'geotagSummary',
             'geotagMapData',
-            'dalamRangka',          // kirim eksplisit juga supaya mudah dipakai di blade
+            'dalamRangka',
             'isManualFinished',
             'manualFinishReason'
         ));
     }
-
 }
