@@ -27,6 +27,7 @@
                             if($item->status_color == 'blue') $colorClass = 'text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100';
                             if($item->status_color == 'yellow') $colorClass = 'text-yellow-600 bg-yellow-50 px-2 py-1 rounded border border-yellow-100';
                             if($item->status_color == 'indigo') $colorClass = 'text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100';
+                            if($item->status_color == 'green') $colorClass = 'text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100';
 
                             // LOGIKA KHUSUS MANUAL:
                             // Jika status dari controller adalah 'Sedang Diverifikasi PPK' (manual),
@@ -60,9 +61,17 @@
                         <button disabled class="block w-full text-center bg-gray-100 text-gray-400 font-semibold py-2 rounded-lg cursor-not-allowed border border-gray-200">
                             Sedang Diverifikasi PPK
                         </button>
+
+                    @elseif($item->custom_status == 'Selesai')
+                    {{-- Ganti button disabled menjadi <a> agar bisa diklik --}}
+                    <a href="{{ route('pic.pelaporan.detail', $item->id) }}" 
+                       class="block w-full text-center bg-green-600 text-white hover:bg-green-700 font-semibold py-2 rounded-lg transition shadow-sm">
+                        Lihat Laporan
+                    </a>
+
                     @else
                         {{-- Status lain (Revisi, Perlu Tindakan, dll) tetap link aktif --}}
-                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-2 rounded-lg transition">
+                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-semibold py-2 rounded-lg transition">
                             {{ $item->custom_status == 'Perlu Revisi' ? 'Perbaiki Laporan' : 'Proses Laporan' }}
                         </a>
                     @endif
