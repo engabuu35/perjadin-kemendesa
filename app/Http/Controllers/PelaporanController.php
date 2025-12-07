@@ -33,7 +33,8 @@ class PelaporanController extends Controller
                 'Menunggu Verifikasi',
                 'Menunggu Validasi PPK'
             ])
-            ->orWhere('statusperjadin.nama_status', 'Diselesaikan Manual');
+            ->orWhere('statusperjadin.nama_status', 'Diselesaikan Manual')
+            ->orWhere('statusperjadin.nama_status', 'Selesai');
         });
 
         if ($request->has('q')) {
@@ -44,7 +45,14 @@ class PelaporanController extends Controller
             });
         }
 
-        $laporanList = $query->orderBy('updated_at', 'desc')->paginate(12);
+        // Logika: Jika status 'Selesai', beri nilai 1. Jika bukan, beri nilai 0.
+        // Urutkan ASC (0 dulu, baru 1). Akibatnya 'Selesai' akan selalu di halaman belakang.
+        $query->orderByRaw("CASE WHEN statusperjadin.nama_status = 'Selesai' THEN 1 ELSE 0 END ASC");
+
+        // Setelah dipisah antara Selesai dan Belum, baru urutkan berdasarkan tanggal update terbaru
+        $query->orderBy('updated_at', 'desc');
+
+        $laporanList = $query->paginate(12);
         
         $laporanList->getCollection()->transform(function ($item) {
             if ($item->nama_status == 'Diselesaikan Manual') {
@@ -67,6 +75,11 @@ class PelaporanController extends Controller
                 $item->custom_status = 'Menunggu PPK';
                 $item->status_color  = 'yellow'; 
                 $item->status_icon   = '<i class="fa-solid fa-clock"></i>';
+            }
+            elseif ($item->nama_status == 'Selesai') {
+                $item->custom_status = 'Selesai';
+                $item->status_color  = 'green'; 
+                $item->status_icon   = '<i class="fa-solid fa-check-double"></i>';
             }
             else {
                 if (!$item->id_keuangan) {

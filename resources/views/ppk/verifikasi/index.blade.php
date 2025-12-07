@@ -28,7 +28,7 @@
 
                         if($item->nama_status == 'Selesai') {
                             $colorClass = 'text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100';
-                            $label = '✓ Terbayar';
+                            $label = '✓ Terverifikasi';
                         } else {
                             $colorClass = 'text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100';
                             $label = '<i class="fa-solid fa-clock"></i> Butuh Validasi';
@@ -55,12 +55,20 @@
 
             {{-- FOOTER--}}
             <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
-                    class="block w-full text-center bg-yellow-600 text-white hover:bg-yellow-700 font-semibold py-2 rounded-lg transition shadow-sm">
-                    {{ $item->nama_status == 'Selesai' ? 'Lihat Data' : 'Verifikasi & Bayar' }}
-                </a>
+                @if($item->nama_status == 'Selesai')
+                    {{-- JIKA SELESAI: Tombol "Lihat Data" (Aktif, mengarah ke detail) --}}
+                    <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
+                       class="block w-full text-center bg-white border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 rounded-lg transition shadow-sm">
+                        <i class="fa-solid fa-eye mr-1"></i> Lihat Data
+                    </a>
+                @else
+                    {{-- JIKA BELUM: Tombol "Verifikasi & Bayar" --}}
+                    <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
+                        class="block w-full text-center bg-yellow-600 text-white hover:bg-yellow-700 font-semibold py-2 rounded-lg transition shadow-sm">
+                        Verifikasi & Bayar
+                    </a>
+                @endif
             </div>
-
         </div>
         @empty
             <div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
@@ -77,11 +85,11 @@
 
             {{-- Previous --}}
             @if ($listVerifikasi->onFirstPage())
-                <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed"></span>
             @else
                 <a href="{{ $listVerifikasi->previousPageUrl() }}"
                 class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                ❮
+                            
                 </a>
             @endif
 
@@ -105,10 +113,10 @@
             @if ($listVerifikasi->hasMorePages())
                 <a href="{{ $listVerifikasi->nextPageUrl() }}"
                 class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                ❯
+                >
                 </a>
             @else
-                <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed"></span>
             @endif
 
         </nav>

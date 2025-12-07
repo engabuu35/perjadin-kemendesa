@@ -25,7 +25,7 @@ class PPKController extends Controller
 
         // LOGIKA FILTER BARU: Sertakan status Manual JIKA sudah ada laporan keuangan (Menunggu Verifikasi)
         $query->where(function($q) {
-            $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi'])
+            $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi', 'Selesai'])
               ->orWhere(function($sub) {
                   $sub->where('statusperjadin.nama_status', 'Diselesaikan Manual')
                       ->where('statuslaporan.nama_status', 'Menunggu Verifikasi');
@@ -40,11 +40,22 @@ class PPKController extends Controller
             });
         }
 
-        $listVerifikasi = $query->orderBy('updated_at', 'desc')->paginate(12);
+        $query->orderByRaw("CASE WHEN statusperjadin.nama_status = 'Selesai' THEN 1 ELSE 0 END ASC");
+        
+        // Urutkan berdasarkan update terbaru
+        $query->orderBy('updated_at', 'desc');
+
+        $listVerifikasi = $query->paginate(12);
 
         foreach ($listVerifikasi as $item) {
-            $item->custom_status = 'Butuh Validasi';
-            $item->status_color  = 'blue';
+            // Logika label status manual (opsional, untuk memastikan view rapi)
+            if($item->nama_status == 'Selesai'){
+                $item->custom_status = 'Selesai';
+                $item->status_color  = 'green';
+            } else {
+                $item->custom_status = 'Butuh Validasi';
+                $item->status_color  = 'blue';
+            }
         }
 
         return view('ppk.verifikasi.index', compact('listVerifikasi'));
