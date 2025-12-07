@@ -535,6 +535,7 @@
 </script>
 
 <script>
+
 document.addEventListener('DOMContentLoaded', function () {
     const openCameraBtn = document.getElementById('open-camera-btn');
     const switchCameraBtn = document.getElementById('switch-camera-btn');
@@ -657,7 +658,6 @@ document.addEventListener('DOMContentLoaded', function () {
         modalPhoto.src = dataUrl;
         modalMeta.textContent = metaText;
         photoModal.classList.remove('hidden');
-        // center flex
         photoModal.classList.add('flex');
     }
     function closeModal() {
@@ -685,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Capture photo -> show modal (do NOT upload immediately) — modal only, no inline preview
+    // Capture photo -> show modal
     capturePhotoBtn.addEventListener('click', async function () {
         if (!video || !video.srcObject) return;
 
@@ -749,10 +749,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (lastLat !== null && lastLng !== null) metaText += ' | Lat: ' + lastLat.toFixed(6) + ', Lng: ' + lastLng.toFixed(6);
         if (lastAddress) metaText += ' | Lokasi: ' + lastAddress;
 
-        // open modal with preview & meta (no inline preview)
         openModalWithPhoto(dataUrl, metaText);
     });
-
 
     // Modal: download
     modalDownloadBtn.addEventListener('click', function () {
@@ -772,17 +770,16 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.removeChild(a);
     });
 
-    // Modal: retry (ambil ulang) -> close modal, keep camera on for retake
+    // Modal: retry
     modalRetryBtn.addEventListener('click', function () {
         closeModal();
-        // reset small preview but keep camera running
         photoPreview.classList.add('hidden');
         downloadPhotoBtn.classList.add('hidden');
         photoMeta.textContent = '';
         lastPhotoDataUrl = null;
     });
 
-    // Modal: save -> upload then close modal (disable tombol selama proses)
+    // ⭐ Modal: save -> upload TANPA RELOAD
     modalSaveBtn.addEventListener('click', async function () {
         if (!lastPhotoDataUrl) {
             return Swal.fire({ icon: 'info', title: 'Info', text: 'Tidak ada foto untuk disimpan.', confirmButtonText: 'Tutup' });
@@ -802,12 +799,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (res && res.status === 'success') {
             closeModal();
+            
+            // ⭐ JANGAN RELOAD - Mulai countdown langsung
             Swal.fire({
                 icon: 'success',
-                title: 'Berhasil',
+                title: 'Berhasil!',
                 text: res.message || 'Foto geotagging tersimpan.',
-                confirmButtonText: 'OK'
-            }).then(() => location.reload());
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                // Matikan kamera dan reset UI
+                stopStream();
+
+                // Reload halaman
+                location.reload();
+            });
+
+
+            // // ⭐ Mulai countdown dari SEKARANG
+            // if (typeof window.startGeotagCountdownNow === 'function') {
+            //     setTimeout(() => {
+            //         window.startGeotagCountdownNow();
+            //     }, 2000); // Delay sebentar sampai Swal close
+            // }
+
         } else {
             Swal.fire({
                 icon: 'error',
@@ -818,10 +833,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // overlay click closes modal (optional) — but keep preview intact
     modalOverlay.addEventListener('click', closeModal);
 
-    // Cleanup when unload
     window.addEventListener('beforeunload', function () {
         stopStream();
     });
@@ -830,74 +843,81 @@ document.addEventListener('DOMContentLoaded', function () {
     setOpenBtnToInactiveState();
     hideCaptureControls();
     resetPreview();
+});
 
-    // lastGeotagAt dikirim dari server (ISO atau null). Pastikan nama variabel sama di compact()
-    const lastGeotagAt = @json(optional($lastGeotagHariIni)->created_at ?? null);
-
-    // cari tombol geotag
+// ============================================
+// SCRIPT 2: COUNTDOWN GEOTAGGING
+// ============================================
+document.addEventListener('DOMContentLoaded', function () {
     const geotagBtn = document.getElementById('geotag-btn');
     if (!geotagBtn) return;
 
-    // simpan HTML asli supaya bisa dikembalikan nanti
-    if (!geotagBtn.dataset.origHtml) geotagBtn.dataset.origHtml = geotagBtn.innerHTML;
-
-    // helper format mm:ss
-    function formatMMSS(totalSeconds) {
-        const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-        const ss = String(Math.floor(totalSeconds % 60)).padStart(2, '0');
-        return mm + ':' + ss;
+    // Simpan HTML asli tombol saat pertama load
+    if (!geotagBtn.dataset.origHtml) {
+        geotagBtn.dataset.origHtml = geotagBtn.innerHTML;
     }
 
-    // enable tombol (restore)
+    // Data dari server
+    const adaGeotagTanpaFoto = @json($adaGeotagTanpaFotoHariIni ?? false);
+    const sudahMaks = @json($sudahMaksAbsenHariIni ?? false);
+    
+    // Helper: enable tombol (membuat tombol jadi biru/aktif)
     function enableGeotagBtn() {
+        // Jangan enable jika sudah max absen hari ini
+        if (sudahMaks) return;
+
         geotagBtn.disabled = false;
-        // restore classes (ensure visible style)
         geotagBtn.classList.remove('bg-gray-100','text-gray-400','cursor-not-allowed','border','border-gray-200');
-        geotagBtn.classList.add('bg-blue-600','hover:bg-blue-700','text-white');
-        // restore original innerHTML if stored
-        if (geotagBtn.dataset.origHtml) geotagBtn.innerHTML = geotagBtn.dataset.origHtml;
+        geotagBtn.classList.add('bg-blue-600','hover:bg-blue-700','text-white','shadow-lg');
+        
+        if (geotagBtn.dataset.origHtml) {
+            geotagBtn.innerHTML = geotagBtn.dataset.origHtml;
+        } else {
+            geotagBtn.innerHTML = '<i class="fa-solid fa-location-dot"></i> Tandai Lokasi Saya';
+        }
     }
 
-    // disable tombol and show custom text
-    function disableGeotagBtnWithText(text) {
+    // Helper: disable tombol dengan pesan custom
+    function disableGeotagBtnWithText(text, icon = 'fa-clock') {
         geotagBtn.disabled = true;
-        geotagBtn.classList.remove('bg-blue-600','hover:bg-blue-700','text-white');
+        geotagBtn.classList.remove('bg-blue-600','hover:bg-blue-700','text-white','shadow-lg');
         geotagBtn.classList.add('bg-gray-100','text-gray-400','cursor-not-allowed','border','border-gray-200');
-        geotagBtn.innerHTML = '<i class="fa-solid fa-clock"></i> ' + text;
+        geotagBtn.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + text;
     }
 
-    // jika tidak ada lastGeotag -> pastikan enable
-    if (!lastGeotagAt) {
-        enableGeotagBtn();
+    // -------------------------------------------------------------------
+    // FUNGSI GLOBAL: Dipanggil oleh Script Kamera setelah foto tersimpan
+    // -------------------------------------------------------------------
+    window.startGeotagCountdownNow = function() {
+        // Karena tidak ada countdown, kita langsung reload halaman 
+        // agar status di backend (adaGeotagTanpaFoto) ter-refresh dengan benar,
+        // ATAU langsung aktifkan tombol secara visual jika ingin UX cepat.
+        
+        // OPSI 1: Langsung aktifkan tombol (User Experience lebih cepat)
+        enableGeotagBtn(); 
+        
+        // OPSI 2 (Opsional): Reload halaman otomatis setelah 1 detik untuk memastikan data sinkron
+        // setTimeout(() => location.reload(), 1000);
+    };
+
+    // -------------------------------------------------------------------
+    // LOGIKA SAAT HALAMAN DIMUAT (Page Load)
+    // -------------------------------------------------------------------
+
+    // 1. Cek apakah sudah limit harian (2x)
+    if (sudahMaks) {
+        disableGeotagBtnWithText('Lokasi Hari Ini Tercatat', 'fa-check-circle');
         return;
     }
 
-    // parse timestamp
-    const lastTs = Date.parse(lastGeotagAt);
-    if (isNaN(lastTs)) { enableGeotagBtn(); return; }
-
-    const minMs = 60 * 1000; // 5 menit //5 detik
-    function tickCountdown() {
-        const now = Date.now();
-        const elapsed = now - lastTs;
-        if (elapsed >= minMs) {
-            // selesai: enable tombol & clear interval
-            enableGeotagBtn();
-            clearInterval(countIv);
-            return;
-        }
-        const remainingSec = Math.ceil((minMs - elapsed) / 1000);
-        // tampilkan format MM:SS — contoh "Tunggu 04:12"
-        const mmss = formatMMSS(remainingSec);
-        disableGeotagBtnWithText('Tunggu ' + mmss);
+    // 2. Cek apakah ada hutang upload foto
+    if (adaGeotagTanpaFoto) {
+        disableGeotagBtnWithText('Silakan Upload Foto Terlebih Dahulu', 'fa-camera');
+        return;
     }
 
-    // run immediately and tiap 1 detik
-    <?php if(!$sudahMaksAbsenHariIni): ?>
-        // run immediately dan tiap 1 detik
-        tickCountdown();
-        const countIv = setInterval(tickCountdown, 1000);
-    <?php endif; ?>
+    // 3. Jika lolos semua cek, aktifkan tombol
+    enableGeotagBtn();
 });
 
     const openBtn = document.getElementById("openSelesaikanModal");

@@ -162,9 +162,11 @@ class PerjadinController extends Controller
         $adaGeotagTanpaFotoHariIni = (bool) $geotagTanpaFotoHariIni;
 
         // Ambil geotag terakhir hari ini untuk cek jeda 15 menit
-        $lastGeotagHariIni = Geotagging::where('id_perjadin', $id)
+        // Ambil geotag terakhir hari ini YANG SUDAH ADA FOTONYA untuk cek jeda 5 menit
+        $lastGeotagDenganFotoHariIni = Geotagging::where('id_perjadin', $id)
             ->where('id_user', $userNip)
             ->whereDate('created_at', $today)
+            ->whereNotNull('foto') // HANYA yang sudah ada foto
             ->orderBy('created_at', 'desc')
             ->first();
 
@@ -173,10 +175,6 @@ class PerjadinController extends Controller
         if ($sudahMaksAbsenHariIni) {
             $bolehGeotagSekarang = false;
         } elseif ($adaGeotagTanpaFotoHariIni) {
-            // Wajib foto dulu sebelum geotagging berikutnya
-            $bolehGeotagSekarang = false;
-        } elseif ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(1))) {
-            // Belum lewat 5 menit sejak geotag terakhir
             $bolehGeotagSekarang = false;
         }
 
@@ -289,6 +287,12 @@ class PerjadinController extends Controller
         }
         // --------------------------------------------
 
+        $lastGeotagTimestamp = null;
+        if ($lastGeotagDenganFotoHariIni) {
+            $lastGeotagTimestamp = Carbon::parse($lastGeotagDenganFotoHariIni->updated_at)
+                ->timestamp * 1000; // Convert ke milliseconds
+        }
+
         return view('pages.detailperjadin', compact(
             'perjalanan',
             'dataSaya',
@@ -308,7 +312,9 @@ class PerjadinController extends Controller
             'statusPegawai',
             'statusBadgeClass',
             'finishMessage',
-            'lastGeotagHariIni',
+            'lastGeotagDenganFotoHariIni', // GANTI dari lastGeotagHariIni
+            'adaGeotagTanpaFotoHariIni', // TAMBAHKAN ini
+            'lastGeotagTimestamp'
         ));
     }
 
@@ -448,20 +454,6 @@ class PerjadinController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Batas geotagging hari ini sudah 2x.'], 400);
         }
 
-        // Cek jeda waktu minimal 5 menit dari geotag terakhir
-        $lastGeotagHariIni = Geotagging::where('id_perjadin', $id)
-            ->where('id_user', Auth::user()->nip)
-            ->whereDate('created_at', $today)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(1))) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Geotagging berikutnya hanya bisa dilakukan minimal 5 menit setelah geotagging terakhir.'
-            ], 400);
-        }
-
         Geotagging::create([
             'id_perjadin' => $id,
             'id_user'     => Auth::user()->nip,
@@ -541,8 +533,8 @@ class PerjadinController extends Controller
 
         // Update baris geotagging terakhir tanpa foto dengan data foto & koordinat dari kamera
         $geotagTanpaFoto->update([
-            'latitude'  => $request->latitude,
-            'longitude' => $request->longitude,
+            // 'latitude'  => $request->latitude,
+            // 'longitude' => $request->longitude,
             'foto'      => $path,
         ]);
 
