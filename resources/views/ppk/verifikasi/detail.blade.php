@@ -236,7 +236,7 @@
                 <tfoot class="bg-gray-100 font-bold text-gray-900 border-t-2 border-gray-300">
                     <tr class="text-center">
                         <td colspan="3" class="px-4 py-4 text-right border-r">TOTAL KESELURUHAN:</td>
-                        <td class="px-4 py-4 bg-yellow-100 text-yellow-800 border-r text-lg border-l">
+                        <td class="px-4 py-4 bg-yellow-100 text-yellow-800 border-r text-md border-l">
                             Rp {{ number_format($totalSeluruhnya, 0, ',', '.') }}
                         </td>
                         <td colspan="13" class="bg-gray-50"></td>
@@ -307,7 +307,8 @@
         @if(!$isSelesai)
         <div class="flex justify-between pt-6 border-t gap-4">
             <!-- TOMBOL TOLAK (Buka Modal/Accordion) -->
-            <button type="button" onclick="document.getElementById('reject-section').classList.toggle('hidden')" class="bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-red-200 transition">
+            <button type="button" onclick="document.getElementById('reject-section').classList.toggle('hidden')" 
+            class="bg-red-100 text-red-600 px-6 py-2 rounded-xl font-bold hover:bg-red-200 transition">
                 <i class="fa-regular fa-circle-xmark"></i> Tolak / Revisi
             </button>
 
@@ -315,7 +316,7 @@
             <button 
                 type="button" 
                 id="openApproveModal"
-                class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
+                class="bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
                 <i class="fa-regular fa-circle-check"></i>
                 Setujui & Selesaikan
             </button>
@@ -360,10 +361,12 @@
         <div id="reject-section" class="hidden mt-6 p-4 bg-red-50 rounded-xl border border-red-200">
             <form action="{{ route('ppk.verifikasi.reject', $perjalanan->id) }}" method="POST">
                 @csrf
-                <label class="block text-sm font-bold text-red-700 mb-2">Alasan Penolakan / Catatan Revisi:</label>
-                <textarea name="alasan_penolakan" rows="3" class="w-full border-red-300 rounded-lg focus:ring-red-500 mb-3" placeholder="Contoh: Nominal Tiket Pesawat Ketua tidak sesuai bukti..." required></textarea>
+                <label class="block text-md font-bold text-red-700 mb-2">Alasan Penolakan / Catatan Revisi:</label>
+                <textarea name="alasan_penolakan" rows="3" class="w-full text-sm border-red-300 rounded-lg focus:ring-red-500 mb-3" placeholder="Contoh: Nominal Tiket Pesawat Ketua tidak sesuai bukti..." required></textarea>
                 <div class="text-right">
-                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700">Kirim Revisi ke PIC</button>
+                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700">
+                        <i class="fa-solid fa-rotate-left"></i> Kirim Revisi ke PIC
+                    </button>
                 </div>
             </form>
         </div>
