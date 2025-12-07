@@ -58,8 +58,8 @@
         /* Hover Effect Bulat untuk Menu */
         .sidebar-menu a {
             position: relative;
-            overflow: visible;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.3, 0, 0.2, 1);
         }
 
         .sidebar-menu a::before {
@@ -78,8 +78,8 @@
         }
 
         .sidebar-menu a:hover::before {
-            width: 42px;
-            height: 42px;
+            width: 50px;
+            height: 50px;
             opacity: 1;
         }
         
@@ -158,10 +158,15 @@
                 opacity: 1;
             }
             100% {
-                width: 100px;
-                height: 100px;
+                width: 80px;
+                height: 80px;
                 opacity: 0;
             }
+        }
+        
+        /* Pastikan sidebar punya overflow hidden */
+        .sidebar {
+            overflow: hidden;
         }
 
         .sidebar-menu a .icon {
@@ -293,34 +298,23 @@
                 display: none !important;
             }
         }
-
-
-
-        /* Ripple effect animation */
-        @keyframes ripple-effect-1 {
-            to {
-                width: 500px;
-                height: 500px;
-                opacity: 0;
-            }
-        }
     </style>
 
-                <!-- Modal Konfirmasi Logout -->
-                <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[999]">
-                    <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
-                        <div class="w-12 h-12 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold mb-2 text-gray-800">Konfirmasi Logout</h3>
-                        <p class="text-gray-600 mb-6">Apakah kamu yakin ingin keluar dari akun ini?</p>
-                        <div class="flex justify-between gap-3">
-                            <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
-                                Batal
-                            </button>
-                            <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Modal Konfirmasi Logout -->
+    <div id="logoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[999]">
+        <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+            <div class="w-12 h-12 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-gray-800">Konfirmasi Logout</h3>
+            <p class="text-gray-600 mb-6">Apakah kamu yakin ingin keluar dari akun ini?</p>
+            <div class="flex justify-between gap-3">
+                <button id="cancelLogout" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                    Batal
+                </button>
+                <button id="confirmLogout" class="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>

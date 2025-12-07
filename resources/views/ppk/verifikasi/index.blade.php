@@ -28,10 +28,10 @@
 
                         if($item->nama_status == 'Selesai') {
                             $colorClass = 'text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100';
-                            $label = '✓ Terverifikasi';
+                            $label = '<i class="fa-solid fa-circle-check"></i> Terverifikasi';
                         } else {
-                            $colorClass = 'text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100';
-                            $label = '<i class="fa-solid fa-clock"></i> Butuh Validasi';
+                            $colorClass = 'text-yellow-600 bg-yellow-50 px-2 py-1 rounded border border-blue-100';
+                            $label = '<i class="fa-solid fa-exclamation-circle"></i> Butuh Validasi';
                         }
                     @endphp
 
@@ -58,14 +58,14 @@
                 @if($item->nama_status == 'Selesai')
                     {{-- JIKA SELESAI: Tombol "Lihat Data" (Aktif, mengarah ke detail) --}}
                     <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
-                       class="block w-full text-center bg-white border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 rounded-lg transition shadow-sm">
-                        <i class="fa-solid fa-eye mr-1"></i> Lihat Data
+                       class="block w-full text-center bg-green-600 text-white hover:bg-green-700 font-semibold py-2 rounded-lg transition shadow-sm">
+                        Lihat Data
                     </a>
                 @else
                     {{-- JIKA BELUM: Tombol "Verifikasi & Bayar" --}}
                     <a href="{{ route('ppk.verifikasi.detail', $item->id) }}"
                         class="block w-full text-center bg-yellow-600 text-white hover:bg-yellow-700 font-semibold py-2 rounded-lg transition shadow-sm">
-                        Verifikasi & Bayar
+                        Verifikasi
                     </a>
                 @endif
             </div>
@@ -80,16 +80,17 @@
         
     @if ($listVerifikasi instanceof \Illuminate\Pagination\LengthAwarePaginator)
     <div class="mt-6 flex justify-center">
-
-        <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
+        <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden" role="navigation" aria-label="Pagination">
 
             {{-- Previous --}}
             @if ($listVerifikasi->onFirstPage())
-                <span class="px-4 py-2 text-blue-300 cursor-not-allowed"></span>
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed" aria-disabled="true" title="Halaman pertama">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </span>
             @else
                 <a href="{{ $listVerifikasi->previousPageUrl() }}"
-                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                            
+                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition" aria-label="Previous page">
+                    <i class="fa-solid fa-chevron-left"></i>
                 </a>
             @endif
 
@@ -99,12 +100,12 @@
 
                 @if ($link['active'])
                     <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
-                        {{ $link['label'] }}
+                        {!! $link['label'] !!}
                     </span>
                 @else
                     <a href="{{ $link['url'] }}"
                     class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                    {{ $link['label'] }}
+                        {!! $link['label'] !!}
                     </a>
                 @endif
             @endforeach
@@ -112,15 +113,16 @@
             {{-- Next --}}
             @if ($listVerifikasi->hasMorePages())
                 <a href="{{ $listVerifikasi->nextPageUrl() }}"
-                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                >
+                class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition" aria-label="Next page">
+                    <i class="fa-solid fa-chevron-right"></i>
                 </a>
             @else
-                <span class="px-4 py-2 text-blue-300 cursor-not-allowed"></span>
+                <span class="px-4 py-2 text-blue-300 cursor-not-allowed" aria-disabled="true" title="Halaman terakhir">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </span>
             @endif
 
         </nav>
-
     </div>
     @endif
     </div>

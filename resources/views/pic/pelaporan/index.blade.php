@@ -3,11 +3,11 @@
 @section('title', 'Pelaporan Keuangan')
 
 @section('content')
-<main class="transition-all duration-300 ml-0 sm:ml-[60px]">
+<main class="transition-all duration-300 ml-0 sm:ml-[60px] min-h-screen">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8"> 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <x-page-title 
-            title="Verifikasi Pelaporan"
+            title="Pelaporan Keuangan"
             subtitle="Daftar laporan perjalanan dinas yang menunggu verifikasi atau revisi." />
         </div>
 
@@ -65,23 +65,27 @@
                     @elseif($item->custom_status == 'Selesai')
                     {{-- Ganti button disabled menjadi <a> agar bisa diklik --}}
                     <a href="{{ route('pic.pelaporan.detail', $item->id) }}" 
-                       class="block w-full text-center bg-white border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 rounded-lg transition shadow-sm">
-                        <i class="fa-solid fa-eye mr-1"></i> Lihat Laporan
+                       class="block w-full text-center bg-green-600 text-white hover:bg-green-700 font-semibold py-2 rounded-lg transition shadow-sm">
+                        Lihat Laporan
                     </a>
 
                     @else
                         {{-- Status lain (Revisi, Perlu Tindakan, dll) tetap link aktif --}}
-                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-2 rounded-lg transition">
+                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-semibold py-2 rounded-lg transition">
                             {{ $item->custom_status == 'Perlu Revisi' ? 'Perbaiki Laporan' : 'Proses Laporan' }}
                         </a>
                     @endif
                 </div>
             </div>
-            @empty
-            <div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-                <p class="text-gray-400 text-lg">Tidak ada laporan yang perlu diproses saat ini.</p>
-            </div>
-            @endforelse
+                @empty
+                <div class="col-span-full">
+                    <x-empty-state 
+                        icon="fa-money-bill-wave"
+                        title="Belum Ada Laporan Keuangan Perjalanan Dinas"
+                        message="Saat ini tidak ada laporan keuangan perjalanan dinas."
+                    />
+                </div>
+                @endforelse
         </div>
         
         {{-- Pagination Laporan --}}
