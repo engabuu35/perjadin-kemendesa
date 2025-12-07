@@ -65,13 +65,13 @@
                     @elseif($item->custom_status == 'Selesai')
                     {{-- Ganti button disabled menjadi <a> agar bisa diklik --}}
                     <a href="{{ route('pic.pelaporan.detail', $item->id) }}" 
-                       class="block w-full text-center bg-white border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 rounded-lg transition shadow-sm">
+                       class="block w-full text-center bg-green-600 text-white hover:bg-green-700 font-semibold py-2 rounded-lg transition shadow-sm">
                         Lihat Laporan
                     </a>
 
                     @else
                         {{-- Status lain (Revisi, Perlu Tindakan, dll) tetap link aktif --}}
-                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-2 rounded-lg transition">
+                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-semibold py-2 rounded-lg transition">
                             {{ $item->custom_status == 'Perlu Revisi' ? 'Perbaiki Laporan' : 'Proses Laporan' }}
                         </a>
                     @endif
