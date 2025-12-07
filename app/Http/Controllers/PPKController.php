@@ -69,33 +69,53 @@ class PPKController extends Controller
                 ->join('bukti_laporan', 'laporan_perjadin.id', '=', 'bukti_laporan.id_laporan')
                 ->where('laporan_perjadin.id_perjadin', $id)
                 ->where('laporan_perjadin.id_user', $p->nip)
-                ->select('bukti_laporan.kategori', 'bukti_laporan.nominal', 'bukti_laporan.keterangan')
+                ->select(
+                    'bukti_laporan.kategori', 
+                    'bukti_laporan.nominal', 
+                    'bukti_laporan.keterangan', 
+                    'bukti_laporan.path_file')
                 ->get();
 
             $biaya = [
-                'Tiket'            => 0, 'Uang Harian' => 0, 'Penginapan' => 0,
-                'Uang Representasi'=> 0, 'Transport' => 0, 'Sewa Kendaraan' => 0,
-                'Pengeluaran Riil' => 0, 'SSPB' => 0, 'Total' => 0,
+                'Tiket'            => ['nominal' => 0, 'file' => null],
+                'Uang Harian'      => ['nominal' => 0, 'file' => null],
+                'Penginapan'       => ['nominal' => 0, 'file' => null],
+                'Uang Representasi'=> ['nominal' => 0, 'file' => null],
+                'Transport'        => ['nominal' => 0, 'file' => null],
+                'Sewa Kendaraan'   => ['nominal' => 0, 'file' => null],
+                'Pengeluaran Riil' => ['nominal' => 0, 'file' => null],
+                'SSPB'             => ['nominal' => 0, 'file' => null],
+                'Total'            => 0 // Total tetap integer biasa
             ];
 
             $info = [
-                'Nama Penginapan' => '-', 'Kota' => '-', 
-                'Jenis Transportasi(Pergi)' => '-', 'Kode Tiket(Pergi)' => '-', 'Nama Transportasi(Pergi)' => '-', 
-                'Jenis Transportasi(Pulang)' => '-', 'Kode Tiket(Pulang)' => '-', 'Nama Transportasi(Pulang)' => '-'
+                'Nama Penginapan' => '-', 
+                'Kota' => '-', 
+                'Jenis Transportasi(Pergi)' => '-', 
+                'Kode Tiket(Pergi)' => '-', 
+                'Nama Transportasi(Pergi)' => '-', 
+                'Jenis Transportasi(Pulang)' => '-', 
+                'Kode Tiket(Pulang)' => '-', 
+                'Nama Transportasi(Pulang)' => '-'
             ];
 
-            foreach ($buktis as $b) {
-                if ($b->nominal > 0) {
-                    if (isset($biaya[$b->kategori])) {
-                        $biaya[$b->kategori] += $b->nominal;
+            foreach($buktis as $b) {
+                // Cek apakah kategori ini ada di daftar biaya (kecuali Total)
+                if (array_key_exists($b->kategori, $biaya) && $b->kategori !== 'Total') {
+                    // Tambah nominal
+                    $biaya[$b->kategori]['nominal'] += $b->nominal;
+                    
+                    // Simpan path file jika ada
+                    if (!empty($b->path_file)) {
+                        $biaya[$b->kategori]['file'] = $b->path_file;
                     }
+
+                    // Hitung Total (Kecuali SSPB)
                     if ($b->kategori != 'SSPB') {
                         $biaya['Total'] += $b->nominal;
                     }
                 } else {
-                    if (array_key_exists($b->kategori, $info)) {
-                        $info[$b->kategori] = $b->keterangan;
-                    }
+                    if (array_key_exists($b->kategori, $info)) $info[$b->kategori] = $b->keterangan;
                 }
             }
 
