@@ -175,7 +175,7 @@ class PerjadinController extends Controller
         } elseif ($adaGeotagTanpaFotoHariIni) {
             // Wajib foto dulu sebelum geotagging berikutnya
             $bolehGeotagSekarang = false;
-        } elseif ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(5))) {
+        } elseif ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(1))) {
             // Belum lewat 5 menit sejak geotag terakhir
             $bolehGeotagSekarang = false;
         }
@@ -455,7 +455,7 @@ class PerjadinController extends Controller
             ->orderBy('created_at', 'desc')
             ->first();
 
-        if ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(5))) {
+        if ($lastGeotagHariIni && Carbon::parse($lastGeotagHariIni->created_at)->gt($now->copy()->subMinutes(1))) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Geotagging berikutnya hanya bisa dilakukan minimal 5 menit setelah geotagging terakhir.'

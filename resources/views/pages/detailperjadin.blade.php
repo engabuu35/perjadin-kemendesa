@@ -377,59 +377,98 @@
                         const lat = pos.coords.latitude;
                         const lng = pos.coords.longitude;
 
-                        // Tampilkan marker sementara (Visual Feedback)
-                        L.marker([lat, lng]).addTo(map)
+                        // 1. Tampilkan marker sementara di peta agar user bisa mengecek
+                        const tempMarker = L.marker([lat, lng]).addTo(map)
                             .bindPopup("<b>Lokasi Anda Saat Ini</b>").openPopup();
-                        map.flyTo([lat, lng], 16);
+                        
+                        // Zoom ke lokasi agar user jelas melihatnya
+                        // map.flyTo([lat, lng], 18);
 
-                        // Kirim ke Server
-                        fetch(btn.dataset.url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': token
-                            },
-                            body: JSON.stringify({
-                                latitude: lat, 
-                                longitude: lng, 
-                                id_tipe: 1
-                            })
-                        })
-                        .then(r => r.json())
-                        .then(d => {
-                            if(d.status === 'success') {
+                        // 2. Tampilkan Pop-up Konfirmasi
+                        Swal.fire({
+                            title: 'Konfirmasi Lokasi',
+                            text: "Apakah titik lokasi yang terdeteksi di peta sudah sesuai?",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Ya, Sesuai',
+                            cancelButtonText: 'Batal, Cek Lagi'
+                        }).then((result) => {
+                            // 3. Jika User Klik "Ya, Sesuai" -> Baru kirim ke server
+                            if (result.isConfirmed) {
+                                // Tampilkan loading lagi saat proses simpan
                                 Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    text: d.message,
-                                    confirmButtonText: 'OK'
-                                }).then(() => location.reload());
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: d.message || 'Terjadi kesalahan.',
-                                    confirmButtonText: 'Tutup'
-                                }).then(() => {
-                                    btn.innerHTML = originalText;
-                                    btn.disabled = false;
+                                    title: 'Menyimpan...',
+                                    text: 'Mohon tunggu sebentar',
+                                    allowOutsideClick: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
                                 });
+
+                                fetch(btn.dataset.url, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': token
+                                    },
+                                    body: JSON.stringify({
+                                        latitude: lat, 
+                                        longitude: lng, 
+                                        id_tipe: 1
+                                    })
+                                })
+                                .then(r => r.json())
+                                .then(d => {
+                                    if(d.status === 'success') {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil',
+                                            text: d.message,
+                                            confirmButtonText: 'OK'
+                                        }).then(() => location.reload());
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Gagal',
+                                            text: d.message || 'Terjadi kesalahan.',
+                                            confirmButtonText: 'Tutup'
+                                        }).then(() => {
+                                            // Reset tombol jika gagal
+                                            btn.innerHTML = originalText;
+                                            btn.disabled = false;
+                                            map.removeLayer(tempMarker); // Hapus marker jika gagal
+                                        });
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Kesalahan',
+                                        text: 'Terjadi kesalahan koneksi.',
+                                        confirmButtonText: 'Tutup'
+                                    }).then(() => {
+                                        btn.innerHTML = originalText;
+                                        btn.disabled = false;
+                                        map.removeLayer(tempMarker);
+                                    });
+                                });
+
+                            } else {
+                                // 4. Jika User Klik "Batal"
+                                btn.innerHTML = originalText; // Kembalikan teks tombol
+                                btn.disabled = false; // Aktifkan tombol lagi
+                                map.removeLayer(tempMarker); // Hapus marker sementara
+                                
+                                // Opsional: Kembalikan zoom peta (jika perlu)
+                                // map.setZoom(5); 
                             }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Kesalahan',
-                                text: 'Terjadi kesalahan koneksi.',
-                                confirmButtonText: 'Tutup'
-                            }).then(() => {
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-                            });
                         });
                     }, 
                     (err) => {
+                        //error callback
                         console.error(err);
                         let msg = "Gagal mendapatkan lokasi.";
                         if (err.code == 1) msg = "Izin lokasi ditolak. Mohon aktifkan GPS.";
@@ -795,7 +834,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const lastTs = Date.parse(lastGeotagAt);
     if (isNaN(lastTs)) { enableGeotagBtn(); return; }
 
-    const minMs = 5 * 60 * 1000; // 5 menit
+    const minMs = 60 * 1000; // 5 menit //5 detik
     function tickCountdown() {
         const now = Date.now();
         const elapsed = now - lastTs;

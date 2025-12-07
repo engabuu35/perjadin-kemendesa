@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\PerjalananDinas;
 use App\Models\User;
-use App\Models\LaporanKeuangan;
 use App\Models\LaporanPerjadin;
 use App\Models\BuktiLaporan;
 use Illuminate\Http\Request;
@@ -191,12 +190,12 @@ class PerjadinTambahController extends Controller
             $p->buktiMap = $buktiMap;
         }
 
-        $catBiaya = ['Tiket', 'Uang Harian', 'Penginapan', 'Uang Representasi', 'Sewa Kendaraan', 'Pengeluaran Riil', 'Transport', 'SSPB'];
-        $catPendukung = [
-            'Jenis Transportasi(Pergi)', 'Kode Tiket(Pergi)', 'Nama Transportasi(Pergi)',
-            'Jenis Transportasi(Pulang)', 'Kode Tiket(Pulang)', 'Nama Transportasi(Pulang)',
-            'Nama Penginapan', 'Kota'
-        ];
+        // $catBiaya = ['Tiket', 'Uang Harian', 'Penginapan', 'Uang Representasi', 'Sewa Kendaraan', 'Pengeluaran Riil', 'Transport', 'SSPB'];
+        // $catPendukung = [
+        //     'Jenis Transportasi(Pergi)', 'Kode Tiket(Pergi)', 'Nama Transportasi(Pergi)',
+        //     'Jenis Transportasi(Pulang)', 'Kode Tiket(Pulang)', 'Nama Transportasi(Pulang)',
+        //     'Nama Penginapan', 'Kota'
+        // ];
 
         $today = Carbon::today()->toDateString();
         $sedangBerlangsungId = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
@@ -224,7 +223,6 @@ class PerjadinTambahController extends Controller
 
         return view('pic.penugasanTambah', compact(
             'users','pegawaiStatus','perjalanan','pegawaiList','pimpinans','pegawaiActive',
-            'catBiaya', 'catPendukung'
         ));
     }
 
@@ -354,58 +352,58 @@ class PerjadinTambahController extends Controller
         return response()->json(['message' => 'Status berhasil diperbarui']);
     }
 
-    public function simpanKeuanganManual(Request $request, $id)
-    {
-        $perjalanan = PerjalananDinas::findOrFail($id);
+    // public function simpanKeuanganManual(Request $request, $id)
+    // {
+    //     $perjalanan = PerjalananDinas::findOrFail($id);
 
-        if ($perjalanan->id_status != 7) {
-            return back()->with('error', 'Hanya bisa input manual jika status Diselesaikan Manual.');
-        }
+    //     if ($perjalanan->id_status != 7) {
+    //         return back()->with('error', 'Hanya bisa input manual jika status Diselesaikan Manual.');
+    //     }
 
-        $items = $request->input('items', []);
+    //     $items = $request->input('items', []);
         
-        DB::transaction(function() use ($perjalanan, $items) {
-            foreach ($items as $nip => $categories) {
-                $laporan = LaporanPerjadin::firstOrCreate(
-                    ['id_perjadin' => $perjalanan->id, 'id_user' => $nip],
-                    [
-                        'uraian' => 'Diselesaikan Manual oleh PIC (Alasan: ' . $perjalanan->selesaikan_manual . ')', 
-                        'is_final' => 1, 
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]
-                );
+    //     DB::transaction(function() use ($perjalanan, $items) {
+    //         foreach ($items as $nip => $categories) {
+    //             $laporan = LaporanPerjadin::firstOrCreate(
+    //                 ['id_perjadin' => $perjalanan->id, 'id_user' => $nip],
+    //                 [
+    //                     'uraian' => 'Diselesaikan Manual oleh PIC (Alasan: ' . $perjalanan->selesaikan_manual . ')', 
+    //                     'is_final' => 1, 
+    //                     'created_at' => now(),
+    //                     'updated_at' => now()
+    //                 ]
+    //             );
 
-                foreach ($categories as $kategori => $val) {
-                    $nominalStr = $val['nominal'] ?? '0';
-                    $nominal = (int) str_replace(['.', ','], '', $nominalStr);
-                    $keterangan = $val['text'] ?? null; 
+    //             foreach ($categories as $kategori => $val) {
+    //                 $nominalStr = $val['nominal'] ?? '0';
+    //                 $nominal = (int) str_replace(['.', ','], '', $nominalStr);
+    //                 $keterangan = $val['text'] ?? null; 
 
-                    BuktiLaporan::updateOrCreate(
-                        [
-                            'id_laporan' => $laporan->id,
-                            'kategori'   => $kategori
-                        ],
-                        [
-                            'nominal'    => $nominal,
-                            'keterangan' => $keterangan
-                        ]
-                    );
-                }
-            }
+    //                 BuktiLaporan::updateOrCreate(
+    //                     [
+    //                         'id_laporan' => $laporan->id,
+    //                         'kategori'   => $kategori
+    //                     ],
+    //                     [
+    //                         'nominal'    => $nominal,
+    //                         'keterangan' => $keterangan
+    //                     ]
+    //                 );
+    //             }
+    //         }
 
-            $idMenunggu = DB::table('statuslaporan')->where('nama_status', 'Menunggu Verifikasi')->value('id');
-            if (!$idMenunggu) $idMenunggu = 3; 
+    //         $idMenunggu = DB::table('statuslaporan')->where('nama_status', 'Menunggu Verifikasi')->value('id');
+    //         if (!$idMenunggu) $idMenunggu = 3; 
             
-            LaporanKeuangan::updateOrCreate(
-                ['id_perjadin' => $perjalanan->id],
-                [
-                    'id_status' => $idMenunggu,
-                    'updated_at' => now()
-                ]
-            );
-        });
+    //         LaporanKeuangan::updateOrCreate(
+    //             ['id_perjadin' => $perjalanan->id],
+    //             [
+    //                 'id_status' => $idMenunggu,
+    //                 'updated_at' => now()
+    //             ]
+    //         );
+    //     });
 
-        return back()->with('success', 'Data keuangan manual berhasil disimpan. Laporan masuk ke tahap verifikasi.');
-    }
+    //     return back()->with('success', 'Data keuangan manual berhasil disimpan. Laporan masuk ke tahap verifikasi.');
+    // }
 }
