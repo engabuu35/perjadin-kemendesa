@@ -10,6 +10,8 @@
         @php
             $disabled = isset($perjalanan) && in_array($perjalanan->id_status, [4,5,6,7,8]);
             
+            // Logika Ketat: Sedang Berlangsung = Hari ini >= Tgl Mulai DAN Hari ini <= Tgl Selesai
+            // ATAU status di DB memang sudah 'Sedang Berlangsung'
             $today = \Carbon\Carbon::now()->startOfDay();
             $mulai = isset($perjalanan) ? \Carbon\Carbon::parse($perjalanan->tgl_mulai)->startOfDay() : null;
             $selesai = isset($perjalanan) ? \Carbon\Carbon::parse($perjalanan->tgl_selesai)->endOfDay() : null;
@@ -17,7 +19,10 @@
             $isTimeValid = $mulai && $selesai && $today->between($mulai, $selesai);
             $isStatusValid = isset($perjalanan) && ($perjalanan->status->nama_status ?? '') === 'Sedang Berlangsung';
             
+            // Gabungan: Boleh manual jika WAKTUNYA pas ATAU STATUSNYA sudah Sedang Berlangsung
             $canManual = $isTimeValid || $isStatusValid;
+
+            // Jika sudah manual (ID 7), form input muncul
             $isManual = isset($perjalanan) && $perjalanan->id_status == 7;
         @endphp
 
@@ -110,6 +115,7 @@
 
                 @if(isset($perjalanan))
                     <div class="flex flex-row gap-3 mt-4">
+                        {{-- TOMBOL HANYA AKTIF JIKA WAKTUNYA SUDAH MASUK (SEDANG BERLANGSUNG) --}}
                         <button type="button" id="btnSelesaikan" 
                             @if($disabled || !$canManual) disabled @endif 
                             class="w-full py-3.5 bg-yellow-600 text-white rounded-lg font-semibold transition {{ ($disabled || !$canManual) ? 'opacity-50 cursor-not-allowed hover:bg-yellow-600' : 'hover:bg-yellow-700' }}">
@@ -136,13 +142,12 @@
     @push('scripts')
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // === 1. LOGIKA PEGAWAI (MODIFIED UNTUK CEK TANGGAL) ===
+        // === 1. LOGIKA PEGAWAI (MODIFIED UNTUK CEK TANGGAL) - DARI KODE KAMU ===
         const users = @json($users ?? []);
         const initialPegawai = @json($pegawaiList ?? []);
         
-        // [BARU] Ambil data jadwal dari controller
+        // Menggunakan data jadwal dari kode pertama agar fitur bentrok tanggal berjalan
         const allSchedules = @json($allSchedules ?? []);
-        // ID Perjadin saat ini (jika sedang edit), agar tidak bentrok dengan dirinya sendiri
         const currentPerjadinId = {{ isset($perjalanan) ? $perjalanan->id : 'null' }};
 
         const pegawaiListEl = document.getElementById('pegawaiList');
@@ -152,51 +157,42 @@
 
         let pegawaiCount = 0;
 
-        // FUNGSI UTAMA: Cek Bentrok Berdasarkan Tanggal Input
+        // FUNGSI CEK BENTROK (DARI KODE PERTAMA)
         function checkConflict(nip) {
             const valMulai = inputMulai.value;
             const valSelesai = inputSelesai.value;
 
-            // Jika tanggal belum diisi, anggap AMAN (Biru)
             if (!valMulai || !valSelesai) return false;
 
             const formStart = new Date(valMulai);
             const formEnd = new Date(valSelesai);
 
-            // Filter jadwal milik pegawai ini
             const userTrips = allSchedules.filter(s => s.nip === nip);
 
             for (let trip of userTrips) {
-                // Abaikan status 8 (Dibatalkan) atau status lain yg dianggap batal
                 if (trip.id_status == 8) continue; 
-
-                // Jika sedang Edit, abaikan perjalanan ini sendiri
                 if (currentPerjadinId && trip.id_perjadin == currentPerjadinId) continue;
 
                 const tripStart = new Date(trip.tgl_mulai);
                 const tripEnd = new Date(trip.tgl_selesai);
 
-                // Rumus Overlap: (StartA <= EndB) and (EndA >= StartB)
                 if (formStart <= tripEnd && formEnd >= tripStart) {
-                    return true; // BENTROK -> MERAH
+                    return true; // BENTROK
                 }
             }
-            return false; // AMAN -> BIRU
+            return false; // AMAN
         }
 
-        // Fungsi menentukan warna dot
+        // FUNGSI WARNA DOT
         function statusClassForUser(nip) {
             if (!nip) return 'bg-gray-300';
             const isConflict = checkConflict(nip);
             return isConflict ? 'bg-red-500' : 'bg-blue-500';
         }
 
-        // Trigger refresh warna dot saat tanggal berubah
         function refreshAllDots() {
             const allDots = document.querySelectorAll('.status-dot');
             allDots.forEach(dot => {
-                // Cari input hidden atau text terdekat yang menyimpan NIP
-                // Di card pegawai, struktur kita: input.nip ada di dalam card yang sama
                 const card = dot.closest('.pegawai-card');
                 if (card) {
                     const nipInput = card.querySelector('.nip');
@@ -204,14 +200,11 @@
                     dot.className = 'status-dot w-3 h-3 rounded-full ' + cls;
                 }
             });
-            // Update juga dot di dalam dropdown yang sedang terbuka (jika ada)
-            // Agak tricky kalau dropdown dinamis, tapi kita handle saat dropdown dibuka saja (buildDropdownList)
         }
 
         if (inputMulai) inputMulai.addEventListener('change', refreshAllDots);
         if (inputSelesai) inputSelesai.addEventListener('change', refreshAllDots);
 
-        // --- Logika Render List Pegawai (Sama, tapi pakai statusClassForUser yang baru) ---
         if (pegawaiListEl && btnTambah) {
             
             function makeUserListItem(user) {
@@ -288,85 +281,198 @@
             renderInitialPegawai();
         }
 
-        // === 2. LOGIKA MODAL MANUAL (EDIT ONLY) - TIDAK DIUBAH ===
+        // === 2. LOGIKA MODAL MANUAL (EDIT ONLY) - MENGGUNAKAN UI MODAL TEMANMU ===
         @if(isset($perjalanan))
             const perjalananId = {{ $perjalanan->id }};
             const csrfToken = '{{ csrf_token() }}';
 
+            // --- STRUKTUR MODAL BARU (DARI KODE TEMAN) ---
             const modal = document.createElement('div');
             modal.id = 'dynamicStatusModal';
-            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[9999]';
+            modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]';
             modal.innerHTML = `
-                <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center relative">
-                    <h3 id="dynModalTitle" class="text-lg font-bold mb-4 text-gray-800"></h3>
-                    <p id="dynModalMessage" class="text-gray-600 mb-5"></p>
-                    <div id="dynAlasanContainer" class="hidden mb-4 text-left">
-                        <label class="text-sm font-semibold text-gray-700 block mb-1">Alasan:</label>
-                        <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-600" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
+                <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-md p-6 text-center relative transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+                    <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                    
+                    <h3 id="dynModalTitle" class="text-xl font-bold mb-3 text-gray-800"></h3>
+                    <div id="dynModalIcon" class="mb-3"></div> <p id="dynModalMessage" class="text-gray-600 mb-4"></p>
+                    <div id="dynAlasanContainer" class="hidden mb-5 text-left">
+                        <label class="text-sm font-semibold text-gray-700 block mb-2">Alasan:</label>
+                        <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
                     </div>
-                    <div class="flex justify-between gap-3">
-                        <button id="dynModalCancel" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
-                        <button id="dynModalConfirm" class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Ya</button>
+                    <div class="flex justify-center gap-4">
+                        <button id="dynModalCancel" class="flex-1 max-w-[150px] py-3 px-6 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">Batal</button>
+                        <button id="dynModalConfirm" class="flex-1 max-w-[150px] py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ya</button>
                     </div>
-                    <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
                 </div>`;
             document.body.appendChild(modal);
 
+            // Modal Response (Success/Error)
+            const responseModal = document.createElement('div');
+            responseModal.id = 'responseModal';
+            responseModal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]';
+            responseModal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+                    <div id="responseIcon" class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"></div>
+                    <h3 id="responseTitle" class="text-xl font-bold mb-2 text-gray-800"></h3>
+                    <p id="responseMessage" class="text-gray-600 mb-6"></p>
+                    <button id="responseOk" class="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">OK</button>
+                </div>`;
+            document.body.appendChild(responseModal);
+
             const modalTitle = modal.querySelector('#dynModalTitle');
             const modalMessage = modal.querySelector('#dynModalMessage');
+            const modalIcon = modal.querySelector('#dynModalIcon');
             const modalConfirm = modal.querySelector('#dynModalConfirm');
             const modalCancel = modal.querySelector('#dynModalCancel');
             const modalClose = modal.querySelector('#dynModalClose');
             const alasanContainer = modal.querySelector('#dynAlasanContainer');
             const alasanInput = modal.querySelector('#dynAlasanManual');
+            const modalBox = modal.querySelector('div'); // inner container
+
+            const responseIcon = responseModal.querySelector('#responseIcon');
+            const responseTitle = responseModal.querySelector('#responseTitle');
+            const responseMessage = responseModal.querySelector('#responseMessage');
+            const responseOk = responseModal.querySelector('#responseOk');
+            const responseBox = responseModal.querySelector('div');
+
             let statusToUpdate = '';
 
+            // FUNGSI UTILITY UI (DARI KODE TEMAN)
             function showModal(status) {
                 statusToUpdate = status;
                 alasanInput.value = ''; 
+                
                 if (status === 'Diselesaikan Manual') {
                     modalTitle.textContent = 'Selesaikan Perjalanan';
                     modalMessage.textContent = 'Mohon isi alasan penyelesaian manual:';
+                    modalIcon.innerHTML = ''; 
                     alasanContainer.classList.remove('hidden');
                 } else {
                     modalTitle.textContent = 'Batalkan Perjalanan';
                     modalMessage.textContent = 'Apakah Anda yakin ingin membatalkan perjalanan ini?';
+                    // Jika ada fontawesome, tambahkan icon warning
+                    modalIcon.innerHTML = '<i class="fa-solid fa-exclamation-triangle text-red-600 text-3xl"></i>';
                     alasanContainer.classList.add('hidden');
                 }
-                modal.classList.remove('opacity-0', 'invisible');
-                modal.classList.add('opacity-100', 'visible');
+                
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+                setTimeout(() => {
+                    modalBox.classList.remove('scale-90');
+                    modalBox.classList.add('scale-100');
+                }, 10);
             }
-            function hideModal() { modal.classList.remove('opacity-100', 'visible'); modal.classList.add('opacity-0', 'invisible'); statusToUpdate = ''; }
 
+            function hideModal() {
+                modalBox.classList.remove('scale-100');
+                modalBox.classList.add('scale-90');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-100', 'pointer-events-auto');
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    statusToUpdate = '';
+                }, 300);
+            }
+
+            function showResponse(type, title, message) {
+                if (type === 'success') {
+                    responseIcon.className = 'w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center';
+                    responseIcon.innerHTML = '<i class="fa-solid fa-check text-green-600 text-2xl"></i>';
+                    responseTitle.className = 'text-xl font-bold mb-2 text-green-600';
+                } else {
+                    responseIcon.className = 'w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center';
+                    responseIcon.innerHTML = '<i class="fa-solid fa-times text-red-600 text-2xl"></i>';
+                    responseTitle.className = 'text-xl font-bold mb-2 text-red-600';
+                }
+                
+                responseTitle.textContent = title;
+                responseMessage.textContent = message;
+                
+                responseModal.classList.remove('opacity-0', 'pointer-events-none');
+                responseModal.classList.add('opacity-100', 'pointer-events-auto');
+                setTimeout(() => {
+                    responseBox.classList.remove('scale-90');
+                    responseBox.classList.add('scale-100');
+                }, 10);
+            }
+
+            function hideResponse() {
+                responseBox.classList.remove('scale-100');
+                responseBox.classList.add('scale-90');
+                setTimeout(() => {
+                    responseModal.classList.remove('opacity-100', 'pointer-events-auto');
+                    responseModal.classList.add('opacity-0', 'pointer-events-none');
+                }, 300);
+            }
+
+            // Event Listeners
             const btnSelesaikan = document.getElementById('btnSelesaikan');
             const btnBatalkan = document.getElementById('btnBatalkan');
 
-            if (btnSelesaikan) { btnSelesaikan.addEventListener('click', (e) => { e.preventDefault(); showModal('Diselesaikan Manual'); }); }
-            if (btnBatalkan) { btnBatalkan.addEventListener('click', (e) => { e.preventDefault(); showModal('Dibatalkan'); }); }
+            if (btnSelesaikan) {
+                btnSelesaikan.addEventListener('click', (e) => { e.preventDefault(); showModal('Diselesaikan Manual'); });
+            }
+            if (btnBatalkan) {
+                btnBatalkan.addEventListener('click', (e) => { e.preventDefault(); showModal('Dibatalkan'); });
+            }
 
             modalCancel.addEventListener('click', hideModal);
             modalClose.addEventListener('click', hideModal);
+            // Klik luar modal untuk menutup
+            modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
 
+            responseOk.addEventListener('click', () => {
+                hideResponse();
+                location.reload(); // Reload halaman setelah sukses
+            });
+
+            // Logic Fetch/Submit (Gabungan)
             modalConfirm.addEventListener('click', function () {
                 if (!statusToUpdate) return;
-                const alasanValue = alasanInput.value;
-                if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) { alert('Wajib mengisi alasan!'); return; }
                 
-                modalConfirm.textContent = 'Memproses...'; modalConfirm.disabled = true;
+                const alasanValue = alasanInput.value;
+                if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) {
+                    hideModal();
+                    // Gunakan response modal error
+                    setTimeout(() => showResponse('error', 'Gagal!', 'Wajib mengisi alasan penyelesaian manual!'), 350);
+                    return;
+                }
+                
+                modalConfirm.textContent = 'Memproses...';
+                modalConfirm.disabled = true;
 
                 fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json', 
+                        'X-CSRF-TOKEN': csrfToken 
+                    },
                     body: JSON.stringify({ status: statusToUpdate, alasan: alasanValue })
                 })
                 .then(async res => {
-                    const text = await res.text(); let json = null;
+                    const text = await res.text();
+                    let json = null;
                     try { json = text ? JSON.parse(text) : null; } catch(e) {}
+                    
                     if (!res.ok) throw new Error((json && json.message) ? json.message : 'Gagal memperbarui status');
                     return json;
                 })
-                .then(data => { alert(data?.message || 'Berhasil!'); location.reload(); })
-                .catch(err => { console.error(err); alert('Error: ' + err.message); modalConfirm.textContent = 'Ya'; modalConfirm.disabled = false; });
+                .then(data => {
+                    hideModal();
+                    setTimeout(() => {
+                        showResponse('success', 'Berhasil!', data?.message || 'Status berhasil diperbarui!');
+                    }, 350);
+                })
+                .catch(err => {
+                    console.error(err);
+                    hideModal();
+                    setTimeout(() => {
+                        showResponse('error', 'Error!', err.message || 'Terjadi kesalahan saat memperbarui status');
+                    }, 350);
+                    modalConfirm.textContent = 'Ya';
+                    modalConfirm.disabled = false;
+                });
             });
         @endif
     });

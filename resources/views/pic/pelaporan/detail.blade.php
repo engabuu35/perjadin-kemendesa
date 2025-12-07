@@ -230,11 +230,33 @@
             Jika seluruh data keuangan pegawai telah diinput dan disimpan, silakan kirim ke PPK. <br>
             <span class="text-red-500 font-bold">Pastikan sudah klik "Simpan Semua Data" di atas sebelum mengirim!</span>
         </p>
-        <form action="{{ route('pic.pelaporan.submit', $perjalanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin data sudah lengkap dan ingin mengirim ke PPK?')">
+        <!-- Button untuk membuka modal -->
+        <button type="button" id="openSubmitModal" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-green-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
+            <i class="fa-solid fa-paper-plane"></i> KIRIM KE PPK
+        </button>
+
+        <!-- Modal Konfirmasi Submit -->
+        <div id="submitModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[999]">
+            <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-paper-plane text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-2 text-gray-800">Konfirmasi Pengiriman</h3>
+                <p class="text-gray-600 mb-6">Apakah Anda yakin data sudah lengkap dan ingin mengirim ke PPK?</p>
+                <div class="flex justify-between gap-3">
+                    <button id="cancelSubmit" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                        Batal
+                    </button>
+                    <button id="confirmSubmit" class="flex-1 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        Kirim
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form tersembunyi -->
+        <form id="submitForm" action="{{ route('pic.pelaporan.submit', $perjalanan->id) }}" method="POST" style="display: none;">
             @csrf
-            <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-green-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
-                <i class="fa-solid fa-paper-plane"></i> KIRIM KE PPK
-            </button>
         </form>
     </div>
     @endif
@@ -279,6 +301,33 @@
             // format angka dengan pemisah ribuan
             this.value = new Intl.NumberFormat('id-ID').format(value);
         });
+    });
+    const openSubmitModalBtn = document.getElementById('openSubmitModal');
+    const submitModal = document.getElementById('submitModal');
+    const cancelSubmitBtn = document.getElementById('cancelSubmit');
+    const confirmSubmitBtn = document.getElementById('confirmSubmit');
+    const submitForm = document.getElementById('submitForm');
+
+    // Buka modal
+    openSubmitModalBtn.addEventListener('click', () => {
+        submitModal.classList.remove('opacity-0', 'invisible');
+    });
+
+    // Tutup modal
+    cancelSubmitBtn.addEventListener('click', () => {
+        submitModal.classList.add('opacity-0', 'invisible');
+    });
+
+    // Tutup modal jika klik di luar modal
+    submitModal.addEventListener('click', (e) => {
+        if (e.target === submitModal) {
+            submitModal.classList.add('opacity-0', 'invisible');
+        }
+    });
+
+    // Konfirmasi submit
+    confirmSubmitBtn.addEventListener('click', () => {
+        submitForm.submit();
     });
 </script>
 @endsection

@@ -81,13 +81,13 @@
                         FAQ
                     </span>
                     <!-- Button -->
-                    <button 
-                        id="faqBtn" 
-                        class="w-14 h-14 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 relative z-10"
-                        style="background: linear-gradient(to bottom, #4A7FD0, #3A6FBD);"
-                        aria-label="FAQ">
-                        <i class="fas fa-question text-xl transition-all duration-300"></i>
-                    </button>
+                    <a 
+                    href="{{ route('bantuan') }}" 
+                    class="w-14 h-14 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 relative z-10"
+                    style="background: linear-gradient(to bottom, #4A7FD0, #3A6FBD);"
+                    aria-label="FAQ">
+                    <i class="fas fa-question text-xl transition-all duration-300"></i>
+                    </a>
                 </div>
             </div>
 
