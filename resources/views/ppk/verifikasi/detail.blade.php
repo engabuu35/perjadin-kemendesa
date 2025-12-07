@@ -332,7 +332,7 @@
                     <i class="fa-solid fa-circle-check text-2xl"></i>
                 </div>
 
-                <h3 class="text-xl font-bold mb-2 text-gray-800">Setujui Pembayaran?</h3>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Setujui Laporan Keuangan?</h3>
                 <p class="text-gray-600 mb-6">
                     Apakah Anda yakin ingin menyetujui pembayaran ini?  
                     <br><span class="text-red-600 font-semibold">
