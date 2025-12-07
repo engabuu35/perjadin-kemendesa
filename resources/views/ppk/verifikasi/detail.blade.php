@@ -312,10 +312,48 @@
             </button>
 
             <!-- TOMBOL SETUJUI (Submit Form Approve) -->
-            <button type="button" onclick="if(confirm('Setujui pembayaran ini?')) document.getElementById('form-approve').submit()" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
+            <button 
+                type="button" 
+                id="openApproveModal"
+                class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
                 <i class="fa-regular fa-circle-check"></i>
                 Setujui & Selesaikan
             </button>
+        <!-- Modal Konfirmasi Approve -->
+        <div id="approveModal"
+            class="fixed inset-0 bg-black/60 flex items-center justify-center 
+                    opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]">
+
+            <div id="approveBox"
+                class="bg-white rounded-xl shadow-2xl w-[90%] max-w-md p-6 text-center 
+                        transform scale-90 transition-transform duration-300">
+
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fa-solid fa-circle-check text-2xl"></i>
+                </div>
+
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Setujui Pembayaran?</h3>
+                <p class="text-gray-600 mb-6">
+                    Apakah Anda yakin ingin menyetujui pembayaran ini?  
+                    <br><span class="text-red-600 font-semibold">
+                            Proses ini tidak dapat dibatalkan.
+                        </span>
+                </p>
+
+                <div class="flex justify-center gap-4">
+                    <button id="cancelApprove"
+                        class="py-2 px-6 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">
+                        Batal
+                    </button>
+
+                    <button id="confirmApprove"
+                        class="py-2 px-6 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                        Ya, Setujui
+                    </button>
+                </div>
+            </div>
+        </div>
+
         </div>
 
         <!-- FORM TOLAK (Hidden by default) -->
@@ -334,6 +372,39 @@
             <i class="fa-solid fa-check-circle"></i> Laporan ini sudah disetujui dan dibayar.
         </div>
         @endif
-    </div>          
+    </div>  
+    
+    <script>
+    const approveModal = document.getElementById("approveModal");
+    const approveBox = document.getElementById("approveBox");
+
+    document.getElementById("openApproveModal").onclick = () => {
+        approveModal.classList.remove("opacity-0", "pointer-events-none");
+        approveModal.classList.add("opacity-100");
+
+        setTimeout(() => {
+            approveBox.classList.remove("scale-90");
+            approveBox.classList.add("scale-100");
+        }, 10);
+    };
+
+    function closeApproveModal() {
+        approveModal.classList.add("opacity-0", "pointer-events-none");
+        approveModal.classList.remove("opacity-100");
+
+        approveBox.classList.remove("scale-100");
+        approveBox.classList.add("scale-90");
+    }
+
+    document.getElementById("cancelApprove").onclick = closeApproveModal;
+
+    approveModal.onclick = closeApproveModal;
+    approveBox.onclick = (e) => e.stopPropagation();
+
+    document.getElementById("confirmApprove").onclick = () => {
+        document.getElementById("form-approve").submit();
+    };
+</script>
+
 </main>
 @endsection
