@@ -86,8 +86,7 @@
                             <div class="flex flex-col items-start sm:items-end gap-3 sm:min-w-[140px]">
                                 {{-- di TAB PRIBADI, ganti span status menjadi: --}}
                                 @php
-                                    $isManual = strtolower($riwayat->status) === 'diselesaikan manual';
-                                    $statusBg = $isManual ? 'bg-amber-500' : 'bg-green-500';
+                                    $statusBg = 'bg-green-500 text-white';
                                 @endphp
 
                                 <span class="px-5 py-2 text-sm font-semibold text-white rounded-full {{ $statusBg }} shadow-sm flex items-center gap-2">
@@ -189,8 +188,7 @@
                             <div class="flex flex-col items-start sm:items-end gap-3 sm:min-w-[140px]">
                                 {{-- di TAB PRIBADI, ganti span status menjadi: --}}
                                 @php
-                                    $isManual = strtolower($riwayat->status) === 'diselesaikan manual';
-                                    $statusBg = $isManual ? 'bg-amber-500' : 'bg-green-500';
+                                    $statusBg = 'bg-green-500 text-white';
                                 @endphp
 
                                 <span class="px-5 py-2 text-sm font-semibold text-white rounded-full {{ $statusBg }} shadow-sm flex items-center gap-2">

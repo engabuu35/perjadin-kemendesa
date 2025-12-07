@@ -115,9 +115,9 @@ class RiwayatController extends Controller
             );
 
         // Jika dia PEGAWAI biasa → filter hanya perjadin yang diikutinya
-        if ($roleKode === 'PEGAWAI') {
+        if (in_array($roleKode, ['PEGAWAI', 'PIC', 'PPK'])) {
             $query->join('pegawaiperjadin', 'perjalanandinas.id', '=', 'pegawaiperjadin.id_perjadin')
-                  ->where('pegawaiperjadin.id_user', $user->nip);
+                ->where('pegawaiperjadin.id_user', $user->nip);
         }
 
         // Filter pencarian
