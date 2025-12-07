@@ -90,7 +90,7 @@ class PelaporanController extends Controller
         $perjalanan = PerjalananDinas::findOrFail($id);
         $statusText = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
-        $editableStatuses = ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi'];
+        $editableStatuses = ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi', 'Diselesaikan Manual'];
         $isReadOnly = !in_array($statusText, $editableStatuses);
 
         $allPeserta = DB::table('pegawaiperjadin')
@@ -126,7 +126,7 @@ class PelaporanController extends Controller
         $perjalanan = PerjalananDinas::findOrFail($id);
         $statusName = DB::table('statusperjadin')->where('id', $perjalanan->id_status)->value('nama_status');
         
-        if (!in_array($statusName, ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi'])) {
+        if (!in_array($statusName, ['Pembuatan Laporan', 'Menunggu Verifikasi Laporan', 'Perlu Revisi', 'Diselesaikan Manual'])) {
             return back()->with('error', 'Data terkunci. Tidak bisa diedit.');
         }
 
