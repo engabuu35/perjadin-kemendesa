@@ -9,11 +9,11 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
             <div class="mb-1 sm:mb-2">
                 <x-page-title title="Verifikasi Keuangan"
-                subtitle="Validasi laporan keuangan dan input nomor SP2D." />
+                subtitle="Validasi laporan keuangan pegawai dan input nomor SPM dan SP2D." />
             </div>
         </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 mt-5 md:grid-cols-2 lg:grid-cols-3 gap-3">
         @forelse($listVerifikasi as $item)
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition overflow-hidden flex flex-col">
 
