@@ -59,7 +59,7 @@
         .sidebar-menu a {
             position: relative;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.3, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.3, 0, 0.2, 1);
         }
 
         .sidebar-menu a::before {
@@ -78,8 +78,8 @@
         }
 
         .sidebar-menu a:hover::before {
-            width: 42px;
-            height: 42px;
+            width: 50px;
+            height: 50px;
             opacity: 1;
         }
         
