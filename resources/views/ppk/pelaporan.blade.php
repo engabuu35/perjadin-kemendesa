@@ -1,5 +1,7 @@
 @extends('layouts.appPPK')
 
+@section('title', 'Detail Verifikasi Keuangan')
+
 @section('content')
 @php
     /**

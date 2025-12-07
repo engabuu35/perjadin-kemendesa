@@ -1,6 +1,6 @@
 @extends('layouts.appPimpinan')
 
-@section('title', 'Detail Perjalanan Dinas')
+@section('title', 'Detail Perjalanan Dinas Pegawai')
 
 @section('content')
 <main class="transition-all duration-300 ml-0 sm:ml-[60px]">

@@ -1,6 +1,6 @@
 @extends('layouts.appPIC')
 
-@section('title', 'Daftar Pelaporan Masuk')
+@section('title', 'Pelaporan Keuangan')
 
 @section('content')
 <main class="transition-all duration-300 ml-0 sm:ml-[60px]">

@@ -1,4 +1,5 @@
 @extends('layouts.appPIC')
+
 @section('title','Manajemen Pegawai')
 
 @section('content')
