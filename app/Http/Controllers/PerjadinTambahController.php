@@ -18,10 +18,11 @@ class PerjadinTambahController extends Controller
     {
         $users = User::select('nip','nama')->get();
 
+        // [UPDATE] Mengambil data lengkap jadwal untuk pengecekan bentrok di frontend
         $rows = DB::table('pegawaiperjadin as pp')
             ->join('perjalanandinas as p', 'pp.id_perjadin', '=', 'p.id')
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
-            ->select('u.nip', 'p.id_status', 'p.tgl_mulai', 'p.tgl_selesai')
+            ->select('u.nip', 'p.id_status', 'p.tgl_mulai', 'p.tgl_selesai', 'p.id as id_perjadin') // Tambah id_perjadin
             ->orderBy('p.id_status', 'asc')
             ->get();
 
@@ -30,6 +31,9 @@ class PerjadinTambahController extends Controller
             $nip = (string) $r->nip;
             $pegawaiStatus[$nip] = $r->id_status;
         }
+
+        // Kita kirim $rows mentah sebagai $allSchedules ke view
+        $allSchedules = $rows; 
 
         $today = Carbon::today()->toDateString();
         $sedangBerlangsungId = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
@@ -54,7 +58,8 @@ class PerjadinTambahController extends Controller
             ->select('u.nip', 'u.nama')
             ->get();
 
-        return view('pic.penugasanTambah', compact('users', 'pegawaiStatus', 'pimpinans', 'pegawaiActive'));
+        // Tambahkan compact 'allSchedules'
+        return view('pic.penugasanTambah', compact('users', 'pegawaiStatus', 'pimpinans', 'pegawaiActive', 'allSchedules'));
     }
 
     public function store(Request $request)
@@ -157,10 +162,11 @@ class PerjadinTambahController extends Controller
     {
         $users = User::select('nip','nama')->get();
 
+        // [UPDATE] Ambil jadwal lengkap untuk logika bentrok frontend
         $rows = DB::table('pegawaiperjadin as pp')
             ->join('perjalanandinas as p', 'pp.id_perjadin', '=', 'p.id')
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
-            ->select('u.nip', 'p.id_status', 'p.tgl_mulai', 'p.tgl_selesai')
+            ->select('u.nip', 'p.id_status', 'p.tgl_mulai', 'p.tgl_selesai', 'p.id as id_perjadin')
             ->orderBy('p.id_status', 'asc')
             ->get();
 
@@ -169,6 +175,9 @@ class PerjadinTambahController extends Controller
             $nip = (string) $r->nip;
             $pegawaiStatus[$nip] = $r->id_status;
         }
+
+        // Variabel baru: allSchedules
+        $allSchedules = $rows;
 
         $perjalanan = PerjalananDinas::findOrFail($id);
 
@@ -189,13 +198,6 @@ class PerjadinTambahController extends Controller
             }
             $p->buktiMap = $buktiMap;
         }
-
-        // $catBiaya = ['Tiket', 'Uang Harian', 'Penginapan', 'Uang Representasi', 'Sewa Kendaraan', 'Pengeluaran Riil', 'Transport', 'SSPB'];
-        // $catPendukung = [
-        //     'Jenis Transportasi(Pergi)', 'Kode Tiket(Pergi)', 'Nama Transportasi(Pergi)',
-        //     'Jenis Transportasi(Pulang)', 'Kode Tiket(Pulang)', 'Nama Transportasi(Pulang)',
-        //     'Nama Penginapan', 'Kota'
-        // ];
 
         $today = Carbon::today()->toDateString();
         $sedangBerlangsungId = DB::table('statusperjadin')->where('nama_status', 'Sedang Berlangsung')->value('id');
@@ -221,13 +223,15 @@ class PerjadinTambahController extends Controller
             ->select('u.nip', 'u.nama')
             ->get();
 
+        // Tambahkan compact 'allSchedules'
         return view('pic.penugasanTambah', compact(
-            'users','pegawaiStatus','perjalanan','pegawaiList','pimpinans','pegawaiActive',
+            'users','pegawaiStatus','perjalanan','pegawaiList','pimpinans','pegawaiActive', 'allSchedules'
         ));
     }
 
     public function update(Request $request, $id)
     {
+        // ... (Kode update tidak berubah)
         $messages = [
             'tgl_mulai.after_or_equal' => 'Tanggal mulai tidak boleh mendahului (sebelum) Tanggal Surat.',
             'tgl_selesai.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan Tanggal Mulai.',
@@ -322,6 +326,7 @@ class PerjadinTambahController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        // ... (Kode updateStatus tidak berubah)
         $request->validate([
             'status' => 'required|string',
             'alasan' => 'nullable|string',

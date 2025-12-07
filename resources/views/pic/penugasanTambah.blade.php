@@ -10,8 +10,6 @@
         @php
             $disabled = isset($perjalanan) && in_array($perjalanan->id_status, [4,5,6,7,8]);
             
-            // Logika Ketat: Sedang Berlangsung = Hari ini >= Tgl Mulai DAN Hari ini <= Tgl Selesai
-            // ATAU status di DB memang sudah 'Sedang Berlangsung'
             $today = \Carbon\Carbon::now()->startOfDay();
             $mulai = isset($perjalanan) ? \Carbon\Carbon::parse($perjalanan->tgl_mulai)->startOfDay() : null;
             $selesai = isset($perjalanan) ? \Carbon\Carbon::parse($perjalanan->tgl_selesai)->endOfDay() : null;
@@ -19,10 +17,7 @@
             $isTimeValid = $mulai && $selesai && $today->between($mulai, $selesai);
             $isStatusValid = isset($perjalanan) && ($perjalanan->status->nama_status ?? '') === 'Sedang Berlangsung';
             
-            // Gabungan: Boleh manual jika WAKTUNYA pas ATAU STATUSNYA sudah Sedang Berlangsung
             $canManual = $isTimeValid || $isStatusValid;
-
-            // Jika sudah manual (ID 7), form input muncul
             $isManual = isset($perjalanan) && $perjalanan->id_status == 7;
         @endphp
 
@@ -115,7 +110,6 @@
 
                 @if(isset($perjalanan))
                     <div class="flex flex-row gap-3 mt-4">
-                        {{-- TOMBOL HANYA AKTIF JIKA WAKTUNYA SUDAH MASUK (SEDANG BERLANGSUNG) --}}
                         <button type="button" id="btnSelesaikan" 
                             @if($disabled || !$canManual) disabled @endif 
                             class="w-full py-3.5 bg-yellow-600 text-white rounded-lg font-semibold transition {{ ($disabled || !$canManual) ? 'opacity-50 cursor-not-allowed hover:bg-yellow-600' : 'hover:bg-yellow-700' }}">
@@ -142,22 +136,84 @@
     @push('scripts')
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // === 1. LOGIKA PEGAWAI (ASLI) ===
+        // === 1. LOGIKA PEGAWAI (MODIFIED UNTUK CEK TANGGAL) ===
         const users = @json($users ?? []);
-        const pegawaiStatus = @json($pegawaiStatus ?? []);
         const initialPegawai = @json($pegawaiList ?? []);
-        const activeNips = @json($pegawaiActive ?? []); 
+        
+        // [BARU] Ambil data jadwal dari controller
+        const allSchedules = @json($allSchedules ?? []);
+        // ID Perjadin saat ini (jika sedang edit), agar tidak bentrok dengan dirinya sendiri
+        const currentPerjadinId = {{ isset($perjalanan) ? $perjalanan->id : 'null' }};
+
         const pegawaiListEl = document.getElementById('pegawaiList');
         const btnTambah = document.getElementById('btnTambahPegawai');
+        const inputMulai = document.getElementById('tgl_mulai');
+        const inputSelesai = document.getElementById('tgl_selesai');
+
         let pegawaiCount = 0;
 
-        if (pegawaiListEl && btnTambah) {
-            function isActiveByNip(nip) { return nip && activeNips.includes(nip); }
-            function statusClassForUser(nip) {
-                if (isActiveByNip(nip)) return 'bg-red-500';
-                const id = pegawaiStatus[nip] ?? null;
-                return ([1,2,3,4,6].includes(Number(id))) ? 'bg-red-500' : 'bg-blue-500';
+        // FUNGSI UTAMA: Cek Bentrok Berdasarkan Tanggal Input
+        function checkConflict(nip) {
+            const valMulai = inputMulai.value;
+            const valSelesai = inputSelesai.value;
+
+            // Jika tanggal belum diisi, anggap AMAN (Biru)
+            if (!valMulai || !valSelesai) return false;
+
+            const formStart = new Date(valMulai);
+            const formEnd = new Date(valSelesai);
+
+            // Filter jadwal milik pegawai ini
+            const userTrips = allSchedules.filter(s => s.nip === nip);
+
+            for (let trip of userTrips) {
+                // Abaikan status 8 (Dibatalkan) atau status lain yg dianggap batal
+                if (trip.id_status == 8) continue; 
+
+                // Jika sedang Edit, abaikan perjalanan ini sendiri
+                if (currentPerjadinId && trip.id_perjadin == currentPerjadinId) continue;
+
+                const tripStart = new Date(trip.tgl_mulai);
+                const tripEnd = new Date(trip.tgl_selesai);
+
+                // Rumus Overlap: (StartA <= EndB) and (EndA >= StartB)
+                if (formStart <= tripEnd && formEnd >= tripStart) {
+                    return true; // BENTROK -> MERAH
+                }
             }
+            return false; // AMAN -> BIRU
+        }
+
+        // Fungsi menentukan warna dot
+        function statusClassForUser(nip) {
+            if (!nip) return 'bg-gray-300';
+            const isConflict = checkConflict(nip);
+            return isConflict ? 'bg-red-500' : 'bg-blue-500';
+        }
+
+        // Trigger refresh warna dot saat tanggal berubah
+        function refreshAllDots() {
+            const allDots = document.querySelectorAll('.status-dot');
+            allDots.forEach(dot => {
+                // Cari input hidden atau text terdekat yang menyimpan NIP
+                // Di card pegawai, struktur kita: input.nip ada di dalam card yang sama
+                const card = dot.closest('.pegawai-card');
+                if (card) {
+                    const nipInput = card.querySelector('.nip');
+                    const cls = statusClassForUser(nipInput.value.trim());
+                    dot.className = 'status-dot w-3 h-3 rounded-full ' + cls;
+                }
+            });
+            // Update juga dot di dalam dropdown yang sedang terbuka (jika ada)
+            // Agak tricky kalau dropdown dinamis, tapi kita handle saat dropdown dibuka saja (buildDropdownList)
+        }
+
+        if (inputMulai) inputMulai.addEventListener('change', refreshAllDots);
+        if (inputSelesai) inputSelesai.addEventListener('change', refreshAllDots);
+
+        // --- Logika Render List Pegawai (Sama, tapi pakai statusClassForUser yang baru) ---
+        if (pegawaiListEl && btnTambah) {
+            
             function makeUserListItem(user) {
                 const dot = statusClassForUser(user.nip);
                 const li = document.createElement('li');
@@ -166,15 +222,20 @@
                 li.innerHTML = `<span class="w-3 h-3 rounded-full inline-block ${dot}"></span><div class="text-sm"><div class="font-medium text-gray-700">${user.nama}</div><div class="text-xs text-gray-500">${user.nip}</div></div>`;
                 return li;
             }
+
             function buildDropdownList(ulEl, filter, currentNip) {
                 ulEl.innerHTML = '';
                 const q = filter.trim().toLowerCase();
                 const inputs = document.querySelectorAll('.nip'); 
                 const selectedNips = Array.from(inputs).map(i => i.value.trim()).filter(n => n && n !== currentNip);
+                
                 const matched = users.filter(u => (!q || u.nip.toLowerCase().includes(q) || u.nama.toLowerCase().includes(q)) && !selectedNips.includes(u.nip));
+                
                 if (matched.length === 0) { ulEl.innerHTML = `<li class="px-3 py-2 text-gray-500 text-sm">Tidak ada hasil</li>`; return; }
+                
                 matched.forEach(u => ulEl.appendChild(makeUserListItem(u)));
             }
+
             function makePegawaiCard(index) {
                 const div = document.createElement('div');
                 div.className = 'pegawai-card bg-blue-50 border border-blue-200 rounded-xl p-6 mb-5';
@@ -186,22 +247,31 @@
                 `;
                 return div;
             }
+
             function initCardDropdown(card) {
                 const nipInput = card.querySelector('.nip');
                 const namaInput = card.querySelector('.nama');
                 const dropdown = card.querySelector('.user-dropdown');
                 const ul = card.querySelector('.user-list');
                 const dot = card.querySelector('.status-dot');
-                const refreshDot = () => { const cls = statusClassForUser(nipInput.value.trim()); dot.className = 'status-dot w-3 h-3 rounded-full ' + cls; };
+                
+                const refreshDot = () => { 
+                    const cls = statusClassForUser(nipInput.value.trim()); 
+                    dot.className = 'status-dot w-3 h-3 rounded-full ' + cls; 
+                };
+
                 nipInput.addEventListener('focus', () => { dropdown.classList.remove('hidden'); buildDropdownList(ul, nipInput.value, nipInput.value); });
                 nipInput.addEventListener('input', () => { dropdown.classList.remove('hidden'); buildDropdownList(ul, nipInput.value, nipInput.value); });
+                
                 ul.addEventListener('click', e => {
                     const li = e.target.closest('.user-item'); if (!li) return;
                     nipInput.value = li.dataset.nip; namaInput.value = li.dataset.nama; dropdown.classList.add('hidden'); refreshDot();
                 });
+                
                 document.addEventListener('click', e => { if (!card.contains(e.target)) dropdown.classList.add('hidden'); });
                 refreshDot();
             }
+
             function renderInitialPegawai() {
                 pegawaiListEl.innerHTML = '';
                 if (!initialPegawai.length) { const c = makePegawaiCard(0); pegawaiListEl.appendChild(c); initCardDropdown(c); pegawaiCount = 1; return; }
@@ -212,12 +282,13 @@
                 });
                 pegawaiCount = initialPegawai.length;
             }
+
             btnTambah.addEventListener('click', () => { const card = makePegawaiCard(pegawaiCount); pegawaiListEl.appendChild(card); initCardDropdown(card); pegawaiCount++; });
             pegawaiListEl.addEventListener('click', e => { if (e.target.classList.contains('hapus-pegawai')) { e.target.closest('.pegawai-card').remove(); } });
             renderInitialPegawai();
         }
 
-        // === 2. LOGIKA MODAL MANUAL (EDIT ONLY) ===
+        // === 2. LOGIKA MODAL MANUAL (EDIT ONLY) - TIDAK DIUBAH ===
         @if(isset($perjalanan))
             const perjalananId = {{ $perjalanan->id }};
             const csrfToken = '{{ csrf_token() }}';
@@ -283,8 +354,6 @@
                 
                 modalConfirm.textContent = 'Memproses...'; modalConfirm.disabled = true;
 
-                // Route AJAX ke controller updateStatus (pastikan route di web.php benar)
-                // Default: /pic/penugasan-perjadin/{id}/status
                 fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
