@@ -215,6 +215,16 @@ class PPKController extends Controller
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
 
+        $idRevisi = DB::table('statusperjadin')->where('nama_status', 'Perlu Revisi')->value('id');
+        if (!$idRevisi) {
+            $idRevisi = DB::table('statuslaporan')->insertGetId(['nama_status' => 'Perlu Revisi']);
+        }
+        
+        $perjalanan->update([
+            'id_status' => $idRevisi,
+            'catatan_penolakan' => $request->alasan_penolakan,
+        ]);
+
         $idLapRevisi = DB::table('statuslaporan')->where('nama_status', 'Perlu Revisi')->value('id');
         if (!$idLapRevisi) {
             $idLapRevisi = DB::table('statuslaporan')->insertGetId(['nama_status' => 'Perlu Revisi']);
