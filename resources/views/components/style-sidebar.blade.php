@@ -279,6 +279,47 @@
             transform: translateX(-3px) rotate(-10deg);
         }
 
+        /* Hover Effect untuk Profile Popup Items */
+        #profilePopup a, 
+        #profilePopup button,
+        #mobileProfilePopup a,
+        #mobileProfilePopup button {
+            transition: all 0.2s ease;
+        }
+
+        #profilePopup a:hover,
+        #mobileProfilePopup a:hover {
+            background-color: rgba(41, 84, 176, 0.08);
+        }
+
+        #profilePopup a:hover i,
+        #mobileProfilePopup a:hover i {
+            color: #2954B0;
+        }
+
+        #profilePopup button:hover,
+        #mobileProfilePopup button:hover {
+            background-color: rgba(239, 68, 68, 0.08);
+        }
+
+        #profilePopup button:hover i,
+        #mobileProfilePopup button:hover i {
+            color: #ef4444;
+        }
+
+        #profilePopup a:active,
+        #profilePopup button:active,
+        #mobileProfilePopup a:active,
+        #mobileProfilePopup button:active {
+            transform: scale(0.98);
+            transition: all 0.1s ease;
+        }
+
+        #profilePopup i,
+        #mobileProfilePopup i {
+            transition: color 0.2s ease;
+        }
+
         /* Mobile: Sidebar keluar dari kiri */
         @media (max-width: 640px) {
             .sidebar {

@@ -2,7 +2,7 @@
 
     <!-- Popup Menu -->
     <div id="profilePopup"
-        class="absolute bottom-[145px] left-[100%] -translate-x-1/2 bg-white text-gray-800 
+        class="absolute bottom-[120px] left-[120%] -translate-x-1/2 bg-white text-gray-800 
                 rounded-xl shadow-lg py-1.5 w-[140px] opacity-0 invisible 
                 transition-all duration-300 z-[9999]">
 
