@@ -8,7 +8,7 @@
     $tab  = $tab  ?? 'pribadi';
     $role = $role ?? '';
 @endphp
-<main class="transition-all duration-300 ml-0 sm:ml-[60px]">
+<main class="transition-all duration-300 ml-0 sm:ml-[60px] min-h-screen">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
         <!-- Header -->
@@ -117,7 +117,7 @@
             <x-empty-state 
                     icon="fa-suitcase-rolling"
                     title="Belum ada Riwayat Perjalanan Dinas"
-                    message="Belum ada riwayat perjalanan dinas yang selesai."
+                    message="Belum ada perjalanan dinas yang selesai."
                 />
             @endforelse
 
