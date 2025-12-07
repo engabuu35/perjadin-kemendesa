@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Login</title>
+    <title>Login - Siperdin</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/logo_kementerian.png') }}">
     @vite('resources/css/app.css')
 </head>
 <body class="relative flex items-center justify-center min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat">

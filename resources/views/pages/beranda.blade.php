@@ -17,7 +17,7 @@
                     subtitle="Daftar penugasan perjalanan dinas Anda." />
                 
                 <!-- Daftar Kartu Perjalanan -->
-                <div class="space-y-6 w-full mx-auto mt-3">
+                <div class="space-y-6 w-full mx-auto mt-8">
                     @forelse ($perjalanan_list as $perjalanan)
                         <x-perjalanan-card :perjalanan="$perjalanan" />
                     @empty

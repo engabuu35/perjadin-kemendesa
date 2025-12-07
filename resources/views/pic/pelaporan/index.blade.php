@@ -8,7 +8,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <x-page-title 
             title="Pelaporan Keuangan"
-            subtitle="Daftar laporan perjalanan dinas yang menunggu verifikasi atau revisi." />
+            subtitle="Daftar laporan keuangan perjalanan dinas pegawai." />
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

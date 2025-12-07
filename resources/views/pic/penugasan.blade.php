@@ -11,7 +11,7 @@
         <div class="flex flex-col gap-0.5 mb-1">
             <x-page-title 
             title="Penugasan Perjalanan Dinas"
-            subtitle="Kelola data pegawai: tambah, lihat detail, atau hapus." />
+            subtitle="Kelola perjalanan dinas pegawai: tambah, edit, selesaikan manual, atau batalkan." />
         </div>   
             <div class="flex items-center gap-3 w-full sm:w-auto">
                 <form action="{{ route('pic.penugasan') }}" method="GET" class="mr-3 w-full sm:w-auto">

@@ -9,7 +9,7 @@
         <div class="mb-3 sm:mb-4">
             <x-page-title
             title="Tabel Rekap Keuangan Perjalanan Dinas"
-            subtitle="Rekap perjalanan dinas yang sudah memiliki laporan keuangan final (SPM/SP2D rampung)." />
+            subtitle="Rekap keseluruhan keuangan pegawai yang telah melakukan perjalanan dinas." />
         </div>
 
         @php

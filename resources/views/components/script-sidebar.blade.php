@@ -112,13 +112,29 @@
 
     // Ripple effect saat klik di sidebar
     if (sidebar) {
+        // Buat wrapper untuk ripple jika belum ada
+        let rippleContainer = sidebar.querySelector('.sidebar-content');
+        if (!rippleContainer) {
+            rippleContainer = document.createElement('div');
+            rippleContainer.className = 'sidebar-content';
+            
+            // Pindahkan semua child ke dalam wrapper
+            while (sidebar.firstChild) {
+                rippleContainer.appendChild(sidebar.firstChild);
+            }
+            sidebar.appendChild(rippleContainer);
+        }
+
         sidebar.addEventListener('click', function(e) {
+            // Jangan buat ripple jika klik di popup atau avatar
+            if (e.target.closest('#profilePopup') || e.target.closest('#avatarBtn')) {
+                return;
+            }
 
             const rect = sidebar.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             
-
             const ripple = document.createElement('span');
             ripple.style.cssText = `
                 position: absolute;
@@ -131,11 +147,11 @@
                 transform: translate(-50%, -50%);
                 animation: ripple-effect-1 1s ease-out;
                 pointer-events: none;
-                z-index: 9999; 
-                `;
+                z-index: 1;
+            `;
     
-            sidebar.appendChild(ripple);
-
+            // Tambahkan ripple ke wrapper, bukan ke sidebar
+            rippleContainer.appendChild(ripple);
             
             setTimeout(() => ripple.remove(), 1000);
         });

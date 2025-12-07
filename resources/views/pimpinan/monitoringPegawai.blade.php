@@ -116,14 +116,10 @@
         <div class="mx-auto max-w-[1400px]">
 
             {{-- Header --}}
-            <div class="mb-3">
-                <h2 class="text-gray-700 text-2xl font-bold pb-1.5 relative">
-                    Monitoring Pegawai
-                    <span class="absolute bottom-0 left-0 w-32 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200"></span>
-                </h2>
-                <p class="text-gray-700 text-sm mt-2">
-                    Dashboard monitoring perjalanan dinas pegawai
-                </p>
+            <div class="flex flex-col gap-0.5 mb-1 mb-7">
+                <x-page-title 
+                title="Monitoring Pegawai"
+                subtitle="Monitoring pegawai yang sedang melakukan perjalanan dinas." />
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-4 items-start">
