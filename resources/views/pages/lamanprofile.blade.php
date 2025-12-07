@@ -7,12 +7,7 @@
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     
     <!-- ALERT SECTION -->
-    @if(session('success'))
-        <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-bold">Berhasil!</strong>
-            <span class="block sm:inline">{{ session('success') }}</span>
-        </div>
-    @endif
+    {{-- Alert sukses DIHILANGKAN karena diganti modal konfirmasi --}}
     @if($errors->any())
         <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong class="font-bold">Gagal!</strong>
@@ -31,7 +26,8 @@
         </div>
     </div>
 
-    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+    {{-- FORM PROFIL --}}
+    <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -118,8 +114,9 @@
             </div>
         </div>
 
+        {{-- TOMBOL SIMPAN → TIDAK LANGSUNG SUBMIT, HANYA BUKA MODAL --}}
         <div class="flex justify-end">
-            <button type="submit" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-10 py-4 rounded-xl font-bold text-lg flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <button type="button" id="openSaveModal" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                 <i class="fas fa-save text-lg"></i>
                 Simpan Perubahan
             </button>
@@ -128,7 +125,31 @@
     </div>    
 </main>
 
-<!-- SCRIPTS: PREVIEW IMAGE & TOGGLE PASSWORD -->
+{{-- MODAL KONFIRMASI SIMPAN PERUBAHAN --}}
+<div id="saveModal"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[999]">
+    <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center">
+        <div class="w-12 h-12 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <i class="fas fa-check text-green-500 text-xl"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2 text-gray-800">Konfirmasi Perubahan Profil</h3>
+        <p class="text-gray-600 mb-6">
+            Apakah Anda yakin ingin menyimpan perubahan pada profil Anda?
+        </p>
+        <div class="flex justify-between gap-3">
+            <button id="cancelSave"
+                    class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                Batal
+            </button>
+            <button id="confirmSave"
+                    class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                Simpan
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS: PREVIEW IMAGE & MODAL KONFIRMASI -->
 <script>
     // 1. Script Preview Image
     function previewImage(input) {
@@ -160,5 +181,39 @@
             reader.readAsDataURL(file);
         }
     }
+
+    // 2. Script Modal Konfirmasi Simpan
+    document.addEventListener('DOMContentLoaded', function () {
+        const openBtn   = document.getElementById('openSaveModal');
+        const modal     = document.getElementById('saveModal');
+        const cancelBtn = document.getElementById('cancelSave');
+        const confirmBtn= document.getElementById('confirmSave');
+        const form      = document.getElementById('profileForm');
+
+        function openModal() {
+            modal.classList.remove('opacity-0', 'invisible');
+            modal.classList.add('opacity-100', 'visible');
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0', 'invisible');
+            modal.classList.remove('opacity-100', 'visible');
+        }
+
+        openBtn.addEventListener('click', openModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Klik di luar card juga menutup modal
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Konfirmasi → submit form
+        confirmBtn.addEventListener('click', function () {
+            form.submit();
+        });
+    });
 </script>
 @endsection
