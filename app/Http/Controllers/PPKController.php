@@ -6,11 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\PerjalananDinas;
 use App\Models\LaporanKeuangan;
 use App\Models\BuktiLaporan;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\RekapPerjadinExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\NotificationController;
+use App\Models\User;
 
 class PPKController extends Controller
 {
@@ -22,6 +23,7 @@ class PPKController extends Controller
               ->leftJoin('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
               ->select('perjalanandinas.*', 'statusperjadin.nama_status');
 
+        // LOGIKA FILTER BARU: Sertakan status Manual JIKA sudah ada laporan keuangan (Menunggu Verifikasi)
         $query->where(function($q) {
             $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi'])
               ->orWhere(function($sub) {
@@ -69,34 +71,35 @@ class PPKController extends Controller
                 ->join('bukti_laporan', 'laporan_perjadin.id', '=', 'bukti_laporan.id_laporan')
                 ->where('laporan_perjadin.id_perjadin', $id)
                 ->where('laporan_perjadin.id_user', $p->nip)
-                ->select(
-                    'bukti_laporan.kategori', 
-                    'bukti_laporan.nominal', 
-                    'bukti_laporan.keterangan', 
-                    'bukti_laporan.path_file')
+                ->select('bukti_laporan.kategori', 'bukti_laporan.nominal', 'bukti_laporan.keterangan', 'bukti_laporan.path_file', 'bukti_laporan.nama_file')
                 ->get();
 
+            // UPDATE: Struktur array biaya sekarang menyimpan nominal DAN file
             $biaya = [
-                'Tiket'            => ['nominal' => 0, 'file' => null],
-                'Uang Harian'      => ['nominal' => 0, 'file' => null],
-                'Penginapan'       => ['nominal' => 0, 'file' => null],
-                'Uang Representasi'=> ['nominal' => 0, 'file' => null],
-                'Transport'        => ['nominal' => 0, 'file' => null],
-                'Sewa Kendaraan'   => ['nominal' => 0, 'file' => null],
-                'Pengeluaran Riil' => ['nominal' => 0, 'file' => null],
-                'SSPB'             => ['nominal' => 0, 'file' => null],
-                'Total'            => 0 // Total tetap integer biasa
+            'Tiket'            => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Uang Harian'      => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Penginapan'       => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Uang Representasi'=> ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Transport'        => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Sewa Kendaraan'   => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Pengeluaran Riil' => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'SSPB'             => ['nominal' => 0, 'path_file' => null, 'nama_file' => null],
+            'Total'            => 0
             ];
 
             $info = [
-                'Nama Penginapan' => '-', 
-                'Kota' => '-', 
-                'Jenis Transportasi(Pergi)' => '-', 
-                'Kode Tiket(Pergi)' => '-', 
-                'Nama Transportasi(Pergi)' => '-', 
+                'Nama Penginapan'        => '-', 
+                'Kota'                   => '-', 
+                
+                // Transportasi Pergi
+                'Jenis Transportasi(Pergi)'  => '-', 
+                'Kode Tiket(Pergi)'       => '-',
+                'Nama Transportasi(Pergi)'   => '-', 
+                
+                // Transportasi Pulang
                 'Jenis Transportasi(Pulang)' => '-', 
-                'Kode Tiket(Pulang)' => '-', 
-                'Nama Transportasi(Pulang)' => '-'
+                'Kode Tiket(Pulang)'      => '-',
+                'Nama Transportasi(Pulang)'  => '-'
             ];
 
             foreach($buktis as $b) {
@@ -107,7 +110,8 @@ class PPKController extends Controller
                     
                     // Simpan path file jika ada
                     if (!empty($b->path_file)) {
-                        $biaya[$b->kategori]['file'] = $b->path_file;
+                    $biaya[$b->kategori]['path_file'] = $b->path_file;
+                    $biaya[$b->kategori]['nama_file'] = $b->nama_file ?? basename($b->path_file);
                     }
 
                     // Hitung Total (Kecuali SSPB)
