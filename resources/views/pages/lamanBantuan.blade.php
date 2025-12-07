@@ -2,6 +2,8 @@
 
 @section('title', 'FAQ')
 
+@section('title', 'Bantuan')
+
 @section('content')
 <div class="min-h-screen p-6">
     <div class="max-w-4xl mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8">

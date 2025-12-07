@@ -1,6 +1,6 @@
 @extends('layouts.appPIC')
 
-@section('title', 'Input Keuangan Perjadin')
+@section('title', 'Input Keuangan')
 
 @section('content')
 <main class="ml-0 sm:ml-[80px] max-w-[98%] mx-auto px-4 py-6">

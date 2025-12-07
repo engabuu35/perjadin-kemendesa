@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Profile')
+@section('title', 'Profil Saya')
 
 @section('content')
 <main class="transition-all duration-300 ml-0 sm:ml-[60px]">
