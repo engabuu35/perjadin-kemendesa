@@ -1,16 +1,14 @@
 @extends('layouts.appPimpinan')
 
-@section('title', 'Detail Perjalanan Dinas')
+@section('title', 'Detail Perjalanan Dinas Pegawai')
 
 @section('content')
-<div class="ml-[80px] p-6 mt-[10px] max-w-6xl mx-auto">
+<main class="transition-all duration-300 ml-0 sm:ml-[60px]">
+    <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     {{-- BACK LINK --}}
-    <div class="mb-6">
-        <a href="{{ route('pimpinan.monitoring') }}"
-           class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
-            <i class="fa-solid fa-arrow-left mr-2"></i>
-            Kembali ke Dashboard
-        </a>
+    <div class="flex justify-between items-center">
+        <x-page-title title="Detail Perjalanan Dinas" class="!mb-0" />
+        <x-back-button />
     </div>
 
     @php
@@ -532,4 +530,5 @@
         });
         </script>
 @endif
+    </main>
 @endsection

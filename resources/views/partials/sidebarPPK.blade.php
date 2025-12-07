@@ -35,7 +35,7 @@
             
             <li class="my-1.5">
                 <a href="{{ route('ppk.pelaporan') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap  {{ request()->routeIs('ppk.pelaporan', 'ppk.detailPelaporan') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap  {{ request()->routeIs('ppk.pelaporan', 'ppk.verifikasi.*') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-file"></i>
                     </span>

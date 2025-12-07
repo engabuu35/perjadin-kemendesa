@@ -45,7 +45,7 @@
                 <a href="{{ route('pimpinan.monitoring') }}"
                 class="flex items-center py-[10px] px-[18px] text-white no-underline
                         transition-colors duration-300 gap-[10px] text-base whitespace-nowrap
-                        {{ request()->routeIs('pimpinan.monitoring') ? 'active' : '' }}">
+                        {{ request()->routeIs('pimpinan.monitoring', 'pimpinan.detail') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-desktop"></i>
                     </span>
@@ -58,7 +58,7 @@
                 <a href="{{ route('pimpinan.riwayat') }}"
                 class="flex items-center py-[10px] px-[18px] text-white no-underline
                         transition-colors duration-300 gap-[10px] text-base whitespace-nowrap
-                        {{ request()->routeIs('pimpinan.riwayat', 'pimpinan.detail') ? 'active' : '' }}">
+                        {{ request()->routeIs('pimpinan.riwayat') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-history"></i>
                     </span>

@@ -137,193 +137,6 @@
                 @endif
             </form>
         </div>
-
-        {{-- ================= FORM KHUSUS INPUT KEUANGAN MANUAL (PERSISTENT DATA & UPLOAD FILE) ================= --}}
-        @if($isManual)
-        <div class="mt-12 pt-8 border-t border-gray-200">
-            <div class="flex items-center gap-4 mb-6 bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                <div class="w-12 h-12 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-700 shadow-sm">
-                    <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800">Input Keuangan Manual (PIC)</h3>
-                    <p class="text-sm text-gray-600 mt-1">
-                        Status Perjalanan: <span class="font-bold text-yellow-700 uppercase tracking-wider">Diselesaikan Manual</span>.
-                    </p>
-                    <p class="text-xs text-gray-500 italic mt-0.5">
-                        Alasan: "{{ $perjalanan->selesaikan_manual ?? '-' }}"
-                    </p>
-                </div>
-            </div>
-
-            {{-- GUNAKAN ROUTE pic.penugasan.simpanManual SESUAI GROUP WEB.PHP --}}
-            <form action="{{ route('pic.penugasan.simpanManual', $perjalanan->id) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                
-                <div class="space-y-10">
-                    @foreach($pegawaiList as $index => $peserta)
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        
-                        <div class="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md ring-2 ring-blue-100">
-                                    {{ $loop->iteration }}
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-gray-800 text-lg leading-tight">{{ $peserta->nama }}</h3>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 font-mono font-medium">
-                                            {{ $peserta->nip }}
-                                        </span>
-                                        <span class="text-[10px] text-gray-400">|</span>
-                                        <span class="text-xs text-gray-500">{{ $peserta->role_perjadin ?? 'Anggota' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 grid grid-cols-1 xl:grid-cols-3 gap-8">
-                            
-                            <div class="xl:col-span-2 space-y-5">
-                                <h4 class="font-bold text-gray-700 text-xs uppercase tracking-widest border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
-                                    <i class="fa-solid fa-wallet text-yellow-500"></i> Rincian Biaya & Bukti
-                                </h4>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                    @foreach($catBiaya as $kategori)
-                                        @php 
-                                            $existingData = $peserta->buktiMap[$kategori] ?? null;
-                                            $existingNominal = $existingData ? $existingData->nominal : 0;
-                                            // ID unik untuk JS manipulasi file
-                                            $uniqueId = $peserta->nip . '-' . str_replace([' ', '(', ')'], '', $kategori);
-                                        @endphp
-                                        <div class="bg-gray-50/50 p-3 rounded-lg border border-gray-200 relative group hover:border-blue-400 hover:shadow-sm transition-all duration-200">
-                                            <label class="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide group-hover:text-blue-600 transition-colors">{{ $kategori }}</label>
-                                            
-                                            <div class="relative mb-2">
-                                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold group-focus-within:text-blue-500">Rp</span>
-                                                <input type="text" 
-                                                    name="items[{{ $peserta->nip }}][{{ $kategori }}][nominal]" 
-                                                    value="{{ $existingNominal ? number_format($existingNominal, 0, ',', '.') : '' }}"
-                                                    class="format-rupiah w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-semibold text-gray-700"
-                                                    placeholder="0">
-                                            </div>
-
-                                            <div class="pt-2 border-t border-gray-200">
-                                                <div class="flex items-center gap-2">
-                                                    <label class="cursor-pointer bg-white border border-gray-300 text-gray-600 text-[10px] font-bold py-1 px-3 rounded hover:bg-gray-100 transition">
-                                                        Choose File
-                                                        <input type="file" 
-                                                            id="file-{{ $uniqueId }}"
-                                                            name="items[{{ $peserta->nip }}][{{ $kategori }}][file]" 
-                                                            class="hidden"
-                                                            onchange="updateFileName('{{ $uniqueId }}')">
-                                                    </label>
-                                                    <span id="filename-{{ $uniqueId }}" class="text-[10px] text-gray-500 truncate max-w-[150px]">
-                                                        Belum ada file baru
-                                                    </span>
-                                                </div>
-
-                                                @if($existingData && $existingData->path_file)
-                                                    <div class="mt-1 flex items-center justify-between bg-green-50 px-2 py-1 rounded border border-green-100">
-                                                        <span class="text-[10px] text-green-700 truncate max-w-[120px]">
-                                                            <i class="fa-solid fa-check-circle"></i> Tersimpan
-                                                        </span>
-                                                        <a href="{{ asset('storage/'.$existingData->path_file) }}" target="_blank" 
-                                                        class="text-[10px] font-bold text-green-700 hover:underline">Lihat</a>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <div class="xl:col-span-1 space-y-5">
-                                <h4 class="font-bold text-gray-700 text-xs uppercase tracking-widest border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
-                                    <i class="fa-solid fa-circle-info text-blue-500"></i> Data Pendukung
-                                </h4>
-
-                                @php
-                                    $transportOptions = ['Pesawat', 'Kereta', 'Bus', 'Kapal', 'Dinas', 'Pribadi'];
-                                @endphp
-
-                                <div class="space-y-4">
-                                    @foreach($catPendukung as $kategori)
-                                        @php
-                                            $existingData = $peserta->buktiMap[$kategori] ?? null;
-                                            $existingText = $existingData ? $existingData->keterangan : '';
-                                        @endphp
-                                        <div class="group">
-                                            <label class="block text-[11px] font-bold text-gray-500 mb-1.5 group-hover:text-blue-600 transition-colors">{{ $kategori }}</label>
-                                            
-                                            @if(str_contains($kategori, 'Jenis Transportasi'))
-                                                <div class="relative">
-                                                    <select name="items[{{ $peserta->nip }}][{{ $kategori }}][text]" class="appearance-none w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-100 focus:border-blue-500 bg-white text-gray-700">
-                                                        <option value="">- Pilih Jenis -</option>
-                                                        @foreach($transportOptions as $opt)
-                                                            <option value="{{ $opt }}" {{ $existingText == $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"><i class="fa-solid fa-chevron-down text-xs"></i></div>
-                                                </div>
-                                            @else
-                                                <input type="text" name="items[{{ $peserta->nip }}][{{ $kategori }}][text]" value="{{ $existingText }}" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-gray-700" placeholder="-">
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                                
-                                <div class="mt-6 p-4 bg-blue-50 text-blue-800 text-xs rounded-lg border border-blue-100 leading-relaxed shadow-sm">
-                                    <div class="flex gap-2">
-                                        <i class="fa-solid fa-circle-info mt-0.5"></i>
-                                        <div>
-                                            <strong>Info Pengisian:</strong>
-                                            <p class="mt-1 opacity-90">Anda mengisi data ini sebagai pengganti pegawai. Pastikan nominal sesuai dengan bukti fisik yang dipegang.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-10 flex justify-end sticky bottom-4 z-30">
-                    <div class="bg-white/80 backdrop-blur-md p-2 rounded-xl border border-gray-200 shadow-xl">
-                        <button type="submit" class="bg-blue-700 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-800 transition transform active:scale-95 flex items-center gap-3 text-base shadow-md">
-                            <i class="fa-solid fa-check-double"></i> SIMPAN & PROSES VERIFIKASI
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-        
-        <script>
-            // SCRIPT HELPER UNTUK FILE NAME & RUPIAH
-            function updateFileName(id) {
-                const input = document.getElementById('file-' + id);
-                const label = document.getElementById('filename-' + id);
-                if (input.files && input.files.length > 0) {
-                    label.textContent = input.files[0].name;
-                    label.classList.add('text-blue-600', 'font-bold');
-                } else {
-                    label.textContent = 'Belum ada file baru';
-                    label.classList.remove('text-blue-600', 'font-bold');
-                }
-            }
-
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.format-rupiah').forEach(inp => {
-                    inp.addEventListener('input', function() {
-                        let v = this.value.replace(/[^0-9]/g, '');
-                        this.value = v ? new Intl.NumberFormat('id-ID').format(v) : '';
-                    });
-                });
-            });
-        </script>
-        @endif
     </div>
 
     @push('scripts')
@@ -405,88 +218,211 @@
         }
 
         // === 2. LOGIKA MODAL MANUAL (EDIT ONLY) ===
-        @if(isset($perjalanan))
-            const perjalananId = {{ $perjalanan->id }};
-            const csrfToken = '{{ csrf_token() }}';
+// === 2. LOGIKA MODAL MANUAL (EDIT ONLY) ===
+@if(isset($perjalanan))
+    const perjalananId = {{ $perjalanan->id }};
+    const csrfToken = '{{ csrf_token() }}';
 
-            const modal = document.createElement('div');
-            modal.id = 'dynamicStatusModal';
-            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[9999]';
-            modal.innerHTML = `
-                <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-5 text-center relative">
-                    <h3 id="dynModalTitle" class="text-lg font-bold mb-4 text-gray-800"></h3>
-                    <p id="dynModalMessage" class="text-gray-600 mb-5"></p>
-                    <div id="dynAlasanContainer" class="hidden mb-4 text-left">
-                        <label class="text-sm font-semibold text-gray-700 block mb-1">Alasan:</label>
-                        <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-600" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
-                    </div>
-                    <div class="flex justify-between gap-3">
-                        <button id="dynModalCancel" class="flex-1 py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Batal</button>
-                        <button id="dynModalConfirm" class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Ya</button>
-                    </div>
-                    <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-                </div>`;
-            document.body.appendChild(modal);
+    // Modal Utama untuk Konfirmasi
+    const modal = document.createElement('div');
+    modal.id = 'dynamicStatusModal';
+    modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-md p-6 text-center relative transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+            <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        
+            <h3 id="dynModalTitle" class="text-xl font-bold mb-3 text-gray-800"></h3>
+            <p id="dynModalMessage" class="text-gray-600 mb-4"></p>
+            <div id="dynAlasanContainer" class="hidden mb-5 text-left">
+                <label class="text-sm font-semibold text-gray-700 block mb-2">Alasan:</label>
+                <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="dynModalCancel" class="flex-1 max-w-[150px] py-3 px-6 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">Batal</button>
+                <button id="dynModalConfirm" class="flex-1 max-w-[150px] py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Ya</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
 
-            const modalTitle = modal.querySelector('#dynModalTitle');
-            const modalMessage = modal.querySelector('#dynModalMessage');
-            const modalConfirm = modal.querySelector('#dynModalConfirm');
-            const modalCancel = modal.querySelector('#dynModalCancel');
-            const modalClose = modal.querySelector('#dynModalClose');
-            const alasanContainer = modal.querySelector('#dynAlasanContainer');
-            const alasanInput = modal.querySelector('#dynAlasanManual');
-            let statusToUpdate = '';
+    // Modal Response untuk Success/Error
+    const responseModal = document.createElement('div');
+    responseModal.id = 'responseModal';
+    responseModal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-[9999]';
+    responseModal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
+            <div id="responseIcon" class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"></div>
+            <h3 id="responseTitle" class="text-xl font-bold mb-2 text-gray-800"></h3>
+            <p id="responseMessage" class="text-gray-600 mb-6"></p>
+            <button id="responseOk" class="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">OK</button>
+        </div>`;
+    document.body.appendChild(responseModal);
 
-            function showModal(status) {
-                statusToUpdate = status;
-                alasanInput.value = ''; 
-                if (status === 'Diselesaikan Manual') {
-                    modalTitle.textContent = 'Selesaikan Perjalanan';
-                    modalMessage.textContent = 'Mohon isi alasan penyelesaian manual:';
-                    alasanContainer.classList.remove('hidden');
-                } else {
-                    modalTitle.textContent = 'Batalkan Perjalanan';
-                    modalMessage.textContent = 'Apakah Anda yakin ingin membatalkan perjalanan ini?';
-                    alasanContainer.classList.add('hidden');
-                }
-                modal.classList.remove('opacity-0', 'invisible');
-                modal.classList.add('opacity-100', 'visible');
+    const modalTitle = modal.querySelector('#dynModalTitle');
+    const modalMessage = modal.querySelector('#dynModalMessage');
+    const modalIcon = modal.querySelector('#dynModalIcon');
+    const modalConfirm = modal.querySelector('#dynModalConfirm');
+    const modalCancel = modal.querySelector('#dynModalCancel');
+    const modalClose = modal.querySelector('#dynModalClose');
+    const alasanContainer = modal.querySelector('#dynAlasanContainer');
+    const alasanInput = modal.querySelector('#dynAlasanManual');
+    const modalBox = modal.querySelector('div');
+
+    const responseIcon = responseModal.querySelector('#responseIcon');
+    const responseTitle = responseModal.querySelector('#responseTitle');
+    const responseMessage = responseModal.querySelector('#responseMessage');
+    const responseOk = responseModal.querySelector('#responseOk');
+    const responseBox = responseModal.querySelector('div');
+
+    let statusToUpdate = '';
+
+    // Fungsi show modal utama
+    function showModal(status) {
+        statusToUpdate = status;
+        alasanInput.value = ''; 
+        
+        if (status === 'Diselesaikan Manual') {
+            modalTitle.textContent = 'Selesaikan Perjalanan';
+            modalMessage.textContent = 'Mohon isi alasan penyelesaian manual:';
+            alasanContainer.classList.remove('hidden');
+        } else {
+            modalTitle.textContent = 'Batalkan Perjalanan';
+            modalMessage.textContent = 'Apakah Anda yakin ingin membatalkan perjalanan ini?';
+            modalIcon.className = 'fa-solid fa-exclamation-triangle text-red-600 text-xl';
+            alasanContainer.classList.add('hidden');
+        }
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        setTimeout(() => modalBox.classList.remove('scale-90'), 10);
+        setTimeout(() => modalBox.classList.add('scale-100'), 10);
+    }
+
+    // Fungsi hide modal utama
+    function hideModal() {
+        modalBox.classList.remove('scale-100');
+        modalBox.classList.add('scale-90');
+        setTimeout(() => {
+            modal.classList.remove('opacity-100', 'pointer-events-auto');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            statusToUpdate = '';
+        }, 300);
+    }
+
+    // Fungsi show response modal
+    function showResponse(type, title, message) {
+        if (type === 'success') {
+            responseIcon.className = 'w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center';
+            responseIcon.innerHTML = '<i class="fa-solid fa-check text-green-600 text-2xl"></i>';
+            responseTitle.className = 'text-xl font-bold mb-2 text-green-600';
+        } else {
+            responseIcon.className = 'w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center';
+            responseIcon.innerHTML = '<i class="fa-solid fa-times text-red-600 text-2xl"></i>';
+            responseTitle.className = 'text-xl font-bold mb-2 text-red-600';
+        }
+        
+        responseTitle.textContent = title;
+        responseMessage.textContent = message;
+        
+        responseModal.classList.remove('opacity-0', 'pointer-events-none');
+        responseModal.classList.add('opacity-100', 'pointer-events-auto');
+        setTimeout(() => responseBox.classList.remove('scale-90'), 10);
+        setTimeout(() => responseBox.classList.add('scale-100'), 10);
+    }
+
+    // Fungsi hide response modal
+    function hideResponse() {
+        responseBox.classList.remove('scale-100');
+        responseBox.classList.add('scale-90');
+        setTimeout(() => {
+            responseModal.classList.remove('opacity-100', 'pointer-events-auto');
+            responseModal.classList.add('opacity-0', 'pointer-events-none');
+        }, 300);
+    }
+
+    // Event listeners
+    const btnSelesaikan = document.getElementById('btnSelesaikan');
+    const btnBatalkan = document.getElementById('btnBatalkan');
+
+    if (btnSelesaikan) {
+        btnSelesaikan.addEventListener('click', (e) => {
+            e.preventDefault();
+            showModal('Diselesaikan Manual');
+        });
+    }
+    
+    if (btnBatalkan) {
+        btnBatalkan.addEventListener('click', (e) => {
+            e.preventDefault();
+            showModal('Dibatalkan');
+        });
+    }
+
+    modalCancel.addEventListener('click', hideModal);
+    modalClose.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+    });
+
+    responseOk.addEventListener('click', () => {
+        hideResponse();
+        location.reload();
+    });
+
+    // Konfirmasi submit
+    modalConfirm.addEventListener('click', function () {
+        if (!statusToUpdate) return;
+        
+        const alasanValue = alasanInput.value;
+        if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) {
+            showResponse('error', 'Gagal!', 'Wajib mengisi alasan penyelesaian manual!');
+            hideModal();
+            return;
+        }
+        
+        modalConfirm.textContent = 'Memproses...';
+        modalConfirm.disabled = true;
+
+        fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                status: statusToUpdate,
+                alasan: alasanValue
+            })
+        })
+        .then(async res => {
+            const text = await res.text();
+            let json = null;
+            try {
+                json = text ? JSON.parse(text) : null;
+            } catch(e) {}
+            
+            if (!res.ok) {
+                throw new Error((json && json.message) ? json.message : 'Gagal memperbarui status');
             }
-            function hideModal() { modal.classList.remove('opacity-100', 'visible'); modal.classList.add('opacity-0', 'invisible'); statusToUpdate = ''; }
-
-            const btnSelesaikan = document.getElementById('btnSelesaikan');
-            const btnBatalkan = document.getElementById('btnBatalkan');
-
-            if (btnSelesaikan) { btnSelesaikan.addEventListener('click', (e) => { e.preventDefault(); showModal('Diselesaikan Manual'); }); }
-            if (btnBatalkan) { btnBatalkan.addEventListener('click', (e) => { e.preventDefault(); showModal('Dibatalkan'); }); }
-
-            modalCancel.addEventListener('click', hideModal);
-            modalClose.addEventListener('click', hideModal);
-
-            modalConfirm.addEventListener('click', function () {
-                if (!statusToUpdate) return;
-                const alasanValue = alasanInput.value;
-                if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) { alert('Wajib mengisi alasan!'); return; }
-                
-                modalConfirm.textContent = 'Memproses...'; modalConfirm.disabled = true;
-
-                // Route AJAX ke controller updateStatus (pastikan route di web.php benar)
-                // Default: /pic/penugasan-perjadin/{id}/status
-                fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                    body: JSON.stringify({ status: statusToUpdate, alasan: alasanValue })
-                })
-                .then(async res => {
-                    const text = await res.text(); let json = null;
-                    try { json = text ? JSON.parse(text) : null; } catch(e) {}
-                    if (!res.ok) throw new Error((json && json.message) ? json.message : 'Gagal memperbarui status');
-                    return json;
-                })
-                .then(data => { alert(data?.message || 'Berhasil!'); location.reload(); })
-                .catch(err => { console.error(err); alert('Error: ' + err.message); modalConfirm.textContent = 'Ya'; modalConfirm.disabled = false; });
-            });
-        @endif
+            return json;
+        })
+        .then(data => {
+            hideModal();
+            setTimeout(() => {
+                showResponse('success', 'Berhasil!', data?.message || 'Status berhasil diperbarui!');
+            }, 300);
+        })
+        .catch(err => {
+            console.error(err);
+            hideModal();
+            setTimeout(() => {
+                showResponse('error', 'Error!', err.message || 'Terjadi kesalahan saat memperbarui status');
+            }, 300);
+            modalConfirm.textContent = 'Ya';
+            modalConfirm.disabled = false;
+        });
+    });
+@endif
     });
     </script>
     @endpush

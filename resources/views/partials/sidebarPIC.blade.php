@@ -26,7 +26,7 @@
         <ul class="sidebar-menu list-none py-3">
             <li class="my-1.5">
                 <a href="{{ route('pages.beranda') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pages.beranda') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pages.beranda','perjalanan.*') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -36,7 +36,7 @@
             
             <li class="my-1.5">
                 <a href="{{ route('pic.penugasan') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pic.penugasan') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pic.penugasan','pic.penugasan.*') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-briefcase"></i>
                     </span>
@@ -60,7 +60,7 @@
 
             <li class="my-1.5">
                 <a href="{{ route('pic.pegawai.index') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pic.pegawai.index') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pic.pegawai.index','pic.pegawai.*') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-users-rectangle"></i>
                     </span>
