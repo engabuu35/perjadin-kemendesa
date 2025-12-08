@@ -87,10 +87,10 @@
         </div>
 
         <!-- Copyright -->
-        <div class="mt-12 pt-6 border-t border-white/20">
-            <div class="flex flex-col md:flex-row items-center justify-center md:justify-end gap-2 text-gray-200 text-xs text-center md:text-right">
-                <span>Hak Cipta © - Politeknik Statistika STIS 2025</span>
-            </div>
+        <div class="absolute bottom-3 left-0 right-0 flex items-center justify-end text-gray-200 text-xs">
+        <div class="flex items-center gap-3 w-full">
+            <div class="flex-grow border-t border-white-500/60"></div>
+            <span>Hak Cipta © - Politeknik Statistika STIS 2025</span>
         </div>
     </div>
 </footer>
