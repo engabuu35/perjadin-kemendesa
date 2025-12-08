@@ -208,7 +208,7 @@
 
         <!-- FOOTER ACTION -->
         @if(!$isReadOnly)
-        <div class="sticky bottom-4 z-40 mt-8">
+        <div class="sticky bottom-4 z-40 mt-5">
             <div class="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 flex justify-between items-center max-w-4xl mx-auto">
                 <div class="text-sm text-gray-600">
                     Klik simpan untuk merekam semua perubahan di atas.
@@ -224,7 +224,7 @@
 
     <!-- AREA KIRIM KE PPK -->
     @if(!$isReadOnly)
-    <div class="mt-12 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 text-center">
+    <div class="mt-5 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 text-center">
         <h3 class="text-lg font-bold text-gray-800 mb-2">Finalisasi & Kirim</h3>
         <p class="text-sm text-gray-600 mb-6 max-w-2xl mx-auto">
             Jika seluruh data keuangan pegawai telah diinput dan disimpan, silakan kirim ke PPK. <br>
