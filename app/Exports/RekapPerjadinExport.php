@@ -69,17 +69,25 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             ')
             ->groupBy('lp.id_perjadin', 'lp.id_user');
 
+        // SUBQUERY: mendapatkan hanya ketua/first member per perjadin
+        $firstMemberSub = DB::table('pegawaiperjadin as pp')
+            ->select('id_perjadin', DB::raw('MIN(id_user) as first_user'))
+            ->groupBy('id_perjadin');
+
         $query = DB::table('laporankeuangan as lk')
             ->join('perjalanandinas as pd', 'lk.id_perjadin', '=', 'pd.id')
             ->join('pegawaiperjadin as pp', 'pp.id_perjadin', '=', 'pd.id')
             ->join('users as u', 'pp.id_user', '=', 'u.nip')
             ->leftJoin('pangkatgolongan as pg', 'u.pangkat_gol_id', '=', 'pg.id')
-            ->leftJoin('unitkerja as uke2', 'u.id_uke', '=', 'uke2.id')              // UKE-2 (unit langsung)
-            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')        // UKE-1 (induk) -> pakai id_induk, bukan parent_id
+            ->leftJoin('unitkerja as uke2', 'u.id_uke', '=', 'uke2.id')
+            ->leftJoin('unitkerja as uke1', 'uke2.id_induk', '=', 'uke1.id')
             ->leftJoin('statuslaporan as sl', 'lk.id_status', '=', 'sl.id')
             ->leftJoinSub($biayaSub, 'b', function ($join) {
                 $join->on('b.id_perjadin', '=', 'pd.id')
                      ->on('b.id_user', '=', 'u.nip');
+            })
+            ->leftJoinSub($firstMemberSub, 'first', function ($join) {
+                $join->on('first.id_perjadin', '=', 'pd.id');
             })
             ->where('sl.nama_status', 'Selesai')
             ->selectRaw('
@@ -117,7 +125,11 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
 
                 lk.nomor_spm,
                 lk.nomor_sp2d,
-                lk.biaya_rampung       AS jumlah_sp2d
+                lk.biaya_rampung       AS jumlah_sp2d,
+                
+                -- Added to identify first member of the perjadin
+                first.first_user,
+                pp.id_user
             ');
 
         // Filter tahun
@@ -148,14 +160,18 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
         $selesai = $row->tgl_selesai ? \Carbon\Carbon::parse($row->tgl_selesai) : null;
         $lama    = ($mulai && $selesai) ? $mulai->diffInDays($selesai) + 1 : null;
 
+        $jumlahSp2d = ($row->id_user === $row->first_user) ? ($row->jumlah_sp2d ?: 0) : '';
+        $nomorSpm = ($row->id_user === $row->first_user) ? ($row->nomor_spm ?? '-') : '-';
+        $nomorSp2d = ($row->id_user === $row->first_user) ? ($row->nomor_sp2d ?? '-') : '-';
+
         return [
             // 1–6: No, UKE, SPM, SP2D, Jumlah SP2D
             $this->rowIndex,                                   // No
             $row->nama_uke1 ?? '-',                            // Nama UKE-1
             $row->nama_uke2 ?? '-',                            // Nama UKE-2
-            $row->nomor_spm ?? '-',                            // No SPM
-            $row->nomor_sp2d ?? '-',                           // No SP2D
-            $row->jumlah_sp2d ?: 0,                            // Jumlah SP2D (Rp)
+            $nomorSpm,                                         // No SPM (only for first member)
+            $nomorSp2d,                                        // No SP2D (only for first member)
+            $jumlahSp2d,                                       // Jumlah SP2D (only for first member)
 
             // 7–15: SPD
             $row->nama_pegawai,                                // Nama Lengkap Tanpa Gelar
@@ -184,8 +200,6 @@ class RekapPerjadinExport implements FromCollection, WithMapping, WithHeadings, 
             // 25–28: Penginapan & Pesawat
             $row->nama_penginapan ?? '-',
             $row->kota ?? '-',
-            // $row->kode_tiket ?? '-',
-            // $row->maskapai   ?? '-',
             $row->jenis_transportasi_pergi ?? '-',
             $row->kode_tiket_pergi ?? '-',
             $row->nama_transportasi_pergi ?? '-', 

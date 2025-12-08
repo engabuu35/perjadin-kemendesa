@@ -25,7 +25,7 @@ class PPKController extends Controller
 
         // LOGIKA FILTER BARU: Sertakan status Manual JIKA sudah ada laporan keuangan (Menunggu Verifikasi)
         $query->where(function($q) {
-            $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi', 'Selesai'])
+            $q->whereIn('statusperjadin.nama_status', ['Menunggu Validasi PPK', 'Menunggu Verifikasi'])
               ->orWhere(function($sub) {
                   $sub->where('statusperjadin.nama_status', 'Diselesaikan Manual')
                       ->where('statuslaporan.nama_status', 'Menunggu Verifikasi');
@@ -40,22 +40,11 @@ class PPKController extends Controller
             });
         }
 
-        $query->orderByRaw("CASE WHEN statusperjadin.nama_status = 'Selesai' THEN 1 ELSE 0 END ASC");
-        
-        // Urutkan berdasarkan update terbaru
-        $query->orderBy('updated_at', 'desc');
-
-        $listVerifikasi = $query->paginate(12);
+        $listVerifikasi = $query->orderBy('updated_at', 'desc')->paginate(12);
 
         foreach ($listVerifikasi as $item) {
-            // Logika label status manual (opsional, untuk memastikan view rapi)
-            if($item->nama_status == 'Selesai'){
-                $item->custom_status = 'Selesai';
-                $item->status_color  = 'green';
-            } else {
-                $item->custom_status = 'Butuh Validasi';
-                $item->status_color  = 'blue';
-            }
+            $item->custom_status = 'Butuh Validasi';
+            $item->status_color  = 'blue';
         }
 
         return view('ppk.verifikasi.index', compact('listVerifikasi'));
@@ -152,6 +141,19 @@ class PPKController extends Controller
 
     public function approve(Request $request, $id)
     {
+        $validated = $request->validate([
+            'nomor_spm' => 'required|string|max:255',
+            'tanggal_spm' => 'required|date',
+            'nomor_sp2d' => 'required|string|max:255',
+            'tanggal_sp2d' => 'required|date',
+            'total_biaya_rampung' => 'required|numeric',
+        ], [
+            'nomor_spm.required' => 'Nomor SPM harus diisi',
+            'nomor_sp2d.required' => 'Nomor SP2D harus diisi',
+            'tanggal_spm.required' => 'Tanggal SPM harus diisi',
+            'tanggal_sp2d.required' => 'Tanggal SP2D harus diisi',
+        ]);
+
         $perjalanan = PerjalananDinas::findOrFail($id);
         $idLapSelesai = DB::table('statuslaporan')->where('nama_status', 'Selesai')->value('id') ?? 5;
 
@@ -161,11 +163,11 @@ class PPKController extends Controller
                 'id_status'     => $idLapSelesai,
                 'verified_by'   => Auth::user()->nip,
                 'verified_at'   => now(),
-                'nomor_spm'     => $request->nomor_spm,
-                'tanggal_spm'   => $request->tanggal_spm,
-                'nomor_sp2d'    => $request->nomor_sp2d,
-                'tanggal_sp2d'  => $request->tanggal_sp2d,
-                'biaya_rampung' => $request->total_biaya_rampung,
+                'nomor_spm'     => $validated['nomor_spm'],
+                'tanggal_spm'   => $validated['tanggal_spm'],
+                'nomor_sp2d'    => $validated['nomor_sp2d'],
+                'tanggal_sp2d'  => $validated['tanggal_sp2d'],
+                'biaya_rampung' => $validated['total_biaya_rampung'],
             ]
         );
 
@@ -214,16 +216,6 @@ class PPKController extends Controller
     public function reject(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
-
-        $idRevisi = DB::table('statusperjadin')->where('nama_status', 'Perlu Revisi')->value('id');
-        if (!$idRevisi) {
-            $idRevisi = DB::table('statuslaporan')->insertGetId(['nama_status' => 'Perlu Revisi']);
-        }
-        
-        $perjalanan->update([
-            'id_status' => $idRevisi,
-            'catatan_penolakan' => $request->alasan_penolakan,
-        ]);
 
         $idLapRevisi = DB::table('statuslaporan')->where('nama_status', 'Perlu Revisi')->value('id');
         if (!$idLapRevisi) {
@@ -302,6 +294,10 @@ class PPKController extends Controller
             )
             ->groupBy('laporan_perjadin.id_perjadin', 'laporan_perjadin.id_user');
 
+        $firstMemberSub = DB::table('pegawaiperjadin')
+            ->select('id_perjadin', DB::raw('MIN(id_user) as first_user'))
+            ->groupBy('id_perjadin');
+
         $query = DB::table('laporankeuangan')
             ->join('perjalanandinas', 'laporankeuangan.id_perjadin', '=', 'perjalanandinas.id')
             ->join('statuslaporan', 'laporankeuangan.id_status', '=', 'statuslaporan.id')
@@ -314,8 +310,12 @@ class PPKController extends Controller
                 $join->on('agg.id_perjadin', '=', 'perjalanandinas.id');
                 $join->on('agg.id_user', '=', 'users.nip');
             })
+            ->leftJoinSub($firstMemberSub, 'first', function ($join) {
+                $join->on('first.id_perjadin', '=', 'perjalanandinas.id');
+            })
             ->where('statuslaporan.nama_status', 'Selesai')
             ->select(
+                'perjalanandinas.id as id_perjadin',
                 'perjalanandinas.tujuan',
                 'perjalanandinas.dalam_rangka',
                 'perjalanandinas.tgl_mulai',
@@ -327,6 +327,8 @@ class PPKController extends Controller
                 'laporankeuangan.nomor_sp2d',
                 'laporankeuangan.tanggal_sp2d',
                 'laporankeuangan.biaya_rampung as jumlah_sp2d', 
+                'first.first_user',
+                'pegawaiperjadin.id_user',
                 DB::raw('uke1.nama_uke as nama_uke1'),
                 DB::raw('uke2.nama_uke as nama_uke2'),
                 DB::raw('pangkatgolongan.nama_pangkat as pangkat_golongan'),

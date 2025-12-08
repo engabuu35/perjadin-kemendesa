@@ -9,7 +9,7 @@
         <div class="mb-3 sm:mb-4">
             <x-page-title
             title="Tabel Rekap Keuangan Perjalanan Dinas"
-            subtitle="Rekap keseluruhan keuangan pegawai yang telah melakukan perjalanan dinas." />
+            subtitle="Rekap perjalanan dinas yang sudah memiliki laporan keuangan final (SPM/SP2D rampung)." />
         </div>
 
         @php
@@ -213,6 +213,7 @@
                                     $mulai   = $row->tgl_mulai ? \Carbon\Carbon::parse($row->tgl_mulai) : null;
                                     $selesai = $row->tgl_selesai ? \Carbon\Carbon::parse($row->tgl_selesai) : null;
                                     $lama    = ($mulai && $selesai) ? $mulai->diffInDays($selesai) + 1 : null;
+                                    $isKetua = $row->id_user == $row->first_user;
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     {{-- 1–3: No, UKE-1, UKE-2 --}}
@@ -223,8 +224,13 @@
                                     {{-- 4–6: Dokumen Pembayaran --}}
                                     <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nomor_spm ?? '-' }}</td>
                                     <td class="px-3 py-2 border text-center whitespace-nowrap">{{ $row->nomor_sp2d ?? '-' }}</td>
+                                    {{-- Only show SP2D amount if this is the ketua/first member, else leave blank --}}
                                     <td class="px-3 py-2 border text-right">
-                                        {{ $row->jumlah_sp2d ? number_format($row->jumlah_sp2d, 0, ',', '.') : '-' }}
+                                        @if ($isKetua)
+                                            {{ $row->jumlah_sp2d ? number_format($row->jumlah_sp2d, 0, ',', '.') : '-' }}
+                                        @else
+                                            -
+                                        @endif
                                     </td>
 
                                     {{-- 7–15: SPD --}}
@@ -284,12 +290,6 @@
                                     </td>
 
                                     {{-- 27–28: Pesawat --}}
-                                    {{-- <td class="px-3 py-2 border text-center">
-                                        {{ $row->kode_tiket ?? '-' }}
-                                    </td>
-                                    <td class="px-3 py-2 border text-center">
-                                        {{ $row->maskapai ?? '-' }}
-                                    </td> --}}
                                     <td class="px-3 py-2 border text-center">
                                         {{ $row->jenis_transportasi_pergi ?? '-' }}
                                     </td>
