@@ -14,7 +14,12 @@
         <span class="px-4 py-2 -mt-8 {{ $isSelesai ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }} rounded-lg font-bold text-sm border">
             Status: {{ $statusText }}
         </span>
-            <x-back-button />
+            <div class="flex justify-end mb-8">
+                <a href="{{ url('/ppk/pelaporan')}}" 
+                class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
 
     </div>
@@ -267,9 +272,13 @@
                         
                         <input type="text" name="nomor_spm" 
                                value="{{ old('nomor_spm', $laporanKeuangan->nomor_spm ?? '') }}" 
-                               class="w-full border-gray-300 rounded-lg disabled:bg-gray-100 disabled:text-gray-500" 
+                               class="w-full border-gray-300 rounded-lg disabled:bg-gray-100 disabled:text-gray-500 @error('nomor_spm') border-red-500 @enderror" 
                                required 
-                               @disabled($isSelesai)>
+                               @disabled($isSelesai)
+                               placeholder="Contoh: SPM-2024-001">
+                        @error('nomor_spm')
+                            <p class="text-red-500 text-sm mt-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal SPM</label>
@@ -286,9 +295,13 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nomor SP2D</label>
                         <input type="text" name="nomor_sp2d" 
                                value="{{ old('nomor_sp2d', $laporanKeuangan->nomor_sp2d ?? '') }}"
-                               class="w-full border-gray-300 rounded-lg disabled:bg-gray-100 disabled:text-gray-500" 
+                               class="w-full border-gray-300 rounded-lg disabled:bg-gray-100 disabled:text-gray-500 @error('nomor_sp2d') border-red-500 @enderror" 
                                required 
-                               @disabled($isSelesai)>
+                               @disabled($isSelesai)
+                               placeholder="Contoh: SP2D-2024-001">
+                        @error('nomor_sp2d')
+                            <p class="text-red-500 text-sm mt-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal SP2D</label>

@@ -3,7 +3,7 @@
         <div class="flex flex-col md:flex-row justify-between gap-8 md:gap-12">
 
             <!-- Logo Section -->
-            <div class="flex flex-col items-center md:items-start md:w-auto">
+            <div class="flex flex-col items-center md:items-start md:w-auto -mt-10">
                 <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 items-center">
                     <img src="{{ asset('img/logo_kementerian.png') }}" 
                         alt="Logo Kementerian" 
@@ -26,7 +26,7 @@
             </div>
 
             <!-- Contact Section -->
-            <div class="flex flex-col md:w-auto">
+            <div class="flex flex-col md:w-auto -mt-10">
                 <h3 class="text-sm font-semibold mb-4">Itjen Kemendesa PDT</h3>
                 <ul class="space-y-3 text-gray-200 text-sm">
                     <li class="flex items-start gap-3"> 
@@ -49,7 +49,7 @@
             </div>
 
             <!-- Social Media Section -->
-            <div class="flex flex-col md:w-auto">
+            <div class="flex flex-col md:w-auto -mt-10">
                 <h3 class="text-sm font-semibold mb-4">Sosial Media</h3>
                 <ul class="space-y-3 text-gray-200 text-xs">
                     <li>

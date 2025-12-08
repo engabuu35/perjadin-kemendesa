@@ -27,10 +27,11 @@ class ResetPassword extends Notification
         ], false));
 
         return (new MailMessage)
-            ->subject('Reset Password Akun Suspsys')
+            ->subject('Reset Password Akun SIPERDIN')
             ->view('emails.reset-password', [
-                'name' => $notifiable->name ?? 'Pengguna',
-                'url'  => $url
+                'name' => $notifiable->nama ?? 'Pengguna',
+                'url'  => $url,
+                'email' => $notifiable->email 
             ]);
     }
 }
