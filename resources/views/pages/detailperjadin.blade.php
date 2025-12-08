@@ -14,7 +14,72 @@
     $isReadOnly = $isMyTaskFinished || $isRiwayatPerjadin;
     $remainingCooldown = $remainingCooldown ?? 0;
 @endphp
+<style>
+    /* Custom SweetAlert2 Style */
+    .swal2-popup {
+        border-radius: 0.5rem !important;
+        padding: 1.25rem !important;
+        font-family: inherit !important;
+    }
 
+    .swal2-icon {
+        width: 3rem !important;
+        height: 3rem !important;
+        margin: 0 auto 1rem !important;
+    }
+
+    .swal2-icon.swal2-question {
+        border-color: #3b82f6 !important;
+        color: #3b82f6 !important;
+        background-color: #dbeafe !important;
+    }
+
+    .swal2-title {
+        font-size: 1.125rem !important;
+        font-weight: 700 !important;
+        color: #1f2937 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .swal2-html-container {
+        color: #4b5563 !important;
+        font-size: 0.875rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .swal2-actions {
+        gap: 0.75rem !important;
+        width: 100% !important;
+    }
+
+    .swal2-confirm, .swal2-cancel {
+        flex: 1 !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 0.5rem !important;
+        font-weight: 500 !important;
+        transition: all 0.15s !important;
+        margin: 0 !important;
+    }
+
+    .swal2-confirm {
+        background-color: #3b82f6 !important;
+        border: none !important;
+    }
+
+    .swal2-confirm:hover {
+        background-color: #2563eb !important;
+    }
+
+    .swal2-cancel {
+        background-color: #d1d5db !important;
+        color: #374151 !important;
+        border: none !important;
+    }
+
+    .swal2-cancel:hover {
+        background-color: #9ca3af !important;
+    }
+</style>    
 <main class="item-center max-w-6xl min-h-screen mx-auto px-5 py-8">
     
     <!-- HEADER -->
@@ -427,16 +492,38 @@
                         // map.flyTo([lat, lng], 18);
 
                         // 2. Tampilkan Pop-up Konfirmasi
-                        Swal.fire({
-                            title: 'Konfirmasi Lokasi',
-                            text: "Apakah titik lokasi yang terdeteksi di peta sudah sesuai?",
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Ya, Sesuai',
-                            cancelButtonText: 'Batal, Cek Lagi'
-                        }).then((result) => {
+                            Swal.fire({
+                                html: `
+                                    <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-map-marker-alt text-blue-500 text-2xl"></i>
+                                    </div>
+
+                                    <h2 class="text-xl font-bold text-gray-800 mb-1">Konfirmasi Lokasi</h2>
+
+                                    <p class="text-gray-600 text-center mb-1">
+                                        Apakah titik lokasi yang terdeteksi di peta sudah sesuai?
+                                    </p>
+
+                                    <p class="text-red-500 text-sm font-medium text-center mb-0">
+                                        ⚠ Geotagging tidak dapat dibatalkan setelah disimpan.
+                                    </p>
+                                </div>
+                                `,
+                                showCancelButton: true,
+                                buttonsStyling: false,
+
+                                customClass: {
+                                    popup: 'rounded-2xl p-6 shadow-lg',
+                                    actions: 'flex justify-between gap-3 w-full mt-2',
+                                    confirmButton: 'bg-red-500 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-600 transition w-full',
+                                    cancelButton: 'bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition w-full'
+                                },
+
+                                confirmButtonText: "Ya, Sesuai",
+                                cancelButtonText: "Batal",
+                                reverseButtons: true,
+                            }).then((result) => {
                             // 3. Jika User Klik "Ya, Sesuai" -> Baru kirim ke server
                             if (result.isConfirmed) {
                                 // Tampilkan loading lagi saat proses simpan
