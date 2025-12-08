@@ -16,7 +16,12 @@
             <span class="px-4 py-2 -mt-8 {{ $statusText == 'Perlu Revisi' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200' }} rounded-lg font-bold text-sm border">
                 Status: {{ $statusText }}
             </span>
-            <x-back-button />
+            <div class="flex justify-end mb-8">
+                <a href="{{ url('pic/pelaporan-keuangan') }}" 
+                class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
     </div>
 
