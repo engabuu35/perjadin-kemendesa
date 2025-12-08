@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\PenugasanPeran;
+use App\Notifications\ResetPassword;
 
 class User extends Authenticatable
 {
@@ -206,4 +207,8 @@ class User extends Authenticatable
             : null;
     }
 
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPassword($token));
+    }
 }

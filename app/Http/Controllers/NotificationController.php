@@ -4,8 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Notifikasi;
 use App\Models\User;
+use App\Models\PerjalananDinas; // [Baru] Import Model Perjalanan
+use App\Mail\PerjalananMail;    // [Baru] Import Mailable
+use Illuminate\Support\Facades\Mail; // [Baru] Import Facade Mail
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 class NotificationController extends Controller
 {
@@ -37,7 +43,7 @@ class NotificationController extends Controller
 
     private function getNotificationsQuery()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $nip = $user->nip;
 
         return DB::table('notifications')
@@ -69,7 +75,7 @@ class NotificationController extends Controller
                 'unread_count' => $unreadCount,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error fetching notifications: ' . $e->getMessage());
+            Log::error('Error fetching notifications: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -98,7 +104,7 @@ class NotificationController extends Controller
 
     public function markAsRead($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         DB::table('notifications')
             ->where('id', $id)
@@ -113,7 +119,7 @@ class NotificationController extends Controller
 
     public function markAllAsRead()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         DB::table('notifications')
             ->where('user_id', $user->nip)
@@ -128,7 +134,7 @@ class NotificationController extends Controller
 
     public function delete($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         DB::table('notifications')
             ->where('id', $id)
@@ -143,7 +149,7 @@ class NotificationController extends Controller
 
     public function deleteAll()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         DB::table('notifications')
             ->where('user_id', $user->nip)
@@ -158,7 +164,7 @@ class NotificationController extends Controller
     public function unreadCount()
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             
             if (!$user) {
                 return response()->json([
@@ -179,7 +185,7 @@ class NotificationController extends Controller
                 'count' => $count,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error fetching unread count: ' . $e->getMessage());
+            Log::error('Error fetching unread count: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -306,6 +312,37 @@ class NotificationController extends Controller
             ]);
 
             $notifications[] = $notificationId;
+            $targetUser = User::where('nip', $userId)->first();
+            
+            if ($targetUser && !empty($targetUser->email)) {
+                try {
+                    // Cek Tipe Notifikasi: HANYA KIRIM EMAIL JIKA TIPE PENUGASAN
+                    if ($type === self::TYPE_PENUGASAN) {
+                        
+                        // Ambil ID Perjadin yang tadi kita tambahkan di Controller
+                        $perjadinId = $data['id_perjadin'] ?? null;
+
+                        if ($perjadinId) {
+                            $perjalanan = PerjalananDinas::find($perjadinId);
+
+                            if ($perjalanan) {
+                                // Kirim Email ke Queue
+                                Mail::to($targetUser->email)
+                                    ->queue(new PerjalananMail(
+                                        $perjalanan, 
+                                        $targetUser->nama // Pass nama penerima ke Mailable
+                                    ));
+                            }
+                        }
+                    }
+
+                    // Opsional: Tambahkan logika if/else if untuk tipe email lain di sini
+
+                } catch (\Exception $e) {
+                    // Log error agar tidak menghentikan proses aplikasi jika email gagal
+                    Log::error("Gagal mengirim email ke {$targetUser->email}: " . $e->getMessage());
+                }
+            }
         }
 
         return count($notifications) === 1 ? $notifications[0] : $notifications;
