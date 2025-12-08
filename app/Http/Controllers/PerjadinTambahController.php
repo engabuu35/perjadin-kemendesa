@@ -129,9 +129,7 @@ class PerjadinTambahController extends Controller
                     [$pegawai['nip']],
                     [
                         'lokasi' => $perjalanan->tujuan,
-                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y'),
-                        // [TAMBAHAN] Wajib ada agar Controller tahu ID perjalanan untuk email
-                        'id_perjadin' => $perjalanan->id 
+                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y')
                     ],
                     [
                         'action_url' => '/perjalanan/' . $perjalanan->id
@@ -233,7 +231,6 @@ class PerjadinTambahController extends Controller
 
     public function update(Request $request, $id)
     {
-        // ... (Kode update tidak berubah)
         $messages = [
             'tgl_mulai.after_or_equal' => 'Tanggal mulai tidak boleh mendahului (sebelum) Tanggal Surat.',
             'tgl_selesai.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan Tanggal Mulai.',
@@ -253,27 +250,34 @@ class PerjadinTambahController extends Controller
             'dalam_rangka' => 'required|string',
         ], $messages);
 
-        DB::transaction(function() use ($validated, $id) {
+        $nips = array_map(fn($p) => $p['nip'], $validated['pegawai']);
+        if (count($nips) !== count(array_unique($nips))) {
+            return back()->withInput()->withErrors(['pegawai' => 'Nama pegawai tidak boleh duplikat']);
+        }
+
+        DB::transaction(function() use ($validated, $id, $request) {
             $perjalanan = PerjalananDinas::findOrFail($id);
+            
+            if ($request->hasFile('surat_tugas')) {
+                $file = $request->file('surat_tugas');
+                $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('surat_tugas', $filename, 'public');
+                $validated['surat_tugas'] = $path;
+            }
+
             $perjalanan->update([
                 'nomor_surat' => $validated['nomor_surat'],
                 'tanggal_surat' => $validated['tanggal_surat'],
                 'tujuan' => $validated['tujuan'],
                 'tgl_mulai' => $validated['tgl_mulai'],
                 'tgl_selesai' => $validated['tgl_selesai'],
-                'approved_by' => $validated['approved_by'],
+                'approved_by' => $validated['approved_by'] ?? null,
                 'dalam_rangka' => $validated['dalam_rangka'],
+                'surat_tugas' => $validated['surat_tugas'] ?? $perjalanan->surat_tugas,
             ]);
 
-            if (request()->hasFile('surat_tugas')) {
-                $file = request()->file('surat_tugas');
-                $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('surat_tugas', $filename, 'public');
-                $perjalanan->surat_tugas = $path;
-                $perjalanan->save();
-            }
-
             DB::table('pegawaiperjadin')->where('id_perjadin', $perjalanan->id)->delete();
+            DB::table('laporan_perjadin')->where('id_perjadin', $perjalanan->id)->delete();
             
             $insertPegawai = [];
             $insertLaporan = [];
@@ -297,21 +301,14 @@ class PerjadinTambahController extends Controller
                     ]
                 );
 
-                $exists = DB::table('laporan_perjadin')
-                    ->where('id_perjadin', $perjalanan->id)
-                    ->where('id_user', $pegawai['nip'])
-                    ->exists();
-
-                if (!$exists) {
-                    $insertLaporan[] = [
-                        'id_perjadin' => $perjalanan->id,
-                        'id_user' => $pegawai['nip'],
-                        'uraian' => null,
-                        'is_final' => 0,
-                        'created_at' => $now,
-                        'updated_at' => $now
-                    ];
-                }
+                $insertLaporan[] = [
+                    'id_perjadin' => $perjalanan->id,
+                    'id_user' => $pegawai['nip'],
+                    'uraian' => null,
+                    'is_final' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
             }
 
             if (!empty($insertPegawai)) {
@@ -328,7 +325,6 @@ class PerjadinTambahController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        // ... (Kode updateStatus tidak berubah)
         $request->validate([
             'status' => 'required|string',
             'alasan' => 'nullable|string',
