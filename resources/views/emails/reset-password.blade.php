@@ -1,107 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<title>Reset Password - Suspsys</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-    /* Base */
-    body { margin:0; padding:0; background:#f3f6fb; font-family: Poppins, Arial, Helvetica, sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
-    table { border-collapse:collapse; width:100%; }
-    img { border:0; display:block; max-width:100%; }
-    a { color:inherit; text-decoration:none; }
-    .wrap { width:100%; padding:28px 10px; }
-    .card { max-width:640px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; border:1px solid #e6eef8; box-shadow:0 8px 30px rgba(17,24,39,0.06); }
-    .head { padding:20px 22px; background:linear-gradient(90deg,#1f4aa8,#3a6ad9); color:#fff; text-align:left; display:flex; gap:12px; align-items:center; }
-    .logo { width:64px; height:64px; border-radius:10px; background:#fff; padding:6px; display:block; object-fit:contain; }
-    .brand { font-size:16px; font-weight:700; margin:0; }
-    .sub { font-size:12px; opacity:0.95; margin-top:4px; }
-    .body { padding:20px 22px; color:#0f172a; }
-    .greeting { font-size:15px; margin:0 0 8px 0; }
-    .desc { font-size:13px; color:#55607a; margin:0 0 14px 0; }
-    .panel { background:#fbfdff; border-left:6px solid #2f63c7; padding:14px; border-radius:8px; margin-bottom:16px; }
-    .meta-row { display:block; margin-bottom:10px; }
-    .label { font-weight:600; color:#274aa0; display:inline-block; width:140px; vertical-align:top; font-size:13px; }
-    .value { display:inline-block; max-width:420px; font-size:13px; color:#0f172a; vertical-align:top; }
-    .total { margin-top:6px; font-size:12px; color:#6b7280; }
-    .cta-wrap { text-align:center; padding:6px 0 16px 0; }
-    .btn { display:inline-block; background:#2457b8; color:#fff; padding:12px 18px; border-radius:10px; font-weight:700; text-decoration:none; box-shadow:0 8px 20px rgba(36,87,184,0.18); }
-    .fallback { font-size:12px; color:#6b7280; text-align:center; margin-top:6px; word-break:break-word; }
-    .footer { background:#f3f6fb; padding:14px 18px; text-align:center; color:#9aa4b5; font-size:12px; }
-    @media only screen and (max-width:480px){
-        .label{display:block;width:100%;margin-bottom:6px;}
-        .value{display:block;width:100%;}
-        .head{flex-direction:row;gap:10px;}
-        .logo{width:56px;height:56px;}
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+    <style>
+        /* --- CSS Reset & Base --- */
+        body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing: antialiased; color: #334155; }
+        table { border-collapse: collapse; width: 100%; }
+        a { color: #2563eb; text-decoration: none; }
+        img { display: block; border: 0; }
+
+        /* --- Layout Class --- */
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f1f5f9; padding: 40px 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+
+        /* --- Header --- */
+        .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 32px 40px; text-align: center; }
+        .logo-container { background: white; padding: 8px; border-radius: 12px; display: inline-block; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .logo { width: 64px; height: auto; }
+        .header-title { color: #ffffff; font-size: 20px; font-weight: 700; margin: 0; letter-spacing: 0.5px; }
+        .header-subtitle { color: #e0f2fe; font-size: 13px; margin-top: 6px; font-weight: 500; }
+
+        /* --- Body Content --- */
+        .content { padding: 40px; }
+        .greeting { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 16px; }
+        .text { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 24px; }
+        
+        /* --- Info Box --- */
+        .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .info-item { display: block; margin-bottom: 12px; font-size: 14px; }
+        .info-item:last-child { margin-bottom: 0; }
+        .info-label { font-weight: 600; color: #64748b; display: inline-block; width: 130px; }
+        .info-value { color: #0f172a; font-weight: 500; }
+
+        /* --- Button --- */
+        .btn-container { text-align: center; margin: 32px 0; }
+        .btn { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-weight: 600; font-size: 16px; padding: 14px 32px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); transition: all 0.2s; }
+        .btn:hover { background-color: #1d4ed8; box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4); transform: translateY(-1px); }
+
+        /* --- Fallback & Footer --- */
+        .fallback { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f1f5f9; line-height: 1.5; word-break: break-all; }
+        .footer { background-color: #f1f5f9; text-align: center; padding: 24px; font-size: 12px; color: #94a3b8; }
+
+        /* --- Mobile --- */
+        @media only screen and (max-width: 600px) {
+            .container { width: 100% !important; border-radius: 0; }
+            .content { padding: 24px; }
+            .header { padding: 24px; }
+            .info-label { display: block; margin-bottom: 4px; }
+            .info-value { display: block; margin-bottom: 12px; }
+        }
+    </style>
 </head>
 <body>
-<table role="presentation" class="wrap">
-    <tr>
-        <td align="center">
 
-            <table role="presentation" class="card" aria-labelledby="title">
-                <!-- header -->
-                <tr>
-                    <td class="head" valign="middle">
-                        {{-- Logo: gunakan URL absolut / $logoUrl bila disediakan --}}
-                        <img src="{{ url(asset('img/logo_kementerian.png')) }}" alt="Logo">
-                        <div>
-                            <div class="brand">Sistem Perjalanan Dinas — Suspsys</div>
-                            <div class="sub">Notifikasi reset password akun</div>
-                        </div>
-                    </td>
-                </tr>
+    <table role="presentation" class="wrapper">
+        <tr>
+            <td align="center">
+                <!-- Main Card -->
+                <table role="presentation" class="container">
+                    
+                    <!-- Header Section -->
+                    <tr>
+                        <td class="header">
+                            <div class="logo-container">
+                                <img src="{{ $logoUrl ?? url(asset('img/logo_kementerian.png')) }}" alt="Logo Kementerian" class="logo">
+                            </div>
+                            <h1 class="header-title">Permintaan Reset Password</h1>
+                            <div class="header-subtitle">Sistem Perjalanan Dinas - Itjen Kemendesa</div>
+                        </td>
+                    </tr>
 
-                <!-- body -->
-                <tr>
-                    <td class="body">
-                        <h2 id="title" style="margin:0 0 12px 0; font-size:20px; color:#0f172a;">Reset Password Anda</h2>
+                    <!-- Body Content -->
+                    <tr>
+                        <td class="content">
+                            
+                            <p class="greeting">Yth. Bapak/Ibu{{ isset($name) && $name ? ' ' . $name : '' }},</p>
+                            
+                            <p class="text">
+                                Kami menerima permintaan untuk mereset kata sandi akun Anda. Demi keamanan, silakan verifikasi permintaan ini dengan menekan tombol di bawah.
+                            </p>
 
-                        <p class="greeting">Yth. {{ $name ?? 'Pengguna' }},</p>
-
-                        <p class="desc">Kami menerima permintaan untuk mereset password akun Anda pada <strong>Suspsys</strong>. Untuk mengatur ulang password silakan gunakan tautan di bawah ini.</p>
-
-                        <div class="panel" role="region" aria-label="Instruksi Reset Password">
-                            <div class="meta-row">
-                                <span class="label">Akun</span>
-                                <span class="value">{{ $email ?? ($notifiable->email ?? '—') }}</span>
+                            <!-- Detail Box -->
+                            <div class="info-box">
+                                <div class="info-item">
+                                    <span class="info-label">Akun Email</span>
+                                    <span class="info-value">{{ $email ?? ($notifiable->email ?? '—') }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Batas Waktu</span>
+                                    <span class="info-value">{{ $expire ?? config('auth.passwords.'.config('auth.defaults.passwords').'.expire') ?? 60 }} Menit</span>
+                                </div>
+                                <div class="info-item" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1;">
+                                    <span class="info-label" style="width: auto; color: #ef4444;">⚠️ Perhatian:</span>
+                                    <span style="display: block; font-size: 13px; color: #64748b; margin-top: 4px;">
+                                        Jika Anda tidak merasa melakukan permintaan ini, mohon abaikan email ini. Akun Anda tetap aman.
+                                    </span>
+                                </div>
                             </div>
 
-                            <div class="meta-row">
-                                <span class="label">Tautan berlaku</span>
-                                <span class="value">
-                                    {{ $expire ?? config('auth.passwords.'.config('auth.defaults.passwords').'.expire') ?? 60 }} menit
-                                </span>
+                            <!-- Action Button -->
+                            <div class="btn-container">
+                                <a href="{{ $url }}" class="btn" target="_blank">Reset Password Saya</a>
                             </div>
 
-                            <div class="meta-row">
-                                <span class="label">Keamanan</span>
-                                <span class="value">Jika Anda tidak meminta reset password, abaikan pesan ini atau hubungi admin jika ragu.</span>
+                            <!-- Fallback Link -->
+                            <div class="fallback">
+                                <p style="margin-bottom: 8px;">Tombol tidak berfungsi? Salin tautan berikut ke browser Anda:</p>
+                                <a href="{{ $url }}" style="color: #3b82f6; text-decoration: underline;">{{ $url }}</a>
                             </div>
-                        </div>
+                        </td>
+                    </tr>
 
-                        <div class="cta-wrap">
-                            <a href="{{ $url }}" class="btn" target="_blank" rel="noopener">Reset Password</a>
-                        </div>
+                </table>
+                
+                <!-- Footer -->
+                <div class="footer">
+                    &copy; {{ date('Y') }} Kementerian Desa, PDT & Transmigrasi Republik Indonesia.<br>
+                    Hak Cipta Dilindungi Undang-Undang.
+                </div>
+            </td>
+        </tr>
+    </table>
 
-                        <p class="fallback">Jika tombol tidak berfungsi, salin & tempel tautan berikut di peramban Anda:<br>
-                            <a href="{{ $url }}" style="color:#2457b8;text-decoration:underline;">{{ $url }}</a>
-                        </p>
-                    </td>
-                </tr>
-
-                <!-- footer -->
-                <tr>
-                    <td class="footer">
-                        © {{ date('Y') }} Suspsys — Kementerian Desa, PDT & Transmigrasi RI
-                    </td>
-                </tr>
-            </table>
-
-        </td>
-    </tr>
-</table>
 </body>
 </html>
