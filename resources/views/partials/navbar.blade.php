@@ -99,7 +99,7 @@
     @endphp
 
     <!-- Navbar dengan position fixed -->
-    <div class="header fixed top-0 left-0 right-0 z-[100] flex justify-between items-center 
+    <div class="header fixed top-0 left-0 right-0 z-[30] flex justify-between items-center 
                 bg-[#2954B0] text-white 
                 py-[8px] px-3 md:px-[12px] rounded-b-[15px] shadow-[0_6px_15px_rgba(0,0,0,0.2)]">
 

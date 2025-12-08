@@ -1,7 +1,7 @@
 <!-- Modal Notifikasi - Positioned near FAB -->
 <div id="notificationModal"
     class="hidden fixed bottom-24 right-6 transform transition-all duration-300 scale-95 opacity-0"
-    style="z-index: 1005 !important;">
+    style="z-index: 60 !important;">
     <div class="bg-white rounded-xl shadow-2xl w-96 max-w-[calc(100vw-2rem)]" id="modalContent"
         onclick="event.stopPropagation()">
         <!-- Header -->
@@ -78,7 +78,7 @@
 </div>
 
 <!-- Floating Action Button dengan Menu Vertikal -->
-<div class="fixed bottom-6 right-6" style="z-index: 1005 !important;">
+<div class="fixed bottom-6 right-6" style="z-index: 50 !important;">
     <div class="relative">
         <!-- Container Background -->
         <div id="menuBackground"
@@ -88,7 +88,7 @@
         <!-- Menu Items Container -->
         <div id="menuItemsContainer" class="absolute left-1/2 -translate-x-1/2 transition-all duration-300 bottom-0">
             <!-- Tombol FAQ -->
-            <div id="faqWrapper" class="mb-4 transition-all duration-300 opacity-0 scale-50">
+            <div id="faqWrapper" class="mb-4 transition-all duration-300 opacity-0 scale-50 pointer-events-none">
                 <div class="relative group">
                     <!-- Tooltip -->
                     <span
@@ -105,7 +105,7 @@
             </div>
 
             <!-- Tombol Notifikasi -->
-            <div id="notifWrapper" class="transition-all duration-300 opacity-0 scale-50">
+            <div id="notifWrapper" class="transition-all duration-300 opacity-0 scale-50 pointer-events-none">
                 <div class="relative group">
                     <!-- Tooltip -->
                     <span
@@ -293,25 +293,33 @@
     let currentFilter = 'thisWeek';
     let expandedNotifications = new Set();
 
-    // Inisialisasi elemen DOM
-    const mainBtn = document.getElementById('mainBtn');
-    const mainIcon = document.getElementById('mainIcon');
-    const menuBackground = document.getElementById('menuBackground');
-    const menuItemsContainer = document.getElementById('menuItemsContainer');
-    const faqWrapper = document.getElementById('faqWrapper');
-    const notifWrapper = document.getElementById('notifWrapper');
-    const backdrop = document.getElementById('backdrop');
-    const faqBtn = document.getElementById('faqBtn');
-    const notifBtn = document.getElementById('notifBtn');
-    const mainBtnBadge = document.getElementById('mainBtnBadge');
-
+    // Initialize DOM elements after DOM is ready
+    let mainBtn, mainIcon, menuBackground, menuItemsContainer, faqWrapper, notifWrapper, backdrop, notifBtn, mainBtnBadge;
     let isOpen = false;
+    let menuItems = [];
 
-    // Array menu items untuk animasi bertahap
-    const menuItems = [
-        { element: notifWrapper, delay: 0 },
-        { element: faqWrapper, delay: 80 }
-    ];
+    function initializeElements() {
+        // Inisialisasi elemen DOM
+        mainBtn = document.getElementById('mainBtn');
+        mainIcon = document.getElementById('mainIcon');
+        menuBackground = document.getElementById('menuBackground');
+        menuItemsContainer = document.getElementById('menuItemsContainer');
+        faqWrapper = document.getElementById('faqWrapper');
+        notifWrapper = document.getElementById('notifWrapper');
+        backdrop = document.getElementById('backdrop');
+        notifBtn = document.getElementById('notifBtn');
+        mainBtnBadge = document.getElementById('mainBtnBadge');
+
+        // Array menu items untuk animasi bertahap
+        menuItems = [
+            { element: notifWrapper, delay: 0 },
+            { element: faqWrapper, delay: 80 }
+        ];
+
+        // Setup event listeners
+        if (mainBtn) mainBtn.addEventListener('click', toggleMenu);
+        if (notifBtn) notifBtn.addEventListener('click', openNotificationModal);
+    }
 
     function getCsrfToken() {
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -362,6 +370,7 @@
             const data = await response.json();
 
             if (data.success) {
+                console.log('Unread count:', data.count);
                 updateNotificationBadge(data.count || 0);
                 updateMainBtnBadge(data.count || 0);
             }
@@ -541,6 +550,10 @@
 
     function updateNotificationBadge(count) {
         const badge = document.getElementById('notifBadge');
+        if (!badge) {
+            console.warn('notifBadge element not found');
+            return;
+        }
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
             badge.classList.remove('hidden');
@@ -550,6 +563,10 @@
     }
 
     function updateMainBtnBadge(count) {
+        if (!mainBtnBadge) {
+            console.warn('mainBtnBadge element not found');
+            return;
+        }
         if (count > 0) {
             mainBtnBadge.textContent = count > 99 ? '99+' : count;
             mainBtnBadge.classList.remove('hidden');
@@ -593,7 +610,7 @@
 
     async function markAllAsRead() {
         try {
-            const response = await fetch(`${API_BASE_URL}/read-all`, {
+            const response = await fetch(`${API_BASE_URL}/mark-all-read`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -707,8 +724,7 @@
         // Rotate icon
         mainIcon.style.transform = 'rotate(180deg)';
 
-        // Hide badge when menu is open
-        mainBtnBadge.classList.add('hidden');
+        // Badge stays visible when menu is open
 
         // Expand background
         menuBackground.style.height = '240px';
@@ -716,6 +732,7 @@
 
         // Animate menu items with stagger
         menuItems.forEach((item, index) => {
+            item.element.classList.remove('pointer-events-none');
             setTimeout(() => {
                 item.element.style.opacity = '1';
                 item.element.style.transform = 'scale(1)';
@@ -733,12 +750,15 @@
         // Reset icon rotation only
         mainIcon.style.transform = 'rotate(0deg)';
 
-        // Show badge again if there are unread notifications
-        fetchUnreadCount();
+        // No need to fetch unread count here, it's handled by polling
+        // fetchUnreadCount();
 
         // Collapse background
         menuBackground.style.height = '0';
         menuBackground.style.opacity = '0';
+
+        // Disable clicks immediately
+        menuItems.forEach(item => item.element.classList.add('pointer-events-none'));
 
         // Hide menu items with reverse stagger
         [...menuItems].reverse().forEach((item, index) => {
@@ -779,21 +799,44 @@
         }, 300);
     }
 
-    // Event listeners
-    mainBtn.addEventListener('click', toggleMenu);
-    notifBtn.addEventListener('click', openNotificationModal);
-    faqBtn.addEventListener('click', () => {
-        window.location.href = '/faq';
-    });
 
-    // Close modal when clicking outside
+    // Close modal when clicking outside - notifBtn check added for safety
     document.addEventListener('click', (e) => {
         const modal = document.getElementById('notificationModal');
-        if (!modal.classList.contains('hidden') && !modal.contains(e.target) && !notifBtn.contains(e.target)) {
+        if (!modal.classList.contains('hidden') && !modal.contains(e.target) && notifBtn && !notifBtn.contains(e.target)) {
             closeNotificationModal();
         }
     });
 
-    // Initial fetch for unread count
-    fetchUnreadCount();
+    // Initialize badge immediately - don't wait for DOMContentLoaded
+    // This ensures badge shows as soon as possible
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeBadges);
+    } else {
+        // DOM is already ready
+        initializeBadges();
+    }
+
+    function initializeBadges() {
+        // Initialize DOM elements first
+        initializeElements();
+
+        // Fetch unread count immediately
+        fetchUnreadCount();
+
+        // Poll for new notifications every 3 seconds
+        setInterval(fetchUnreadCount, 3000);
+    }
+
+    // Update badge when user returns to tab
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            fetchUnreadCount();
+        }
+    });
+
+    // Update badge when page gains focus (user switches back to tab)
+    window.addEventListener('focus', () => {
+        fetchUnreadCount();
+    });
 </script>
