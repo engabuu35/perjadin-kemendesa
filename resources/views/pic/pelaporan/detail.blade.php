@@ -253,7 +253,18 @@
                 </div>
             </div>
         </div>
-
+        <div id="successModal" class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[1000]">
+            <div class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-6 text-center transform scale-95 transition-transform duration-300">
+                <div class="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center animate-bounce">
+                    <i class="fas fa-check text-green-600 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-800">Berhasil!</h3>
+                <p class="text-gray-600 mb-6">Laporan keuangan telah berhasil dikirim ke PPK untuk verifikasi.</p>
+                <button id="closeSuccessBtn" class="w-full py-3 px-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-md">
+                    OK
+                </button>
+            </div>
+        </div>
         <!-- Form tersembunyi -->
         <form id="submitForm" action="{{ route('pic.pelaporan.submit', $perjalanan->id) }}" method="POST" style="display: none;">
             @csrf
@@ -307,6 +318,8 @@
     const cancelSubmitBtn = document.getElementById('cancelSubmit');
     const confirmSubmitBtn = document.getElementById('confirmSubmit');
     const submitForm = document.getElementById('submitForm');
+    const successModal = document.getElementById('successModal');
+    const closeSuccessBtn = document.getElementById('closeSuccessBtn');
 
     // Buka modal
     openSubmitModalBtn.addEventListener('click', () => {
@@ -327,7 +340,45 @@
 
     // Konfirmasi submit
     confirmSubmitBtn.addEventListener('click', () => {
-        submitForm.submit();
+        // 1. Ubah tombol jadi loading
+        confirmSubmitBtn.textContent = 'Mengirim...';
+        confirmSubmitBtn.disabled = true;
+
+        // 2. Kirim data via Fetch (AJAX)
+        const formData = new FormData(submitForm);
+
+        fetch(submitForm.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(async res => {
+            if (!res.ok) throw new Error('Gagal mengirim');
+            
+            // 3. Jika Sukses: Tutup modal konfirmasi, Buka modal berhasil
+            submitModal.classList.add('opacity-0', 'invisible'); // Tutup konfirmasi
+            
+            setTimeout(() => {
+                successModal.classList.remove('opacity-0', 'invisible'); // Buka sukses
+                successModal.querySelector('div').classList.remove('scale-95');
+                successModal.querySelector('div').classList.add('scale-100');
+            }, 300);
+        })
+        .catch(err => {
+            alert('Gagal: ' + err.message);
+            confirmSubmitBtn.textContent = 'Kirim';
+            confirmSubmitBtn.disabled = false;
+        });
     });
+
+    // Logic Tombol OK di Modal Sukses
+    if(closeSuccessBtn) {
+        closeSuccessBtn.addEventListener('click', () => {
+            window.location.href = "{{ url('/pic/pelaporan-keuangan') }}"; 
+        });
+    }
 </script>
 @endsection

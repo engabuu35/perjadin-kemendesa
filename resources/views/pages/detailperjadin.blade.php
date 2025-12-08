@@ -604,15 +604,28 @@
                         else if (err.code == 2) msg = "Lokasi tidak tersedia (sinyal lemah).";
                         else if (err.code == 3) msg = "Waktu permintaan habis.";
 
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Kesalahan Geotangging',
-                            text: msg,
-                            confirmButtonText: 'Tutup'
-                        }).then(() => {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                        });
+                            Swal.fire({
+                                html: `
+                                    <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                                        <i class="fas fa-map-marker-alt text-blue-500 text-2xl"></i>
+                                    </div>
+
+                                    <h2 class="text-xl font-bold text-gray-800 mb-1">GPS Tidak Aktif</h2>
+
+                                    <p class="text-red-500 text-sm font-medium text-center mb-0">
+                                        ⚠ Lokasi tidak tersedia (Sinyal lemah)
+                                    </p>
+                                </div>
+                                `,
+                                customClass: {
+                                    popup: 'swal-gps-popup',
+                                    confirmButton: 'swal-gps-btn'
+                                }
+                            }).then(() => {
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                            });
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );

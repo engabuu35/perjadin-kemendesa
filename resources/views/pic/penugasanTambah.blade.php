@@ -50,11 +50,13 @@
         {{-- ================= FORM UTAMA (EDIT/CREATE) ================= --}}
         <div class="bg-white rounded-xl p-8 shadow-lg mb-8">
             @if(isset($perjalanan))
-                <form action="{{ route('pic.penugasan.update', $perjalanan->id) }}" method="POST" enctype="multipart/form-data">
+                {{-- TAMBAHKAN id="formPenugasan" DI SINI --}}
+                <form id="formPenugasan" action="{{ route('pic.penugasan.update', $perjalanan->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
             @else
-                <form action="{{ route('pic.penugasan.store') }}" method="POST" enctype="multipart/form-data">
+                {{-- TAMBAHKAN id="formPenugasan" JUGA DI SINI --}}
+                <form id="formPenugasan" action="{{ route('pic.penugasan.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
             @endif
 
@@ -115,7 +117,10 @@
 
                 <div class="flex flex-col gap-3 mt-8">
                     <a href="{{ route('pic.penugasan') }}" class="w-full py-3.5 bg-gray-300 text-gray-600 rounded-lg font-semibold hover:bg-gray-400 transition text-center">Batal</a>
-                    <button type="submit" @if($disabled) disabled @endif class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800' }} transition">{{ isset($perjalanan) ? 'Perbarui' : 'Simpan' }}</button>
+                    <button id="{{ isset($perjalanan) ? 'btnPerbarui' : '' }}" type="submit" @if($disabled) disabled @endif 
+                        class="w-full py-3.5 bg-blue-700 text-white rounded-lg font-semibold {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800' }} transition">
+                        {{ isset($perjalanan) ? 'Perbarui' : 'Simpan' }}
+                    </button>
                 </div>
 
                 @if(isset($perjalanan))
@@ -132,6 +137,8 @@
                             class="w-full py-3.5 bg-red-600 text-white rounded-lg font-semibold {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700' }} transition">
                             Batalkan Perjalanan
                         </button>
+                        
+                        
                     </div>
                     
                     @if(!$canManual && !$disabled)
@@ -290,6 +297,7 @@
         @if(isset($perjalanan))
             const perjalananId = {{ $perjalanan->id }};
             const csrfToken = '{{ csrf_token() }}';
+            const mainForm = document.getElementById('formPenugasan');
 
             // --- STRUKTUR MODAL BARU (DARI KODE TEMAN) ---
             const modal = document.createElement('div');
@@ -299,8 +307,9 @@
                 <div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-md p-6 text-center relative transform scale-90 transition-transform duration-300" onclick="event.stopPropagation()">
                     <button id="dynModalClose" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
                     
+                    <div id="dynModalIcon" class="mb-3"></div>
                     <h3 id="dynModalTitle" class="text-xl font-bold mb-3 text-gray-800"></h3>
-                    <div id="dynModalIcon" class="mb-3"></div> <p id="dynModalMessage" class="text-gray-600 mb-4"></p>
+                     <p id="dynModalMessage" class="text-gray-600 mb-4"></p>
                     <div id="dynAlasanContainer" class="hidden mb-5 text-left">
                         <label class="text-sm font-semibold text-gray-700 block mb-2">Alasan:</label>
                         <textarea id="dynAlasanManual" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Pembatalan sebagian anggota..."></textarea>
@@ -353,14 +362,20 @@
                     modalMessage.textContent = 'Mohon isi alasan penyelesaian manual:';
                     modalIcon.innerHTML = ''; 
                     alasanContainer.classList.remove('hidden');
+                } else if (status === 'Perbarui') {
+                    //  Logika Perbarui 
+                    modalTitle.textContent = 'Perbarui Penugasan';
+                    modalMessage.textContent = 'Apakah Anda yakin ingin menyimpan perubahan data ini?';
+                    modalIcon.innerHTML = '<i class="fa-solid fa-circle-info text-blue-600 text-3xl"></i>';
+                    alasanContainer.classList.add('hidden');
+
                 } else {
+                    // Logika Batalkan Perjalanan
                     modalTitle.textContent = 'Batalkan Perjalanan';
                     modalMessage.textContent = 'Apakah Anda yakin ingin membatalkan perjalanan ini?';
-                    // Jika ada fontawesome, tambahkan icon warning
                     modalIcon.innerHTML = '<i class="fa-solid fa-exclamation-triangle text-red-600 text-3xl"></i>';
                     alasanContainer.classList.add('hidden');
                 }
-                
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 modal.classList.add('opacity-100', 'pointer-events-auto');
                 setTimeout(() => {
@@ -413,6 +428,23 @@
             // Event Listeners
             const btnSelesaikan = document.getElementById('btnSelesaikan');
             const btnBatalkan = document.getElementById('btnBatalkan');
+            const btnPerbarui = document.getElementById('btnPerbarui');
+
+            if (btnPerbarui) {
+                btnPerbarui.addEventListener('click', function(e) {
+                    // 1. CEK VALIDASI FORM TERLEBIH DAHULU
+                    if (mainForm && !mainForm.checkValidity()) {
+                        // Jika ada field kosong/invalid, biarkan browser menampilkan error
+                        mainForm.reportValidity();
+                        return; // Stop, jangan tampilkan modal
+                    }
+
+                    // 2. Jika valid, hentikan submit asli dan tampilkan modal
+                    e.preventDefault();
+                    showModal('Perbarui');
+                });
+            }
+
 
             if (btnSelesaikan) {
                 btnSelesaikan.addEventListener('click', (e) => { e.preventDefault(); showModal('Diselesaikan Manual'); });
@@ -431,49 +463,85 @@
                 location.reload(); // Reload halaman setelah sukses
             });
 
-            // Logic Fetch/Submit (Gabungan)
+    // Logic Fetch/Submit (Gabungan)
             modalConfirm.addEventListener('click', function () {
                 if (!statusToUpdate) return;
                 
                 const alasanValue = alasanInput.value;
+
+                // --- LOGIKA 1: SELESAIKAN MANUAL (BUTUH ALASAN) ---
                 if (statusToUpdate === 'Diselesaikan Manual' && !alasanValue.trim()) {
                     hideModal();
-                    // Gunakan response modal error
                     setTimeout(() => showResponse('error', 'Gagal!', 'Wajib mengisi alasan penyelesaian manual!'), 350);
                     return;
                 }
-                
+
+                // Siapkan URL dan Body Data
+                let fetchUrl = `/pic/penugasan-perjadin/${perjalananId}/status`;
+                let fetchMethod = 'PATCH';
+                let fetchBody = JSON.stringify({ status: statusToUpdate, alasan: alasanValue });
+                let fetchHeaders = { 
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json', 
+                    'X-CSRF-TOKEN': csrfToken 
+                };
+
+                // --- LOGIKA 2: PERBARUI (FORM DATA) ---
+                if (statusToUpdate === 'Perbarui') {
+                    // Gunakan URL dari action form
+                    fetchUrl = mainForm.action;
+                    
+                    // Gunakan FormData untuk menangani File Upload & Input
+                    const formData = new FormData(mainForm);
+                    
+                    // Metode tetap POST di fetch, karena Laravel membaca '_method': 'PATCH' dari dalam FormData
+                    fetchMethod = 'POST'; 
+                    
+                    // Body menggunakan formData, Header Content-Type dihapus agar browser set otomatis boundary-nya
+                    fetchBody = formData;
+                    fetchHeaders = {
+                        'Accept': 'application/json', // Penting agar Laravel membalas JSON jika ada error validasi
+                        'X-CSRF-TOKEN': csrfToken
+                    };
+                }
+
+                // --- EKSEKUSI FETCH (BERLAKU UNTUK SEMUA: UPDATE, SELESAI, BATAL) ---
                 modalConfirm.textContent = 'Memproses...';
                 modalConfirm.disabled = true;
 
-                fetch(`/pic/penugasan-perjadin/${perjalananId}/status`, {
-                    method: 'PATCH',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Accept': 'application/json', 
-                        'X-CSRF-TOKEN': csrfToken 
-                    },
-                    body: JSON.stringify({ status: statusToUpdate, alasan: alasanValue })
+                fetch(fetchUrl, {
+                    method: fetchMethod,
+                    headers: fetchHeaders,
+                    body: fetchBody
                 })
                 .then(async res => {
                     const text = await res.text();
                     let json = null;
                     try { json = text ? JSON.parse(text) : null; } catch(e) {}
                     
-                    if (!res.ok) throw new Error((json && json.message) ? json.message : 'Gagal memperbarui status');
+                    if (!res.ok) {
+                        // Jika error validasi Laravel (422)
+                        if (res.status === 422 && json && json.errors) {
+                             // Ambil error pertama untuk ditampilkan
+                             const firstError = Object.values(json.errors)[0][0];
+                             throw new Error(firstError);
+                        }
+                        throw new Error((json && json.message) ? json.message : 'Gagal memproses permintaan');
+                    }
                     return json;
                 })
                 .then(data => {
                     hideModal();
                     setTimeout(() => {
-                        showResponse('success', 'Berhasil!', data?.message || 'Status berhasil diperbarui!');
+                        const successMsg = data?.message || (statusToUpdate === 'Perbarui' ? 'Data berhasil diperbarui!' : 'Status berhasil diperbarui!');
+                        showResponse('success', 'Berhasil!', successMsg);
                     }, 350);
                 })
                 .catch(err => {
                     console.error(err);
                     hideModal();
                     setTimeout(() => {
-                        showResponse('error', 'Error!', err.message || 'Terjadi kesalahan saat memperbarui status');
+                        showResponse('error', 'Gagal!', err.message || 'Terjadi kesalahan sistem');
                     }, 350);
                     modalConfirm.textContent = 'Ya';
                     modalConfirm.disabled = false;
