@@ -14,7 +14,12 @@
         <span class="px-4 py-2 -mt-8 {{ $isSelesai ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }} rounded-lg font-bold text-sm border">
             Status: {{ $statusText }}
         </span>
-            <x-back-button />
+            <div class="flex justify-end mb-8">
+                <a href="{{ url('/ppk/pelaporan')}}" 
+                class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
 
     </div>
