@@ -1,12 +1,13 @@
-<footer class="relative bg-footer-pattern bg-[length:100%_100%] bg-no-repeat text-white w-full">
+```html
+<footer id="mainFooter"
+    class="relative w-full pl-0 md:pl-[60px] bg-footer-pattern bg-[length:100%_100%] bg-no-repeat text-white transition-all duration-300 ease-in-out z-40">
     <div class="relative max-w-7xl mx-auto px-6 py-12 md:py-20">
         <div class="flex flex-col md:flex-row justify-between gap-8 md:gap-12">
 
             <!-- Logo Section -->
             <div class="flex flex-col items-center md:items-start md:w-auto -mt-10">
                 <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 items-center">
-                    <img src="{{ asset('img/logo_kementerian.png') }}" 
-                        alt="Logo Kementerian" 
+                    <img src="{{ asset('img/logo_kementerian.png') }}" alt="Logo Kementerian"
                         class="w-24 h-24 md:w-32 md:h-32">
 
                     <div class="flex flex-col leading-tight">
@@ -19,9 +20,7 @@
                 </div>
 
                 <div class="flex justify-center md:justify-start mt-6 md:mt-8">
-                    <img src="{{ asset('img/logo_berakhlak.webp') }}" 
-                        alt="Logo BerAKHLAK" 
-                        class="w-auto h-20 md:h-24">
+                    <img src="{{ asset('img/logo_berakhlak.webp') }}" alt="Logo BerAKHLAK" class="w-auto h-20 md:h-24">
                 </div>
             </div>
 
@@ -29,16 +28,17 @@
             <div class="flex flex-col md:w-auto -mt-10">
                 <h3 class="text-sm font-semibold mb-4">Itjen Kemendesa PDT</h3>
                 <ul class="space-y-3 text-gray-200 text-sm">
-                    <li class="flex items-start gap-3"> 
+                    <li class="flex items-start gap-3">
                         <i class="fa-solid fa-location-dot w-5 mt-1 flex-shrink-0"></i>
-                        <span class="text-xs">Jalan TMP Kalibata Nomor 17<br>Jakarta Selatan, Daerah Khusus Jakarta</span>
+                        <span class="text-xs">Jalan TMP Kalibata Nomor 17<br>Jakarta Selatan, Daerah Khusus
+                            Jakarta</span>
                     </li>
                     <li class="flex items-center gap-3">
                         <i class="fa-solid fa-phone w-5 flex-shrink-0"></i>
                         <span class="text-xs">021-7989925</span>
                     </li>
                     <li class="flex items-center gap-3">
-                        <i class="fa-solid fa-fax w-5 flex-shrink-0"></i> 
+                        <i class="fa-solid fa-fax w-5 flex-shrink-0"></i>
                         <span class="text-xs">021-7974488</span>
                     </li>
                     <li class="flex items-center gap-3">
@@ -65,7 +65,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="flex items-center gap-3 hover:text-white transition-colors"> 
+                        <a href="#" class="flex items-center gap-3 hover:text-white transition-colors">
                             <i class="fa-brands fa-tiktok w-5 text-lg flex-shrink-0"></i>
                             <span>@itjenkemendespdt</span>
                         </a>
@@ -88,9 +88,9 @@
 
         <!-- Copyright -->
         <div class="absolute bottom-3 left-0 right-0 flex items-center justify-end text-gray-200 text-xs">
-        <div class="flex items-center gap-3 w-full">
-            <div class="flex-grow border-t border-white-500/60"></div>
-            <span>Hak Cipta © - Politeknik Statistika STIS 2025</span>
+            <div class="flex items-center gap-3 w-full">
+                <div class="flex-grow border-t border-white-500/60"></div>
+                <span>Hak Cipta © - Politeknik Statistika STIS 2025</span>
+            </div>
         </div>
-    </div>
 </footer>
