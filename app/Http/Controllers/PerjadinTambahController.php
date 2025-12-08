@@ -129,7 +129,9 @@ class PerjadinTambahController extends Controller
                     [$pegawai['nip']],
                     [
                         'lokasi' => $perjalanan->tujuan,
-                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y')
+                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y'),
+                        // [TAMBAHAN] Wajib ada agar Controller tahu ID perjalanan untuk email
+                        'id_perjadin' => $perjalanan->id 
                     ],
                     [
                         'action_url' => '/perjalanan/' . $perjalanan->id
