@@ -288,14 +288,14 @@
         </div>
 
         <!-- 2. URAIAN -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isReadOnly ? 'opacity-75 pointer-events-none' : '' }}">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 {{ $isReadOnly ? 'opacity-75' : '' }}">
             <h2 class="text-xl font-bold text-gray-800 mb-4"> Uraian Kegiatan</h2>
             <form action="{{ route('perjalanan.storeUraian', $perjalanan->id) }}" method="POST">
                 @csrf
                 <textarea 
                     name="uraian" 
                     rows="5" 
-                    class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 focus:ring-blue-500 focus:border-blue-500 @if($isReadOnly) bg-gray-100 text-gray-500 cursor-not-allowed @endif" 
+                    class="w-full border-gray-300 rounded-xl shadow-sm text-sm p-4 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'overflow-y-auto max-h-64 bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}" 
                     placeholder="Ceritakan aktivitas secara detail (min. 100 kata)..." 
                     {{ $isReadOnly ? 'disabled readonly' : '' }}
                 >{{ old('uraian', $laporanSaya->uraian ?? '') }}</textarea>
@@ -318,6 +318,7 @@
                 @endif
             </form>
         </div>
+
 
         <!-- 3. SELESAI -->
         @if(!$isMyTaskFinished)

@@ -16,7 +16,12 @@
             <span class="px-4 py-2 -mt-8 {{ $statusText == 'Perlu Revisi' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200' }} rounded-lg font-bold text-sm border">
                 Status: {{ $statusText }}
             </span>
-            <x-back-button />
+            <div class="flex justify-end mb-8">
+                <a href="{{ url('pic/pelaporan-keuangan') }}" 
+                class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -208,7 +213,7 @@
 
         <!-- FOOTER ACTION -->
         @if(!$isReadOnly)
-        <div class="sticky bottom-4 z-40 mt-8">
+        <div class="sticky bottom-4 z-40 mt-5">
             <div class="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 flex justify-between items-center max-w-4xl mx-auto">
                 <div class="text-sm text-gray-600">
                     Klik simpan untuk merekam semua perubahan di atas.
@@ -224,7 +229,7 @@
 
     <!-- AREA KIRIM KE PPK -->
     @if(!$isReadOnly)
-    <div class="mt-12 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 text-center">
+    <div class="mt-5 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 text-center">
         <h3 class="text-lg font-bold text-gray-800 mb-2">Finalisasi & Kirim</h3>
         <p class="text-sm text-gray-600 mb-6 max-w-2xl mx-auto">
             Jika seluruh data keuangan pegawai telah diinput dan disimpan, silakan kirim ke PPK. <br>

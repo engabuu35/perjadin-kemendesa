@@ -6,54 +6,103 @@
 <main class="transition-all duration-300 ml-0 sm:ml-[60px] min-h-screen">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
-        <!-- Header + Search + Button Tambah -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div class="flex flex-col gap-0.5 mb-1">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            
+            {{-- Judul dengan Garis Bawah (Sesuai Request) --}}
+             <div class="flex flex-col gap-0.5 mb-1">
             <x-page-title 
             title="Penugasan Perjalanan Dinas"
             subtitle="Kelola perjalanan dinas pegawai: tambah, edit, selesaikan manual, atau batalkan." />
         </div>   
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <form action="{{ route('pic.penugasan') }}" method="GET" class="mr-3 w-full sm:w-auto">
-                    <div class="flex items-center gap-2">
-                        <input type="search" name="q" value="{{ $q ?? '' }}" placeholder="Cari nomor surat atau tujuan..." class="px-3 py-2 border rounded-lg text-sm w-full sm:w-64">
-                        <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">Cari</button>
-                    </div>
-                </form>
 
-                <a href="{{ route('pic.penugasan.create') }}"
-                class="px-5 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
-                    + Tambah
-                </a>
-            </div>
+            <a href="{{ route('pic.penugasan.create') }}"
+               class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>Tambah Penugasan</span>
+            </a>
         </div>
 
-        <!-- Daftar Kartu Perjalanan -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 class="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2 border-b pb-2">
+                <i class="fa-solid fa-filter text-blue-600"></i> Filter Data
+            </h3>
+            
+            <form action="{{ route('pic.penugasan') }}" method="GET">
+                {{-- Jaga input search jika ada --}}
+                @if(request('q'))
+                    <input type="hidden" name="q" value="{{ request('q') }}">
+                @endif
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    
+                    {{-- Input Pencarian --}}
+                    <div class="md:col-span-5">
+                        <label for="q_input" class="block text-sm font-semibold text-gray-600 mb-1">Cari Surat / Tujuan</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" 
+                                   name="q" 
+                                   id="q_input"
+                                   value="{{ $q ?? '' }}" 
+                                   class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" 
+                                   placeholder="Nomor Surat atau Kota Tujuan...">
+                        </div>
+                    </div>
+
+                    {{-- Dropdown Status --}}
+                    <div class="md:col-span-4">
+                        <label for="status" class="block text-sm font-semibold text-gray-600 mb-1">Status Perjadin</label>
+                        <select name="status" id="status" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition cursor-pointer">
+                            <option value="">-- Semua Status --</option>
+                            @foreach($allStatus as $st)
+                                <option value="{{ $st->id }}" {{ (isset($statusFilter) && $statusFilter == $st->id) ? 'selected' : '' }}>
+                                    {{ $st->nama_status }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Tombol Aksi --}}
+                    <div class="md:col-span-3 flex gap-2">
+                        {{-- Tombol Terapkan (Warna Senada / Biru) --}}
+                        <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg transition shadow-sm">
+                            Terapkan
+                        </button>
+                        
+                        {{-- Tombol Reset --}}
+                        <a href="{{ route('pic.penugasan') }}" class="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition text-center" title="Reset Filter">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
         <div class="space-y-6">
             @forelse ($penugasans as $perjalanan)
                 @php
-                    // preferensi: gunakan relasi status jika tersedia
+                    // Logika Status & Warna (Bawaan Kode Asli)
                     $statusName = $perjalanan->status->nama_status ?? null;
                     $statusId = intval($perjalanan->id_status ?? 0);
 
-                    // jika PerjalananDinas model menyediakan accessor status_class/status_name gunakan itu
                     if (isset($perjalanan->status_name) && $perjalanan->status_name) {
                         $statusName = $perjalanan->status_name;
                     }
                     if (isset($perjalanan->status_class) && $perjalanan->status_class) {
                         $statusClass = $perjalanan->status_class;
                     } else {
-                        // fallback mapping berdasarkan id_status
                         $map = [
-                            1 => 'bg-red-500',    // contoh: Menunggu / Draft
-                            2 => 'bg-yellow-500', // contoh: Sedang Berlangsung
-                            3 => 'bg-blue-500',
+                            1 => 'bg-red-500',    // Draft / Menunggu
+                            2 => 'bg-yellow-500', // Sedang Berlangsung
+                            3 => 'bg-blue-500',   
                             4 => 'bg-green-600',  // Selesai
+                            7 => 'bg-purple-600', // Manual (Opsional)
                         ];
                         $statusClass = $map[$statusId] ?? 'bg-gray-500';
                     }
 
-                    // default label jika kosong
                     $statusLabel = $statusName ?? match($statusId) {
                         1 => 'Menunggu',
                         2 => 'Sedang Berlangsung',
@@ -61,12 +110,10 @@
                         default => 'Draft'
                     };
 
-                    // gunakan tujuan sebagai lokasi jika kolom lokasi tidak ada
                     $lokasi = $perjalanan->tujuan ?? ($perjalanan->lokasi ?? '-');
-                    // catatan: cek beberapa kemungkinan field
-                    $catatan = $perjalanan->uraian ?? $perjalanan->hasil_perjadin ?? $perjalanan->catatan ?? '-';
                 @endphp
 
+                {{-- KARTU ASLI (BORDER-T-4) --}}
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
                     <div class="border-t-4 border-blue-600 p-6">
                         <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -131,71 +178,51 @@
                         </div>
                     @else
                         <div class="bg-green-50 px-5 py-3 border-t border-green-200">
+                            <p class="text-green-700 font-semibold flex items-center gap-2 mb-1 text-sm">
+                                <i class="fa-solid fa-circle-exclamation w-3 text-center text-xs"></i>
+                                <span>Info</span>
+                            </p>
                             <p class="text-green-700 text-xs">Semua data lengkap.</p>
                         </div>
                     @endif
-
-
                 </div>
             @empty
                 <x-empty-state 
                     icon="fa-folder-open"
-                    title="Belum ada Penugasan Perjalanan Dinas"
-                    message="Saat ini tidak ada penugasan perjalanan dinas aktif."
+                    title="Data Tidak Ditemukan"
+                    message="Tidak ada data penugasan yang sesuai dengan filter atau pencarian Anda."
                 />
             @endforelse
         </div>
 
-        <!-- pagination -->
         @if ($penugasans->hasPages())
-            <div class="mt-6 flex justify-center">
-
+            <div class="mt-8 flex justify-center">
+                {{-- Gunakan appends agar filter tidak hilang saat pindah halaman --}}
                 <nav class="inline-flex items-center bg-blue-50 border border-blue-200 rounded-xl shadow-sm overflow-hidden">
-
-                    {{-- Previous --}}
                     @if ($penugasans->onFirstPage())
                         <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❮</span>
                     @else
-                        <a href="{{ $penugasans->previousPageUrl() }}"
-                        class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                            ❮
-                        </a>
+                        <a href="{{ $penugasans->appends(request()->query())->previousPageUrl() }}"
+                           class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">❮</a>
                     @endif
 
-                    {{-- Page Numbers --}}
                     @foreach ($penugasans->toArray()['links'] as $link)
-
-                        {{-- Skip "Previous" & "Next" from Laravel --}}
-                        @if ($loop->first || $loop->last)
-                            @continue
-                        @endif
-
-                        {{-- Active --}}
+                        @if ($loop->first || $loop->last) @continue @endif
                         @if ($link['active'])
-                            <span class="px-4 py-2 bg-blue-600 text-white font-semibold">
-                                {{ $link['label'] }}
-                            </span>
+                            <span class="px-4 py-2 bg-blue-600 text-white font-semibold">{{ $link['label'] }}</span>
                         @else
-                            <a href="{{ $link['url'] }}"
-                            class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                                {{ $link['label'] }}
-                            </a>
+                            <a href="{{ $link['url'] . (strpos($link['url'], '?') ? '&' : '?') . http_build_query(request()->except(['page'])) }}"
+                               class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">{{ $link['label'] }}</a>
                         @endif
-
                     @endforeach
 
-                    {{-- Next --}}
                     @if ($penugasans->hasMorePages())
-                        <a href="{{ $penugasans->nextPageUrl() }}"
-                        class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">
-                            ❯
-                        </a>
+                        <a href="{{ $penugasans->appends(request()->query())->nextPageUrl() }}"
+                           class="px-4 py-2 text-blue-600 hover:bg-blue-100 transition">❯</a>
                     @else
                         <span class="px-4 py-2 text-blue-300 cursor-not-allowed">❯</span>
                     @endif
-
                 </nav>
-
             </div>
         @endif
     </div>
