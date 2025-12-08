@@ -228,6 +228,18 @@
                     content.classList.add("ml-[210px]");
                 }
             }
+
+            // Footer Adjustment
+            const footer = document.getElementById("mainFooter");
+            if (footer && window.innerWidth >= 640) {
+                if (sidebar.classList.contains('active')) {
+                    footer.classList.remove("md:pl-[60px]");
+                    footer.classList.add("md:pl-[210px]");
+                } else {
+                    footer.classList.remove("md:pl-[210px]");
+                    footer.classList.add("md:pl-[60px]");
+                }
+            }
         }
 
         // Profile popup (Desktop Sidebar)
