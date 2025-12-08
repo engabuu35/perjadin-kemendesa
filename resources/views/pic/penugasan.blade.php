@@ -131,6 +131,10 @@
                         </div>
                     @else
                         <div class="bg-green-50 px-5 py-3 border-t border-green-200">
+                            <p class="text-green-700 font-semibold flex items-center gap-2 mb-1 text-sm">
+                                <i class="fa-solid fa-circle-exclamation w-3 text-center text-xs"></i>
+                                <span>Info</span>
+                            </p>
                             <p class="text-green-700 text-xs">Semua data lengkap.</p>
                         </div>
                     @endif
