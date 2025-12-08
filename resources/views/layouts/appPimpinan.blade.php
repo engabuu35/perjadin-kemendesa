@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 </head>
-<body class= "flex flex-col min-h-screen">
+
+<body class="flex flex-col min-h-screen">
     @include('partials.navbar')
 
     <div class="flex flex-1">
@@ -26,5 +28,7 @@
     @include('partials.footer')
     @include('partials.mainBackground')
     <x-floating-button />
+    @include('partials.logout-modal')
 </body>
+
 </html>

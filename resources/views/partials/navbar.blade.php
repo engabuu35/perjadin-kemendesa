@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Navbar - SIPERDIN</title>
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <style>
         body {
             font-family: sans-serif;
@@ -15,34 +16,34 @@
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="2" fill="%23d0d0dc" opacity="0.3"/></svg>');
             padding-top: 35px;
         }
-        
+
         /* Animasi untuk hamburger menu */
         .menu-icon {
             transition: all 0.3s ease;
             border-radius: 8px;
             padding: 6px;
         }
-        
+
         .menu-icon:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
-        
+
         .menu-icon i {
             transition: all 0.3s ease;
             display: inline-block;
         }
-        
+
         /* Hover effect untuk logo dengan gradient shimmer */
         .logo {
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             background-size: 200% 100%;
             background-position: -100% 0;
             -webkit-background-clip: text;
             background-clip: text;
         }
-        
+
         .logo:hover {
             letter-spacing: 2px;
             transform: scale(1.05) translateY(-2px);
@@ -50,23 +51,28 @@
             background-position: 100% 0;
             animation: shimmer 1.5s ease-in-out;
         }
-        
+
         @keyframes shimmer {
-            0% { background-position: -100% 0; }
-            100% { background-position: 200% 0; }
+            0% {
+                background-position: -100% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
         }
-        
+
         /* Hover effect untuk user info dengan cahaya */
         .user-info span {
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             background-size: 200% 100%;
             background-position: -100% 0;
             -webkit-background-clip: text;
             background-clip: text;
         }
-        
+
         .user-info:hover span {
             letter-spacing: 1.5px;
             transform: scale(1.05) translateY(-2px);
@@ -76,6 +82,7 @@
         }
     </style>
 </head>
+
 <body>
 
     @php
@@ -95,9 +102,10 @@
     <div class="header fixed top-0 left-0 right-0 z-[100] flex justify-between items-center 
                 bg-[#2954B0] text-white 
                 py-[8px] px-3 md:px-[12px] rounded-b-[15px] shadow-[0_6px_15px_rgba(0,0,0,0.2)]">
-        
+
         <div class="header-left flex items-center gap-[10px]">
-            <div class="menu-icon text-lg cursor-pointer transition-all duration-300 hover:text-gray-200" onclick="toggleSidebar()">
+            <div class="menu-icon text-lg cursor-pointer transition-all duration-300 hover:text-gray-200"
+                onclick="toggleSidebar()" role="button" aria-label="Toggle Sidebar" tabindex="0">
                 <i class="fa-solid fa-bars"></i>
             </div>
             <div class="logo font-bold italic tracking-[0.5px] text-base md:text-xl">
@@ -111,27 +119,29 @@
             </span>
             <!-- Avatar Mobile (hanya muncul di mobile) -->
             <div class="relative sm:hidden">
-                <button id="mobileAvatarBtn"
+                <button id="mobileAvatarBtn" aria-label="Menu Profil Mobile"
                     class="w-9 h-9 rounded-full overflow-hidden bg-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110">
                     @if(Auth::user()->foto_profil)
-                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" class="w-full h-full object-cover">
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" class="w-full h-full object-cover"
+                            alt="Foto Profil Mobile">
                     @else
                         <i class="fas fa-user text-white text-lg"></i>
                     @endif
                 </button>
 
                 <!-- POPUP (ambil dari komponenmu) -->
-                <div id="mobileProfilePopup" class="absolute right-0 top-[50px] bg-white text-gray-800 rounded-xl shadow-lg py-1.5 w-[160px] opacity-0 invisible transition-all duration-300 z-[9999]">
+                <div id="mobileProfilePopup"
+                    class="absolute right-0 top-[50px] bg-white text-gray-800 rounded-xl shadow-lg py-1.5 w-[160px] opacity-0 invisible transition-all duration-300 z-[9999]">
 
                     <!-- Profil Saya -->
                     <a href="{{ route('profile') }}"
-                    class="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
+                        class="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
                         <i class="fas fa-user"></i>
                         <span>Profil Saya</span>
                     </a>
 
                     <!-- Logout -->
-                    <button id="popupLogout"
+                    <button id="mobilePopupLogout"
                         class="flex items-center gap-2 w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 rounded-lg">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
@@ -148,15 +158,15 @@
             const overlay = document.querySelector('.overlay');
             const menuIcon = document.querySelector('.menu-icon');
             const iconElement = menuIcon.querySelector('i');
-            
+
             // Toggle sidebar & overlay
             if (sidebar && overlay) {
                 sidebar.classList.toggle('active');
                 overlay.classList.toggle('active');
             }
-            
+
             menuIcon.classList.toggle('active');
-            
+
             // Toggle icon antara bars dan bars-staggered
             if (menuIcon.classList.contains('active')) {
                 iconElement.classList.remove('fa-bars');
@@ -199,7 +209,7 @@
                 mobileLogout.addEventListener("click", (e) => {
                     e.stopPropagation();
                     mobilePopup.classList.add("opacity-0", "invisible");
-                    
+
                     const logoutModal = document.getElementById("logoutModal");
                     if (logoutModal) {
                         logoutModal.classList.remove("opacity-0", "invisible");
@@ -210,4 +220,5 @@
         });
     </script>
 </body>
+
 </html>

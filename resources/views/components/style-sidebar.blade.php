@@ -78,20 +78,23 @@
         }
 
         .sidebar-menu a:hover::before {
-            width: 50px;
-            height: 50px;
+            width: 38px;
+            height: 38px;
             opacity: 1;
         }
         
         .sidebar-menu a:active::before {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             opacity: 1;
         }
 
         .sidebar-menu a.active::before {
             content: "";
             position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             width: 38px;
             height: 38px;
             background: #ffffffd0;

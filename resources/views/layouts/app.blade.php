@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
-<body class= "flex flex-col min-h-screen">
+
+<body class="flex flex-col min-h-screen">
     @include('partials.navbar')
 
     <div class="flex flex-1">
@@ -26,5 +28,9 @@
 
     <x-floating-button />
 
+    <!-- Tambahkan Modal Konfirmasi Logout yang hilang -->
+    @include('partials.logout-modal')
+
 </body>
+
 </html>
