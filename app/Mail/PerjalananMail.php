@@ -36,14 +36,12 @@ class PerjalananMail extends Mailable
         $this->perjalananUrl = $perjalananUrl ?? url('/perjalanan/'.$perjalanan->id);
 
         // penerima nama jika dikirim, atau coba ambil dari relasi/kolom
-        $this->penerimaNama = $penerimaNama
-            ?? $perjalanan->penerima_nama
-            ?? $perjalanan->user->nama ?? null;
+        $this->penerimaNama = $penerimaNama ?? 'Pegawai';
 
         // penetap: jika diberikan gunakan, kalau tidak coba ambil relasi user via id_pembuat
         $this->penetapName = $penetapName
-            ?? (isset($perjalanan->id_pembuat) ? User::where('nip', $perjalanan->id_pembuat)->value('nama') : null)
-            ?? $perjalanan->penetap_nama ?? null;
+            ?? ($perjalanan->pembuat ? $perjalanan->pembuat->nama : null)
+            ?? 'Pejabat Pembuat Komitmen';
 
         // tanggal: aman parse dengan Carbon bila ada
         $this->tglMulaiFormatted = $perjalanan->tgl_mulai
@@ -70,7 +68,7 @@ class PerjalananMail extends Mailable
     public function build()
     {
         return $this->subject('Notifikasi Penugasan Perjalanan Dinas')
-                    ->view('emails.perjalanan')
+                    ->view('emails.perjadin-email')
                     ->with([
                         'logoUrl' => $this->logoUrl,
                         'penerimaNama' => $this->penerimaNama,
