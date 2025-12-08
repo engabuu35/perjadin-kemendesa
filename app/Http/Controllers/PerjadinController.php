@@ -25,13 +25,24 @@ class PerjadinController extends Controller
     public function index(Request $request)
     {
         $q = $request->query('q');
+        // Ella
+        $statusFilter = $request->query('status');
+        $allStatus = DB::table('statusperjadin')->orderBy('nama_status', 'asc')->get();
 
-        $penugasans = PerjalananDinas::when($q, function ($qr) use ($q) {
-                $qr->where('nomor_surat', 'like', "%$q%")
-                   ->orWhere('tujuan', 'like', "%$q%");
+        $penugasans = PerjalananDinas::query()
+            ->when($q, function ($qr) use ($q) {
+                $qr->where(function($sub) use ($q) {
+                    $sub->where('nomor_surat', 'like', "%$q%")
+                        ->orWhere('tujuan', 'like', "%$q%");
+                });
+            })
+            // Tambahkan Filter Status disini
+            ->when($statusFilter, function ($qr) use ($statusFilter) {
+                $qr->where('id_status', $statusFilter);
             })
             ->orderBy('tgl_mulai', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $missingUraian = [];
         $suratMissing  = [];
@@ -78,7 +89,7 @@ class PerjadinController extends Controller
         }
 
         return view('pic.penugasan', compact(
-            'penugasans', 'q', 'missingUraian', 'suratMissing', 'conflicts'
+            'penugasans', 'q', 'missingUraian', 'suratMissing', 'conflicts', 'allStatus', 'statusFilter'
         ));
     }
 

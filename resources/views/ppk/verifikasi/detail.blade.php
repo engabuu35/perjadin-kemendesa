@@ -372,7 +372,7 @@
 
         <!-- FORM TOLAK (Hidden by default) -->
         <div id="reject-section" class="hidden mt-6 p-4 bg-red-50 rounded-xl border border-red-200">
-            <form action="{{ route('ppk.verifikasi.reject', $perjalanan->id) }}" method="POST">
+            <form id="rejectForm" action="{{ route('ppk.verifikasi.reject', $perjalanan->id) }}" method="POST">
                 @csrf
                 <label class="block text-md font-bold text-red-700 mb-2">Alasan Penolakan / Catatan Revisi:</label>
                 <textarea name="alasan_penolakan" rows="3" class="w-full text-sm border-red-300 rounded-lg focus:ring-red-500 mb-3" placeholder="Contoh: Nominal Tiket Pesawat Ketua tidak sesuai bukti..." required></textarea>
@@ -417,10 +417,86 @@
     approveModal.onclick = closeApproveModal;
     approveBox.onclick = (e) => e.stopPropagation();
 
-    document.getElementById("confirmApprove").onclick = () => {
+document.getElementById("confirmApprove").onclick = () => {
+    closeApproveModal(); 
+    setTimeout(() => {
+        showSuccessPopup(
+            "Berhasil!",
+            "Laporan keuangan telah disetujui dan pembayaran selesai."
+        );
+    }, 250);
+    document.getElementById("closeSuccessBtn").onclick = () => {
         document.getElementById("form-approve").submit();
     };
+};
+
+    function showSuccessPopup(title, message) {
+    const modal = document.getElementById("successModal");
+    const box   = document.getElementById("successBox");
+
+    document.getElementById("successTitle").innerText = title;
+    document.getElementById("successMessage").innerText = message;
+
+    modal.classList.remove("opacity-0", "invisible");
+    modal.classList.add("opacity-100");
+
+    setTimeout(() => {
+        box.classList.remove("scale-95");
+        box.classList.add("scale-100");
+    }, 20);
+
+    document.getElementById("closeSuccessBtn").onclick = () => {
+        modal.classList.add("opacity-0", "invisible");
+        setTimeout(() => {
+            modal.classList.remove("opacity-100");
+        }, 350);
+    };
+
+    modal.onclick = () => {
+        modal.classList.add("opacity-0", "invisible");
+        setTimeout(() => {
+            modal.classList.remove("opacity-100");
+        }, 200);
+    };
+
+    box.onclick = (e) => e.stopPropagation();
+}
+document.getElementById("rejectForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    showSuccessPopup(
+        "Berhasil!",
+        "Revisi berhasil dikirim kembali ke PIC."
+    );
+
+    document.getElementById("closeSuccessBtn").onclick = () => {
+        e.target.submit();
+    };
+});
+
 </script>
+<!-- GLOBAL SUCCESS MODAL -->
+<div id="successModal" 
+    class="fixed inset-0 bg-black/50 flex items-center justify-center opacity-0 invisible transition-opacity duration-300 z-[9999]">
+    
+    <div id="successBox"
+        class="bg-white rounded-lg shadow-lg w-[90%] max-w-sm p-6 text-center transform scale-95 transition-transform duration-300">
+
+        <div class="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center animate-bounce">
+            <i class="fas fa-check text-green-600 text-3xl"></i>
+        </div>
+
+        <h3 class="text-xl font-bold mb-2 text-gray-800" id="successTitle">Berhasil!</h3>
+        <p class="text-gray-600 mb-6" id="successMessage">
+            Laporan keuangan telah berhasil dikirim.
+        </p>
+
+        <button id="closeSuccessBtn"
+            class="w-full py-3 px-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-md">
+            OK
+        </button>
+    </div>
+</div>
 
 </main>
 @endsection
