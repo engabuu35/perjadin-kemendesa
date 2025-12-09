@@ -34,7 +34,7 @@
             <li class="my-1.5">
                 <a href="{{ route('pages.beranda') }}"
                     class="flex items-center py-[10px] px-[18px] text-white no-underline 
-                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pages.beranda', 'perjalanan.detail') ? 'active' : '' }}">
+                                transition-colors duration-300 gap-[10px] text-base whitespace-nowrap {{ request()->routeIs('pages.beranda') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-home"></i>
                     </span>
@@ -46,7 +46,7 @@
             <li class="my-1.5">
                 <a href="{{ route('pimpinan.monitoring') }}" class="flex items-center py-[10px] px-[18px] text-white no-underline
                         transition-colors duration-300 gap-[10px] text-base whitespace-nowrap
-                        {{ request()->routeIs('pimpinan.monitoring', 'pimpinan.detail') ? 'active' : '' }}">
+                        {{ request()->routeIs('pimpinan.monitoring') ? 'active' : '' }}">
                     <span class="icon w-[22px] h-[22px] flex items-center justify-center text-base">
                         <i class="fa-solid fa-desktop"></i>
                     </span>
