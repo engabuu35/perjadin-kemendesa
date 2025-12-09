@@ -66,8 +66,8 @@
 
                     {{-- Tombol Aksi --}}
                     <div class="md:col-span-3 flex gap-2">
-                        {{-- Tombol Terapkan (Warna Senada / Biru) --}}
-                        <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg transition shadow-sm">
+                        {{-- Tombol Terapkan  --}}
+                        <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-800 text-white font-semibold rounded-lg transition shadow-sm">
                             Terapkan
                         </button>
                         
@@ -109,6 +109,12 @@
                         4 => 'Selesai',
                         default => 'Draft'
                     };
+                    $badgeIcon = match (true) {
+                        str_contains($statusClass, 'red')    => 'fa-circle-exclamation',
+                        str_contains($statusClass, 'yellow') => 'fa-spinner animate-pulse',
+                        str_contains($statusClass, 'green')  => 'fa-circle-check',
+                        default                              => 'fa-circle',
+                    };
 
                     $lokasi = $perjalanan->tujuan ?? ($perjalanan->lokasi ?? '-');
                 @endphp
@@ -117,27 +123,29 @@
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
                     <div class="border-t-4 border-blue-600 p-6">
                         <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <div class="space-y-3">
-                                <h3 class="text-blue-700 font-bold text-lg tracking-wide">{{ $perjalanan->nomor_surat }}</h3>
+                            <div class="flex-1 space-y-3 min-w-0">
+                                <h3 class="text-blue-800 font-bold text-xl tracking-wide border-b-2 border-blue-200 pb-2 truncate w-full">{{ $perjalanan->nomor_surat }}</h3>
 
-                                <p class="flex items-center gap-2 text-gray-700 text-base">
+                                <p class="flex items-center gap-2 text-gray-700 text-md font-medium">
                                     <i class="fa-solid fa-map-marker-alt w-4 text-center text-gray-400"></i>
                                     <span>{{ $lokasi }}</span>
                                 </p>
-                                <p class="flex items-center gap-2 text-gray-700 text-base">
+                                <p class="flex items-center gap-2 text-gray-700 text-sm">
                                     <i class="fa-solid fa-calendar-days w-4 text-center text-gray-400"></i>
                                     <span>{{ \Carbon\Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') }}
                                         - {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}</span>
                                 </p>
                             </div>
 
-                            <div class="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
-                                <span class="item-center px-4 py-1.5 text-sm font-semibold text-white rounded-full {{ $statusClass }}">
+                            <div class="flex flex-col items-center gap-3 sm:min-w-[150px]">
+                                <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
+                                    <i class="fa-solid {{ $badgeIcon }} text-xs"></i>
                                     {{ $statusLabel }}
                                 </span>
 
-                                <a href="{{ route('pic.penugasan.edit', $perjalanan->id) }}" class="text-blue-600 hover:underline text-base font-medium mr-[30px]">
-                                    Lihat Detail
+                                <a href="{{ route('pic.penugasan.edit', $perjalanan->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold flex items-center gap-2 px-2 py-1 rounded hover:bg-blue-50">
+                                    <span>Lihat Detail</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </a>
                             </div>
                         </div>
