@@ -8,7 +8,7 @@
         
         <div class="mb-3 sm:mb-4">
             <x-page-title
-            title="Tabel Rekap Keuangan Perjalanan Dinas"
+            title="Tabel Rekap Keuangan"
             subtitle="Rekap perjalanan dinas yang sudah memiliki laporan keuangan final (SPM/SP2D rampung)." />
         </div>
 
