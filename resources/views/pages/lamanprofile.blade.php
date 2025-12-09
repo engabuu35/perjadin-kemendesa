@@ -3,7 +3,119 @@
 @section('content')
 {{-- Konten <main> dengan class="ml-[80px]" memberi ruang untuk sidebar --}}
 
-<main class="transition-all duration-300 ml-0 sm:ml-[60px]">
+<style>
+/* ============================================
+   MOBILE OPTIMIZATION (≤ 768px)
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* === MAIN WRAPPER === */
+    main {
+        padding: 0 !important;
+    }
+
+    /* === PAGE TITLE === */
+    .page-title h1,
+    .page-title h2,
+    .page-title-title {
+        font-size: 1.35rem !important;
+        line-height: 1.3 !important;
+        text-align: left !important;
+    }
+
+    .page-title-subtitle {
+        font-size: 0.85rem !important;
+        margin-top: 2px !important;
+        text-align: left !important;
+    }
+
+    /* === HEADER AREA === */
+    .mb-3.flex.items-center.justify-between {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    #toggleEditMode {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* === PROFILE LEFT CARD === */
+    .lg\:col-span-1 .bg-white {
+        padding: 16px !important;
+    }
+
+    .w-48.h-48 {
+        width: 150px !important;
+        height: 150px !important;
+        margin: 0 auto !important;
+    }
+
+    /* Username Heading */
+    .text-xl.font-bold {
+        font-size: 1.1rem !important;
+    }
+
+    /* Subtext (NIP) */
+    .text-sm.text-gray-500 {
+        font-size: 0.8rem !important;
+    }
+
+    /* === PROFILE INFO CARD (Right) === */
+    .lg\:col-span-2 .bg-white {
+        padding: 16px !important;
+    }
+
+    .lg\:col-span-2 h3 {
+        font-size: 1rem !important;
+        padding-bottom: 8px !important;
+    }
+
+    /* === FORM LABEL === */
+    label.text-sm {
+        font-size: 0.85rem !important;
+    }
+
+    /* === INPUTS === */
+    .edit-mode,
+    .view-mode {
+        padding: 10px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* === BUTTONS INSIDE CARD === */
+    #actionButtons {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    #actionButtons button {
+        width: 100% !important;
+        padding: 12px !important;
+    }
+
+    /* === MODAL === */
+    #modalContent {
+        width: 92% !important;
+        padding: 20px !important;
+    }
+    #actionButtons {
+        justify-content: center !important; /* center di mobile */
+        width: 100% !important;
+    }
+
+    #actionButtons button {
+        width: 100% !important; /* tombol full width */
+        justify-content: center !important;
+    }
+}
+
+</style>
+
+<main class="mt-[25px] sm:mt-0 pl-0 sm:pl-[80px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
     
         <!-- ALERT SECTION -->
