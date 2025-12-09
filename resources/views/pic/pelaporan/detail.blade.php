@@ -201,6 +201,20 @@
             @endforeach
         </div>
 
+        <!-- FOOTER ACTION -->
+        @if(!$isReadOnly)
+        <div class="sticky bottom-4 z-0 mt-5">
+            <div class="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 flex justify-between items-center max-w-8xl mx-auto">
+                <div class="text-sm text-gray-600">
+                    Klik simpan untuk merekam semua perubahan di atas.
+                </div>
+                <button type="submit" class="text-sm bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                   <i class="fa-solid fa-floppy-disk"></i> SIMPAN SEMUA DATA
+                </button>
+            </div>
+        </div>
+
+        @endif
         <!-- AREA CATATAN REVISI (PALING BAWAH) -->
         <div class="mt-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
             <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
@@ -210,21 +224,6 @@
                 class="w-full border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:ring-0 cursor-not-allowed {{ $perjalanan->catatan_penolakan ? 'border-red-300 bg-red-50 text-red-800' : '' }}"
                 placeholder="Tidak ada catatan revisi.">{{ $perjalanan->catatan_penolakan ?? '-' }}</textarea>
         </div>
-
-        <!-- FOOTER ACTION -->
-        @if(!$isReadOnly)
-        <div class="sticky bottom-4 z-40 mt-5">
-            <div class="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200 flex justify-between items-center max-w-4xl mx-auto">
-                <div class="text-sm text-gray-600">
-                    Klik simpan untuk merekam semua perubahan di atas.
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md transition transform hover:-translate-y-0.5 flex items-center gap-2">
-                   <i class="fa-solid fa-floppy-disk"></i> SIMPAN SEMUA DATA
-                </button>
-            </div>
-        </div>
-        @endif
-
     </form>
 
     <!-- AREA KIRIM KE PPK -->
@@ -233,10 +232,10 @@
         <h3 class="text-lg font-bold text-gray-800 mb-2">Finalisasi & Kirim</h3>
         <p class="text-sm text-gray-600 mb-6 max-w-2xl mx-auto">
             Jika seluruh data keuangan pegawai telah diinput dan disimpan, silakan kirim ke PPK. <br>
-            <span class="text-red-500 font-bold">Pastikan sudah klik "Simpan Semua Data" di atas sebelum mengirim!</span>
+            <span class="text-red-500 font-bold">Pastikan sudah klik "Simpan Semua Data" sebelum mengirim!</span>
         </p>
         <!-- Button untuk membuka modal -->
-        <button type="button" id="openSubmitModal" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-green-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
+        <button type="button" id="openSubmitModal" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-green-700 hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto">
             <i class="fa-solid fa-paper-plane"></i> KIRIM KE PPK
         </button>
 

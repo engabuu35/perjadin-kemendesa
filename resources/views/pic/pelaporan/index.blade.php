@@ -26,7 +26,7 @@
                             if($item->status_color == 'red') $colorClass = 'text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100';
                             if($item->status_color == 'blue') $colorClass = 'text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100';
                             if($item->status_color == 'yellow') $colorClass = 'text-yellow-600 bg-yellow-50 px-2 py-1 rounded border border-yellow-100';
-                            if($item->status_color == 'indigo') $colorClass = 'text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100';
+                            if($item->status_color == 'gray') $colorClass = 'text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-100';
                             if($item->status_color == 'green') $colorClass = 'text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100';
 
                             // LOGIKA KHUSUS MANUAL:
