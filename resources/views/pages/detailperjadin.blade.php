@@ -112,14 +112,8 @@
             </div>
         </div>
         
-        <!-- DIUBAH SUPAYA BALIK KE BERANDA SELALU -->
-        <!-- <x-back-button /> -->
-        <div class="flex justify-end mb-8">
-            <a href="{{ url('/beranda') }}" 
-            class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
-                <i class="fas fa-arrow-left text-lg"></i>
-            </a>
-        </div>
+        <x-back-button /> 
+
     </div>
 
     @if(session('success'))
@@ -553,16 +547,43 @@
                                 .then(d => {
                                     if(d.status === 'success') {
                                         Swal.fire({
-                                            icon: 'success',
-                                            title: 'Berhasil',
-                                            text: d.message,
-                                            confirmButtonText: 'OK'
+                                            html: `
+                                                <div class="flex flex-col items-center">
+                                                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                                        <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Berhasil!</h2>
+                                                    <p class="text-gray-600 text-center">${d.message}</p>
+                                                </div>
+                                            `,
+                                            showConfirmButton: false,
+                                            timer: 2000,
+                                            buttonsStyling: false,
+                                            customClass: {
+                                                popup: 'rounded-2xl p-6 shadow-lg'
+                                            }
                                         }).then(() => location.reload());
                                     } else {
                                         Swal.fire({
-                                            icon: 'error',
-                                            title: 'Gagal',
-                                            text: d.message || 'Terjadi kesalahan.',
+                                            html: `
+                                                <div class="flex flex-col items-center">
+                                                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                                        <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Gagal</h2>
+                                                    <p class="text-gray-600 text-center">${d.message || 'Terjadi kesalahan.'}</p>
+                                                </div>
+                                            `,
+                                            showCancelButton: false,
+                                            buttonsStyling: false,
+                                            customClass: {
+                                                popup: 'rounded-2xl p-6 shadow-lg',
+                                                confirmButton: 'bg-red-500 text-white font-medium py-2 px-6 rounded-lg hover:bg-red-600 transition'
+                                            },
                                             confirmButtonText: 'Tutup'
                                         }).then(() => {
                                             // Reset tombol jika gagal
@@ -575,9 +596,23 @@
                                 .catch(err => {
                                     console.error(err);
                                     Swal.fire({
-                                        icon: 'error',
-                                        title: 'Kesalahan',
-                                        text: 'Terjadi kesalahan koneksi.',
+                                        html: `
+                                            <div class="flex flex-col items-center">
+                                                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                                    <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                </div>
+                                                <h2 class="text-2xl font-bold text-gray-800 mb-2">Kesalahan</h2>
+                                                <p class="text-gray-600 text-center">Terjadi kesalahan koneksi.</p>
+                                            </div>
+                                        `,
+                                        showCancelButton: false,
+                                        buttonsStyling: false,
+                                        customClass: {
+                                            popup: 'rounded-2xl p-6 shadow-lg',
+                                            confirmButton: 'bg-red-500 text-white font-medium py-2 px-6 rounded-lg hover:bg-red-600 transition'
+                                        },
                                         confirmButtonText: 'Tutup'
                                     }).then(() => {
                                         btn.innerHTML = originalText;
@@ -903,11 +938,23 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // ⭐ JANGAN RELOAD - Mulai countdown langsung
             Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: res.message || 'Foto geotagging tersimpan.',
+                html: `
+                    <div class="flex flex-col items-center">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Berhasil!</h2>
+                        <p class="text-gray-600 text-center">${res.message || 'Foto geotagging tersimpan.'}</p>
+                    </div>
+                `,
                 timer: 2000,
-                showConfirmButton: false
+                showConfirmButton: false,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-2xl p-6 shadow-lg'
+                }
             }).then(() => {
                 // Matikan kamera dan reset UI
                 stopStream();
@@ -926,9 +973,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
             Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: (res && res.message) ? res.message : 'Gagal menyimpan foto.',
+                html: `
+                    <div class="flex flex-col items-center">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Gagal</h2>
+                        <p class="text-gray-600 text-center">${(res && res.message) ? res.message : 'Gagal menyimpan foto.'}</p>
+                    </div>
+                `,
+                showCancelButton: false,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-2xl p-6 shadow-lg',
+                    confirmButton: 'bg-red-500 text-white font-medium py-2 px-6 rounded-lg hover:bg-red-600 transition'
+                },
                 confirmButtonText: 'Tutup'
             });
         }
