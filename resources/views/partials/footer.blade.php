@@ -1,4 +1,55 @@
-```html
+<style>
+@media (max-width: 768px) {
+    #mainFooter {
+        background-image: url('/img/background-mobile.png') !important;
+        background-size: 100% 100%;
+        background-position: top center !important;
+        background-repeat: no-repeat !important;
+        background-color: #000 !important; /* optional */
+    }
+}
+
+@media (max-width: 768px) {
+    #mainFooter .-mt-10 {
+        margin-top: 0 !important;
+    }
+}
+@media (max-width: 768px) {
+    #mainFooter img.w-24,
+    #mainFooter img.h-24 {
+        width: 70px !important;
+        height: 70px !important;
+    }
+
+    #mainFooter h2 {
+        font-size: 1.4rem !important;
+        text-align: center;
+    }
+
+    #mainFooter p {
+        text-align: center;
+    }
+}
+@media (max-width: 768px) {
+    #mainFooter .absolute {
+    position: static !important;
+    margin-top: 10px !important;
+    margin-bottom: 20px;
+    }
+}
+@media (min-width: 769px) {
+    #mainFooter {
+        background-position: center calc(100% + 50px) !important;
+    }
+}
+@media (min-width: 769px) {
+    #mainFooter {
+        padding-top: 50px !important; /* sesuaikan angka */
+    }
+}
+
+
+</style>
 <footer id="mainFooter"
     class="relative w-full pl-0 md:pl-[60px] bg-footer-pattern bg-[length:100%_100%] bg-no-repeat text-white transition-all duration-300 ease-in-out z-40">
     <div class="relative max-w-7xl mx-auto px-6 py-12 md:py-20">

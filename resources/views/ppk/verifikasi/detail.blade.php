@@ -275,7 +275,7 @@
                                class="w-full border-gray-300 rounded-lg disabled:bg-gray-100 disabled:text-gray-500 @error('nomor_spm') border-red-500 @enderror" 
                                required 
                                @disabled($isSelesai)
-                               placeholder="Contoh: SPM-2024-001">
+                               placeholder="Contoh: 251751303001100">
                         @error('nomor_spm')
                             <p class="text-red-500 text-sm mt-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</p>
                         @enderror
@@ -298,7 +298,7 @@
                                class="w-full border-gray-300 rounded-lg disabled:bg-gray-100 disabled:text-gray-500 @error('nomor_sp2d') border-red-500 @enderror" 
                                required 
                                @disabled($isSelesai)
-                               placeholder="Contoh: SP2D-2024-001">
+                               placeholder="Contoh: 1.000.000">
                         @error('nomor_sp2d')
                             <p class="text-red-500 text-sm mt-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</p>
                         @enderror
@@ -385,7 +385,7 @@
         </div>
         @else
         <div class="bg-green-50 text-green-800 p-4 rounded-xl border border-green-200 text-center font-bold">
-            <i class="fa-solid fa-check-circle"></i> Laporan ini sudah disetujui dan dibayar.
+            <i class="fa-solid fa-check-circle"></i> Laporan ini sudah disetujui
         </div>
         @endif
     </div>  
@@ -393,16 +393,29 @@
     <script>
     const approveModal = document.getElementById("approveModal");
     const approveBox = document.getElementById("approveBox");
+    const openApproveBtn = document.getElementById("openApproveModal");
 
-    document.getElementById("openApproveModal").onclick = () => {
-        approveModal.classList.remove("opacity-0", "pointer-events-none");
-        approveModal.classList.add("opacity-100");
+    // document.getElementById("openApproveModal").onclick = () => {
+    //     approveModal.classList.remove("opacity-0", "pointer-events-none");
+    //     approveModal.classList.add("opacity-100");
 
-        setTimeout(() => {
-            approveBox.classList.remove("scale-90");
-            approveBox.classList.add("scale-100");
-        }, 10);
-    };
+    //     setTimeout(() => {
+    //         approveBox.classList.remove("scale-90");
+    //         approveBox.classList.add("scale-100");
+    //     }, 10);
+    // };
+
+    if(openApproveBtn) {
+        openApproveBtn.onclick = () => {
+            approveModal.classList.remove("opacity-0", "pointer-events-none");
+            approveModal.classList.add("opacity-100");
+
+            setTimeout(() => {
+                approveBox.classList.remove("scale-90");
+                approveBox.classList.add("scale-100");
+            }, 10);
+        };
+    }
 
     function closeApproveModal() {
         approveModal.classList.add("opacity-0", "pointer-events-none");
@@ -412,67 +425,156 @@
         approveBox.classList.add("scale-90");
     }
 
-    document.getElementById("cancelApprove").onclick = closeApproveModal;
+    // document.getElementById("cancelApprove").onclick = closeApproveModal;
 
-    approveModal.onclick = closeApproveModal;
-    approveBox.onclick = (e) => e.stopPropagation();
+    if(document.getElementById("cancelApprove")) {
+        document.getElementById("cancelApprove").onclick = closeApproveModal;
+    }
 
-document.getElementById("confirmApprove").onclick = () => {
-    closeApproveModal(); 
-    setTimeout(() => {
-        showSuccessPopup(
-            "Berhasil!",
-            "Laporan keuangan telah disetujui dan pembayaran selesai."
-        );
-    }, 250);
-    document.getElementById("closeSuccessBtn").onclick = () => {
-        document.getElementById("form-approve").submit();
-    };
-};
+    // approveModal.onclick = closeApproveModal;
+    // approveBox.onclick = (e) => e.stopPropagation();
 
-    function showSuccessPopup(title, message) {
-    const modal = document.getElementById("successModal");
-    const box   = document.getElementById("successBox");
+    if(approveModal) {
+        approveModal.onclick = closeApproveModal;
+        approveBox.onclick = (e) => e.stopPropagation();
+    }
 
-    document.getElementById("successTitle").innerText = title;
-    document.getElementById("successMessage").innerText = message;
+// document.getElementById("confirmApprove").onclick = () => {
+//     closeApproveModal(); 
+//     setTimeout(() => {
+//         showSuccessPopup(
+//             "Berhasil!",
+//             "Laporan keuangan telah disetujui dan pembayaran selesai."
+//         );
+//     }, 250);
+//     document.getElementById("closeSuccessBtn").onclick = () => {
+//         document.getElementById("form-approve").submit();
+//     };
+// };
 
-    modal.classList.remove("opacity-0", "invisible");
-    modal.classList.add("opacity-100");
+    if(document.getElementById("confirmApprove")) {
+        document.getElementById("confirmApprove").onclick = () => {
+            closeApproveModal(); 
+            setTimeout(() => {
+                // MODIFIKASI: Kirim callback function sebagai parameter ke-3
+                showSuccessPopup(
+                    "Berhasil!",
+                    "Laporan keuangan telah disetujui dan pembayaran selesai.",
+                    () => {
+                        // Aksi ini akan dijalankan saat tombol OK di klik
+                        document.getElementById("form-approve").submit();
+                    }
+                );
+            }, 250);
+        };
+    }
 
-    setTimeout(() => {
-        box.classList.remove("scale-95");
-        box.classList.add("scale-100");
-    }, 20);
+    // UPDATE: Menambahkan parameter onConfirm (callback function)
+    function showSuccessPopup(title, message, onConfirm = null) {
+        const modal = document.getElementById("successModal");
+        const box   = document.getElementById("successBox");
+        const closeBtn = document.getElementById("closeSuccessBtn");
 
-    document.getElementById("closeSuccessBtn").onclick = () => {
-        modal.classList.add("opacity-0", "invisible");
+        document.getElementById("successTitle").innerText = title;
+        document.getElementById("successMessage").innerText = message;
+
+        modal.classList.remove("opacity-0", "invisible");
+        modal.classList.add("opacity-100");
+
         setTimeout(() => {
-            modal.classList.remove("opacity-100");
-        }, 350);
-    };
+            box.classList.remove("scale-95");
+            box.classList.add("scale-100");
+        }, 20);
 
-    modal.onclick = () => {
-        modal.classList.add("opacity-0", "invisible");
-        setTimeout(() => {
-            modal.classList.remove("opacity-100");
-        }, 200);
-    };
+        // Define Close Action agar bisa dipakai di multiple event (button & outside click)
+        const closeAction = () => {
+            modal.classList.add("opacity-0", "invisible");
+            // Animasi fade out modal
+            setTimeout(() => {
+                modal.classList.remove("opacity-100");
+            }, 350);
 
-    box.onclick = (e) => e.stopPropagation();
-}
-document.getElementById("rejectForm").addEventListener("submit", function(e){
-    e.preventDefault();
+            // JALANKAN CALLBACK JIKA ADA (Form Submit)
+            if (onConfirm) {
+                onConfirm();
+            }
+        };
 
-    showSuccessPopup(
-        "Berhasil!",
-        "Revisi berhasil dikirim kembali ke PIC."
-    );
+        // Reset onclick handler agar bersih dan tidak tumpeng tindih
+        // Cara terbaik: set properti .onclick langsung (bukan addEventListener) agar menimpa yang lama
+        closeBtn.onclick = closeAction;
 
-    document.getElementById("closeSuccessBtn").onclick = () => {
-        e.target.submit();
-    };
-});
+        // Klik di luar modal juga akan menutup dan trigger callback (opsional, tapi aman untuk UX)
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closeAction();
+            }
+        };
+
+        box.onclick = (e) => e.stopPropagation();
+    }
+
+    // Form REJECT logic
+    const rejectForm = document.getElementById("rejectForm");
+    if(rejectForm) {
+        rejectForm.addEventListener("submit", function(e){
+            e.preventDefault();
+            const form = e.target;
+
+            // MODIFIKASI: Kirim callback function
+            showSuccessPopup(
+                "Berhasil!",
+                "Revisi berhasil dikirim kembali ke PIC.",
+                () => {
+                    form.submit();
+                }
+            );
+        });
+    }
+
+//     function showSuccessPopup(title, message) {
+//     const modal = document.getElementById("successModal");
+//     const box   = document.getElementById("successBox");
+
+//     document.getElementById("successTitle").innerText = title;
+//     document.getElementById("successMessage").innerText = message;
+
+//     modal.classList.remove("opacity-0", "invisible");
+//     modal.classList.add("opacity-100");
+
+//     setTimeout(() => {
+//         box.classList.remove("scale-95");
+//         box.classList.add("scale-100");
+//     }, 20);
+
+//     document.getElementById("closeSuccessBtn").onclick = () => {
+//         modal.classList.add("opacity-0", "invisible");
+//         setTimeout(() => {
+//             modal.classList.remove("opacity-100");
+//         }, 350);
+//     };
+
+//     modal.onclick = () => {
+//         modal.classList.add("opacity-0", "invisible");
+//         setTimeout(() => {
+//             modal.classList.remove("opacity-100");
+//         }, 200);
+//     };
+
+//     box.onclick = (e) => e.stopPropagation();
+// }
+// document.getElementById("rejectForm").addEventListener("submit", function(e){
+//     e.preventDefault();
+
+//     showSuccessPopup(
+//         "Berhasil!",
+//         "Revisi berhasil dikirim kembali ke PIC."
+//     );
+
+//     document.getElementById("closeSuccessBtn").onclick = () => {
+//         e.target.submit();
+//     };
+// });
 
 </script>
 <!-- GLOBAL SUCCESS MODAL -->
