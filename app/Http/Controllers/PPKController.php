@@ -215,7 +215,7 @@ class PPKController extends Controller
             );
         }
 
-        return redirect()->route('ppk.verifikasi.index')->with('success', 'Pembayaran disetujui. Data masuk Riwayat.');
+        return redirect()->route('ppk.verifikasi.detail', $id)->with('success', 'Pembayaran disetujui. Data masuk Riwayat.');
     }
 
     public function reject(Request $request, $id)
