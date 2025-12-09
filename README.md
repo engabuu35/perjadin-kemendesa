@@ -59,3 +59,121 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## SIPERDIN - Sistem Informasi Perjalanan Dinas
+Sistem manajemen perjalanan dinas terintegrasi untuk mengelola pengajuan surat tugas, pelaporan kegiatan harian (geotagging), hingga verifikasi keuangan secara digital.
+
+## Tentang Proyek
+Aplikasi ini dibangun menggunakan Laravel untuk memfasilitasi proses administrasi perjalanan dinas di lingkungan Inspektorat Jenderal (atau instansi terkait). Sistem ini menghubungkan 4 aktor utama:
+- Pegawai: Pelaksana tugas yang melakukan perjalanan.
+- PIC (Person In Charge): Admin wilayah yang membuat surat tugas dan menyusun laporan keuangan.
+- PPK (Pejabat Pembuat Komitmen): Verifikator akhir pembayaran keuangan.
+- Pimpinan: Pihak yang memantau dan menyetujui surat tugas.
+
+## Fitur Utama
+1. Pegawai 
+    - Melihat jadwal penugasan aktif di Dashboard.
+    - Melakukan Geotagging Harian (Absensi Lokasi) saat bertugas.
+    - Mengisi Uraian Kegiatan harian (minimal 100 kata).
+    - Menyelesaikan tugas secara mandiri via sistem.
+2. PIC
+    - Manajemen Pegawai: Menambah, edit, dan delete.
+    - Manajemen Surat Tugas: Membuat surat tugas baru dan menentukan tim (Ketua & Anggota).
+    - Input Keuangan Massal (Bulk): Menginput rincian biaya (Tiket, Hotel, Uang Harian) untuk seluruh tim dalam satu tampilan tabel.
+    - Upload Bukti: Mengunggah bukti tiket/hotel per item.
+    - Revisi: Memperbaiki laporan yang dikembalikan oleh PPK.
+3. PPK 
+    - Verifikasi Berjenjang: Memeriksa kelengkapan bukti dan kewajaran biaya.
+    - Approval/Rejection: Menyetujui pembayaran atau menolak dengan catatan revisi.
+    - Input SPM/SP2D: Menginput nomor dokumen pencairan dana.
+    - Rekapitulasi: Melihat dan mengunduh rekapitulasi perjalanan dinas tahunan (Excel).
+4. Pimpinan
+    - Melakukan Monitoring perjalanan dinas pegawai
+
+## Alur Status Data
+Sistem menggunakan tabel statusperjadin sebagai gerbang logika utama.
+
+1. Belum Berlangsung:
+    - Surat tugas baru dibuat oleh PIC.
+    - Muncul di Beranda Pegawai (warna Biru).
+2. Sedang Berlangsung
+    - Tanggal hari ini masuk dalam periode tugas.
+    - Pegawai bisa melakukan Geotagging.
+3. Pembuatan Laporan (PIC)
+    - Semua pegawai dalam tim sudah klik "Selesai".
+    - Data muncul di Dashboard PIC dengan label "Perlu Tindakan".
+    - PIC mulai input biaya & upload bukti.
+4. Menunggu Validasi PPK
+    - PIC sudah mengirim laporan ke PPK.
+    - Data muncul di Dashboard PPK (label "Butuh Validasi").
+5. Perlu Revisi
+    - PPK menolak laporan.
+    - Data kembali ke Dashboard PIC dengan catatan revisi.
+6. Selesai
+    - PPK menyetujui dan menginput nomor SP2D.
+    - Data masuk ke menu Riwayat / Rekapitulasi.
+7. Diselesaikan Manual
+    - PIC menyelesaikan manual perjadin dari menu manajemen perjalanan dinas
+8. Dibatalkan
+    - PIC membatalkan perjadin dari menu manajemen perjalanan dinas
+
+## Struktur Folder & File Penting
+
+Berikut adalah peta lokasi file-file kunci dalam proyek ini agar mudah dipelajari:
+
+1. Controller(app/Http/Controllers/)
+    - Auth_Controller: Menangani proses login dan logout user.
+    - Beranda_Controller: Menampilkan halaman dashboard utama untuk pegawai.
+    - Checkin_Controller: Mengatur fitur absensi lokasi (geotagging) harian.
+    - Controller: Base controller induk untuk semua controller lain.
+    - LaporanKeuangan_Controller: Mengelola data detail tabel laporan keuangan (CRUD).
+    - Location_Controller: Menyediakan data koordinat peta untuk fitur map.
+    - LSRampung_Controller: Menangani cetak dan rekap dokumen LS Rampung.
+    - ManagePegawai_Controller: Mengelola data master pegawai (tambah/edit/hapus).
+    - Notification_Controller: Mengirim notifikasi email/sistem terkait status tugas.
+    - PasswordReset_Controller: Menangani proses reset password jika user lupa.
+    - Pelaporan_Controller: (PIC) Mengelola input biaya massal dan pengiriman ke PPK.
+    - Perjadin_Controller: (Pegawai) Mengatur aktivitas harian dan penyelesaian tugas individu.
+    - PerjadinTambah_Controller: (PIC) Membuat surat tugas baru dan menentukan tim.
+    - Pimpinan_Controller: Dashboard monitoring khusus untuk role Pimpinan.
+    - PPK_Controller: (PPK) Memverifikasi laporan, menyetujui bayar, atau menolak.
+    - Profile_Controller: Mengelola edit profil dan ganti password user sendiri.
+    - Riwayat_Controller: Menampilkan arsip perjalanan dinas yang sudah selesai.
+
+2. Views (resources/views/)
+    - auth: Folder untuk autentifikasi seperti login, forget pass, reset pass.
+    - components: Folder untuk menyimpan file yang berisi potongan-potongan syntax yang bisa digunakan lagi.
+    - emails: Folder untuk menangani tampilan notifikasi email.
+    - layouts: Folder yang berisi file-file layout per role.
+    - pages: Folder untuk file yang digunakan di semua user.
+    - partial: Folder yang berisi file-file pembentuk layouts.
+    - pic: Folder untuk meyimpan semua file menu di PIC.
+    - pimpinan: Folder untuk meyimpan semua file menu di pimpinan.
+    - ppk: Folder untuk meyimpan semua file menu di ppk.
+
+## Instalasi & Setup
+
+Clone Repositori:
+git clone [https://github.com/username/siperdin.git](https://github.com/username/siperdin.git)
+cd siperdin
+
+Install Dependencies:
+composer install
+npm install
+
+Konfigurasi Environment Duplikasi file .env.example menjadi .env dan sesuaikan database:
+cp .env.example .env
+php artisan key:generate
+
+Migrasi & Seeding Database, penting untuk menjalankan seeder agar tabel master (Status, Role, Pangkat) terisi:
+php artisan migrate:fresh --seed --class=DatabaseSeeder
+
+
+Gunakan PerjadinDataSeeder jika ingin data dummy transaksi. Jalankan Server:
+php artisan serve
+
+Buka http://localhost:8000 di browser.
+
+Catatan Pengembang:
+- Pastikan folder storage/app/public sudah di-link ke public/storage dengan perintah "php artisan storage:link" agar file bukti bisa diakses.
+- Untuk notifikasi pastikan menjalankan "php artisan queue:work".
