@@ -88,7 +88,7 @@ class PelaporanController extends Controller
                     $item->status_icon = '<i class="fa-solid fa-exclamation-circle"></i>';
                 } else {
                     $item->custom_status = 'Sedang Dilengkapi';
-                    $item->status_color  = 'indigo'; 
+                    $item->status_color  = 'gray'; 
                     $item->status_icon   = '<i class="fa-regular fa-pen-to-square"></i>';
                 }
             }
