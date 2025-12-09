@@ -9,7 +9,7 @@
     <div class="flex flex-col gap-0.5 mb-1">
         <x-page-title 
         title="Manajemen Pegawai"
-        subtitle="Kelola data pegawai: tambah, lihat detail, atau hapus." />
+        subtitle="Kelola data pegawai: tambah, edit, atau hapus." />
     </div>
 
        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
