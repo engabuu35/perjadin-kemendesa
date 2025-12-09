@@ -215,6 +215,9 @@
     .notif-card[data-read="true"] .icon-wrapper {
         background: #9ca3af !important;
         /* Abu-abu */
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
     }
 
     /* ICON - Warna putih */
@@ -222,6 +225,9 @@
     .notif-card[data-read="true"] .icon-wrapper span {
         color: #ffffff !important;
         /* Putih */
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: inline-block !important;
     }
 
     .notif-card[data-read="true"] button {
@@ -447,7 +453,7 @@
     function getIconClass(icon) {
         // Debug: log what we receive
         console.log('Received icon:', icon, 'Type:', typeof icon);
-        
+
         // If icon is HTML tag, extract the class names
         if (icon && icon.includes('<i class=')) {
             const match = icon.match(/class=["']([^"']+)["']/);
@@ -461,7 +467,7 @@
                 }
             }
         }
-        
+
         // Map emoji or text to Font Awesome classes
         const iconMap = {
             '🔄': 'fa-sync-alt',
@@ -497,12 +503,12 @@
             '✈️': 'fa-plane',
             '📋': 'fa-clipboard-check'
         };
-        
+
         // If icon already starts with 'fa-', return as is
         if (icon && icon.startsWith('fa-')) {
             return icon;
         }
-        
+
         // Otherwise, map emoji to Font Awesome class
         const mappedIcon = iconMap[icon] || 'fa-bell';
         console.log('Mapped emoji to:', mappedIcon);

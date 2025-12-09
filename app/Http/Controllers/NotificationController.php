@@ -25,6 +25,7 @@ class NotificationController extends Controller
     const TYPE_RINGKASAN_BULANAN = 'ringkasan_bulanan';
     const TYPE_LAPORAN_MASUK = 'laporan_masuk';
     const TYPE_REMINDER_NOMINATIF = 'reminder_nominatif';
+    const TYPE_REMINDER_VERIFIKASI = 'reminder_verifikasi';
     const TYPE_LAPORAN_DIKEMBALIKAN = 'laporan_dikembalikan';
     const TYPE_LAPORAN_DISETUJUI = 'laporan_disetujui';
     const TYPE_KONFIRMASI_APPROVAL = 'konfirmasi_approval';
@@ -58,7 +59,7 @@ class NotificationController extends Controller
             $type = $request->query('type');
 
             $query = $this->getNotificationsQuery();
-            
+
             if ($type) {
                 $query->where('type', $type);
             }
@@ -105,7 +106,7 @@ class NotificationController extends Controller
     public function markAsRead($id)
     {
         $user = Auth::user();
-        
+
         DB::table('notifications')
             ->where('id', $id)
             ->where('user_id', $user->nip)
@@ -120,7 +121,7 @@ class NotificationController extends Controller
     public function markAllAsRead()
     {
         $user = Auth::user();
-        
+
         DB::table('notifications')
             ->where('user_id', $user->nip)
             ->whereNull('read_at')
@@ -135,7 +136,7 @@ class NotificationController extends Controller
     public function delete($id)
     {
         $user = Auth::user();
-        
+
         DB::table('notifications')
             ->where('id', $id)
             ->where('user_id', $user->nip)
@@ -150,7 +151,7 @@ class NotificationController extends Controller
     public function deleteAll()
     {
         $user = Auth::user();
-        
+
         DB::table('notifications')
             ->where('user_id', $user->nip)
             ->delete();
@@ -165,7 +166,7 @@ class NotificationController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -251,11 +252,16 @@ class NotificationController extends Controller
         $now = now();
         $diff = $now->diff($datetime);
 
-        if ($diff->y > 0) return $diff->y . ' tahun lalu';
-        if ($diff->m > 0) return $diff->m . ' bulan lalu';
-        if ($diff->d > 0) return $diff->d . ' hari lalu';
-        if ($diff->h > 0) return $diff->h . ' jam lalu';
-        if ($diff->i > 0) return $diff->i . ' menit lalu';
+        if ($diff->y > 0)
+            return $diff->y . ' tahun lalu';
+        if ($diff->m > 0)
+            return $diff->m . ' bulan lalu';
+        if ($diff->d > 0)
+            return $diff->d . ' hari lalu';
+        if ($diff->h > 0)
+            return $diff->h . ' jam lalu';
+        if ($diff->i > 0)
+            return $diff->i . ' menit lalu';
         return 'Baru saja';
     }
 
@@ -273,6 +279,7 @@ class NotificationController extends Controller
             self::TYPE_RINGKASAN_BULANAN => '<i class="fas fa-chart-bar"></i>',
             self::TYPE_LAPORAN_MASUK => '<i class="fas fa-inbox"></i>',
             self::TYPE_REMINDER_NOMINATIF => '<i class="fas fa-clipboard-list"></i>',
+            self::TYPE_REMINDER_VERIFIKASI => '<i class="fas fa-bell"></i>',
             self::TYPE_LAPORAN_DIKEMBALIKAN => '<i class="fas fa-undo"></i>',
             self::TYPE_LAPORAN_DISETUJUI => '<i class="fas fa-check-circle"></i>',
             self::TYPE_KONFIRMASI_APPROVAL => '<i class="fas fa-check-circle"></i>',
@@ -306,19 +313,19 @@ class NotificationController extends Controller
                 'icon' => $options['icon'] ?? ($iconMap[$type] ?? '🔔'),
                 'color' => $options['color'] ?? 'blue',
                 'action_url' => $options['action_url'] ?? null,
-                'category'   => $options['category'] ?? ($categoryMap[$type] ?? 'info'),
+                'category' => $options['category'] ?? ($categoryMap[$type] ?? 'info'),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
             $notifications[] = $notificationId;
             $targetUser = User::where('nip', $userId)->first();
-            
+
             if ($targetUser && !empty($targetUser->email)) {
                 try {
                     // Cek Tipe Notifikasi: HANYA KIRIM EMAIL JIKA TIPE PENUGASAN
                     if ($type === self::TYPE_PENUGASAN) {
-                        
+
                         // Ambil ID Perjadin yang tadi kita tambahkan di Controller
                         $perjadinId = $data['id_perjadin'] ?? null;
 
@@ -329,7 +336,7 @@ class NotificationController extends Controller
                                 // Kirim Email ke Queue
                                 Mail::to($targetUser->email)
                                     ->queue(new PerjalananMail(
-                                        $perjalanan, 
+                                        $perjalanan,
                                         $targetUser->nama // Pass nama penerima ke Mailable
                                     ));
                             }
@@ -350,7 +357,7 @@ class NotificationController extends Controller
 
     public function sendToRole(string $role, string $type, string $title, string $message, array $data = [], array $options = [])
     {
-        $users = User::whereHas('roles', function($q) use ($role) {
+        $users = User::whereHas('roles', function ($q) use ($role) {
             $q->where('kode', strtoupper($role));
         })->pluck('nip')->toArray();
 
@@ -454,11 +461,25 @@ class NotificationController extends Controller
                 'icon' => '<i class="fas fa-check-circle"></i>',
                 'color' => 'green',
             ],
+            'status_verifikasi_ppk_sp2d' => [
+                'type' => self::TYPE_STATUS_VERIFIKASI_PPK,
+                'title' => 'Laporan Diverifikasi PPK',
+                'message' => 'Laporan nominatif LS Rampung Anda telah diverifikasi oleh PPK dengan nomor SP2D: {sp2d} dan SPM: {spm}.',
+                'icon' => '<i class="fas fa-check-circle"></i>',
+                'color' => 'green',
+            ],
             'status_verifikasi_ditolak' => [
                 'type' => self::TYPE_STATUS_VERIFIKASI_PPK,
                 'title' => 'Laporan Ditolak PPK',
                 'message' => 'Laporan perjalanan dinas {nomor_st} ditolak oleh PPK. Alasan: {alasan}.',
                 'icon' => '<i class="fas fa-times-circle"></i>',
+                'color' => 'red',
+            ],
+            'laporan_dikembalikan_catatan' => [
+                'type' => self::TYPE_STATUS_VERIFIKASI_PPK,
+                'title' => 'Laporan Dikembalikan PPK',
+                'message' => 'Laporan nominatif LS Rampung Anda dikembalikan oleh PPK. Catatan: {catatan}. Silakan koordinasi dengan staf PIC.',
+                'icon' => '<i class="fas fa-undo"></i>',
                 'color' => 'red',
             ],
             'ringkasan_bulanan' => [
@@ -543,6 +564,13 @@ class NotificationController extends Controller
                 'message' => 'Rekapitulasi nominatif periode {periode} telah siap. Silakan unduh dari menu Rekapitulasi.',
                 'icon' => '<i class="fas fa-chart-bar"></i>',
                 'color' => 'green',
+            ],
+            'reminder_verifikasi_ppk' => [
+                'type' => self::TYPE_REMINDER_VERIFIKASI,
+                'title' => 'Reminder Verifikasi',
+                'message' => 'Terdapat {jumlah} laporan nominatif menunggu verifikasi Anda.',
+                'icon' => '<i class="fas fa-bell"></i>',
+                'color' => 'orange',
             ],
 
             // ========== NOTIFIKASI SISTEM ==========
