@@ -142,9 +142,9 @@
                 class="w-14 h-14 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 relative z-10 hover:scale-105"
                 style="background: linear-gradient(to bottom, #366bbcff, #3A6FBD);" aria-label="Menu Utama">
                 <i id="mainIcon" class="fas fa-star text-xl transition-all duration-500"></i>
-                <!-- Badge Counter untuk tombol bintang -->
+                <!-- Badge Counter untuk tombol bintang - hilang saat menu extend -->
                 <span id="mainBtnBadge"
-                    class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">0</span>
+                    class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg transition-opacity duration-300">0</span>
             </button>
         </div>
 
@@ -444,12 +444,78 @@
         }
     }
 
+    function getIconClass(icon) {
+        // Debug: log what we receive
+        console.log('Received icon:', icon, 'Type:', typeof icon);
+        
+        // If icon is HTML tag, extract the class names
+        if (icon && icon.includes('<i class=')) {
+            const match = icon.match(/class=["']([^"']+)["']/);
+            if (match) {
+                // Extract all classes and find the fa- class
+                const classes = match[1].split(' ');
+                const faClass = classes.find(c => c.startsWith('fa-'));
+                if (faClass) {
+                    console.log('Extracted FA class:', faClass);
+                    return faClass;
+                }
+            }
+        }
+        
+        // Map emoji or text to Font Awesome classes
+        const iconMap = {
+            '🔄': 'fa-sync-alt',
+            '📧': 'fa-envelope',
+            '✅': 'fa-check-circle',
+            '❌': 'fa-times-circle',
+            '⚠️': 'fa-exclamation-triangle',
+            '📝': 'fa-file-alt',
+            '🔔': 'fa-bell',
+            '📅': 'fa-calendar',
+            '👤': 'fa-user',
+            '📊': 'fa-chart-bar',
+            '📁': 'fa-folder',
+            '🚀': 'fa-rocket',
+            '💡': 'fa-lightbulb',
+            '⭐': 'fa-star',
+            '🎯': 'fa-bullseye',
+            '📌': 'fa-thumbtack',
+            '🔍': 'fa-search',
+            '✏️': 'fa-edit',
+            '🗑️': 'fa-trash',
+            '💾': 'fa-save',
+            '📥': 'fa-inbox',
+            '📤': 'fa-paper-plane',
+            '🏠': 'fa-home',
+            '⚙️': 'fa-cog',
+            '🔒': 'fa-lock',
+            '🔓': 'fa-unlock',
+            '👥': 'fa-users',
+            '💰': 'fa-dollar-sign',
+            '📈': 'fa-chart-line',
+            '📉': 'fa-chart-area',
+            '✈️': 'fa-plane',
+            '📋': 'fa-clipboard-check'
+        };
+        
+        // If icon already starts with 'fa-', return as is
+        if (icon && icon.startsWith('fa-')) {
+            return icon;
+        }
+        
+        // Otherwise, map emoji to Font Awesome class
+        const mappedIcon = iconMap[icon] || 'fa-bell';
+        console.log('Mapped emoji to:', mappedIcon);
+        return mappedIcon;
+    }
+
     function renderNotificationCard(notification) {
         const period = getNotificationPeriod(notification.created_at);
         const colorClass = getColorClass(notification.color);
         const isRead = notification.is_read;
         const actionUrl = notification.action_url || '';
         const isExpanded = expandedNotifications.has(notification.id);
+        const iconClass = getIconClass(notification.icon);
 
         const showReadMore = needsReadMore(notification.message);
 
@@ -462,7 +528,7 @@
                  style="display: ${period === currentFilter ? 'block' : 'none'};">
                 <div class="flex items-start gap-3">
                     <div class="icon-wrapper w-8 h-8 ${colorClass} rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-sm">${notification.icon}</span>
+                        <i class="fas ${iconClass} text-white text-sm"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2">
@@ -562,6 +628,7 @@
         }
     }
 
+
     function updateMainBtnBadge(count) {
         if (!mainBtnBadge) {
             console.warn('mainBtnBadge element not found');
@@ -570,6 +637,12 @@
         if (count > 0) {
             mainBtnBadge.textContent = count > 99 ? '99+' : count;
             mainBtnBadge.classList.remove('hidden');
+            // Jika menu sedang terbuka, sembunyikan badge
+            if (isOpen) {
+                mainBtnBadge.style.opacity = '0';
+            } else {
+                mainBtnBadge.style.opacity = '1';
+            }
         } else {
             mainBtnBadge.classList.add('hidden');
         }
@@ -724,7 +797,10 @@
         // Rotate icon
         mainIcon.style.transform = 'rotate(180deg)';
 
-        // Badge stays visible when menu is open
+        // Hide badge when menu is open
+        if (mainBtnBadge && !mainBtnBadge.classList.contains('hidden')) {
+            mainBtnBadge.style.opacity = '0';
+        }
 
         // Expand background
         menuBackground.style.height = '240px';
@@ -749,6 +825,11 @@
 
         // Reset icon rotation only
         mainIcon.style.transform = 'rotate(0deg)';
+
+        // Show badge again when menu is closed
+        if (mainBtnBadge && !mainBtnBadge.classList.contains('hidden')) {
+            mainBtnBadge.style.opacity = '1';
+        }
 
         // No need to fetch unread count here, it's handled by polling
         // fetchUnreadCount();
