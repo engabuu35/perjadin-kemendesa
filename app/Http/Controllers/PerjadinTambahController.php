@@ -129,7 +129,8 @@ class PerjadinTambahController extends Controller
                     [$pegawai['nip']],
                     [
                         'lokasi' => $perjalanan->tujuan,
-                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y')
+                        'tanggal' => Carbon::parse($perjalanan->tgl_mulai)->format('d M Y'),
+                        'id_perjadin' => $perjalanan->id
                     ],
                     [
                         'action_url' => '/perjalanan/' . $perjalanan->id
