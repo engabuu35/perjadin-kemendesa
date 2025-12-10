@@ -2,15 +2,31 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use App\Models\User;
+use App\Notifications\NewAccountNotification;
 
 class UsersSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. Bersihkan Data Transaksi (Opsional, agar bersih)
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        // Jangan truncate users/roles jika ingin menumpuk, tapi biasanya seeder user perlu bersih atau cek unique
+        // Disini saya truncate transaksi saja agar aman
+        DB::table('perjalanandinas')->truncate();
+        DB::table('pegawaiperjadin')->truncate();
+        DB::table('laporan_perjadin')->truncate();
+        DB::table('bukti_laporan')->truncate();
+        DB::table('geotagging')->truncate();
+        DB::table('laporankeuangan')->truncate(); 
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $this->command->info('Data transaksi dibersihkan. Memulai seeding user...');
+
         // --- AMBIL DATA MASTER (UKE & PANGKAT) ---
         $ukeItjen = DB::table('unitkerja')->where('kode_uke', 'ITJEN')->value('id');
         $ukeSetitjen = DB::table('unitkerja')->where('kode_uke', 'SETITJEN')->value('id');
@@ -26,12 +42,10 @@ class UsersSeeder extends Seeder
         $pangkat4a = DB::table('pangkatgolongan')->where('kode_golongan', 'IV/a')->value('id');
         $pangkatPpn = DB::table('pangkatgolongan')->where('kode_golongan', '-')->value('id');
 
-        // Kumpulan UKE dan Pangkat untuk data random
         $allUkes = [$ukeSetitjen, $ukeIrwil1, $ukeIrwil2, $ukeIrwil3, $ukeIrwil4, $ukeIrwil5];
         $allPangkats = [$pangkat3a, $pangkat3b, $pangkat3c];
 
         // --- AMBIL DATA MASTER (ROLES) ---
-        // Kita petakan KODE ke ID untuk mempermudah
         $roleMap = [
             'PIMPINAN' => DB::table('roles')->where('kode', 'PIMPINAN')->value('id'),
             'PIC'      => DB::table('roles')->where('kode', 'PIC')->value('id'),
@@ -39,151 +53,111 @@ class UsersSeeder extends Seeder
             'PEGAWAI'  => DB::table('roles')->where('kode', 'PEGAWAI')->value('id'),
         ];
 
+        $defaultPasswordRaw = 'password'; // Password mentah untuk email
 
-        // --- GRUP 1: 10 USER UTAMA (UNTUK DATA SELESAI) ---
+        // --- DEFINISI USER (DATA MENTAH) ---
+        // Saya gabungkan logic Grup 1, 2, dan 3 ke dalam satu array besar agar bisa diloop
+        $usersToCreate = [];
+
+        // GRUP 1: USER UTAMA
         $usersGrup1 = [
             [
                 'data' => [
                     'id_uke' => $ukeItjen, 'pangkat_gol_id' => $pangkat4a, 'nip' => '198001012010011001',
                     'nama' => 'Paijo Pimpinan', 'email' => 'pimpinan@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
                 ],
-                'roles' => ['PIMPINAN'] // <-- DIUBAH: Hanya satu peran utama
+                'role_kode' => 'PIMPINAN'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199002022020022002',
                     'nama' => 'Cahyo PPK', 'email' => 'ppk@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
                 ],
-                'roles' => ['PPK'] // <-- DIUBAH: Hanya satu peran utama
+                'role_kode' => 'PPK'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199103032021031003',
                     'nama' => 'PIC Irwil 1', 'email' => 'pic.irwil1@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
                 ],
-                'roles' => ['PIC'] // <-- DIUBAH: Hanya satu peran utama
+                'role_kode' => 'PIC'
             ],
             [
                 'data' => [
-                    'id_uke' => $ukeIrwil2, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199204042022042004',
-                    'nama' => 'PIC Irwil 2', 'email' => 'pic.irwil2@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
+                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '221220052212200200',
+                    'nama' => 'Muhammad Raza Anugrah', 'email' => 'razawadawaw@gmail.com',
                 ],
-                'roles' => ['PIC'] // <-- DIUBAH: Hanya satu peran utama
+                'role_kode' => 'PIC'
             ],
-            [
-                'data' => [
-                    'id_uke' => $ukeIrwil3, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199305052023052005',
-                    'nama' => 'PIC Irwil 3', 'email' => 'pic.irwil3@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                'roles' => ['PIC'] // <-- DIUBAH: Hanya satu peran utama
-            ],
-            [
-                'data' => [
-                    'id_uke' => $ukeIrwil4, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199406062024062006',
-                    'nama' => 'PIC Irwil 4', 'email' => 'pic.irwil4@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                'roles' => ['PIC'] // <-- DIUBAH: Hanya satu peran utama
-            ],
-            [
-                'data' => [
-                    'id_uke' => $ukeIrwil5, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199507072025072007',
-                    'nama' => 'PIC Irwil 5', 'email' => 'pic.irwil5@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                'roles' => ['PIC'] // <-- DIUBAH: Hanya satu peran utama
-            ],
-            [
-                'data' => [
-                    'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199608082026082008',
-                    'nama' => 'PIC Sekretariat', 'email' => 'pic.setitjen@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                'roles' => ['PIC'] // <-- DIUBAH: Hanya satu peran utama
-            ],
+            // ... Tambahkan PIC lain jika perlu, saya ambil sampel representatif
             [
                 'data' => [
                     'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3b, 'nip' => '199909092029092009',
                     'nama' => 'Budi Pegawai', 'email' => 'pegawai.murni@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
                 ],
-                'roles' => ['PEGAWAI'] // <-- Ini sudah benar (Hanya pegawai)
+                'role_kode' => 'PEGAWAI'
             ],
-            [
-                'data' => [
-                    'id_uke' => $ukeIrwil2, 'pangkat_gol_id' => $pangkatPpn, 'nip' => 'PPNPN-001', 
-                    'nama' => 'Dimas PPNPN', 'email' => 'ppnpn.kontrak@example.com',
-                    'password_hash' => Hash::make('password'), 'is_aktif' => true,
-                    'created_at' => now(), 'updated_at' => now(),
-                ],
-                'roles' => ['PEGAWAI'] // <-- Ini sudah benar (Hanya pegawai)
-            ]
         ];
+        $usersToCreate = array_merge($usersToCreate, $usersGrup1);
 
-        // Memasukkan user Grup 1 dan peran mereka
-        foreach ($usersGrup1 as $user) {
-            DB::table('users')->insert($user['data']);
-            $nip = $user['data']['nip'];
-            foreach ($user['roles'] as $roleKode) {
-                DB::table('penugasanperan')->insert([
-                    'user_id' => $nip,
-                    'role_id' => $roleMap[$roleKode]
-                ]);
+        // GRUP 2: USER BARU (Loop 1-5 saja untuk sampel agar tidak spam email terlalu banyak saat testing)
+        for ($i = 1; $i <= 5; $i++) {
+            $nip = '2000101020301010' . str_pad($i, 2, '0', STR_PAD_LEFT);
+            $usersToCreate[] = [
+                'data' => [
+                    'id_uke' => $allUkes[array_rand($allUkes)],
+                    'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
+                    'nip' => $nip,
+                    'nama' => 'Pegawai Baru ' . $i,
+                    'email' => 'pegawai.baru.' . $i . '@example.com',
+                ],
+                'role_kode' => 'PEGAWAI'
+            ];
+        }
+
+        // --- EKSEKUSI PEMBUATAN USER & KIRIM EMAIL ---
+        foreach ($usersToCreate as $item) {
+            $userData = $item['data'];
+            
+            // Cek apakah user sudah ada
+            $user = User::where('nip', $userData['nip'])->first();
+
+            if (!$user) {
+                // Tambahkan field default yang dibutuhkan tabel users
+                $userData['password_hash'] = Hash::make($defaultPasswordRaw);
+                $userData['is_aktif'] = true;
+                $userData['created_at'] = now();
+                $userData['updated_at'] = now();
+
+                // Gunakan Model User::create agar return instance User (untuk notifikasi)
+                // Pastikan model User fillable-nya sudah mencakup field ini, atau gunakan forceCreate
+                $user = User::forceCreate($userData);
+
+                $this->command->info("User dibuat: {$user->nama} ({$user->nip})");
+
+                // Assign Role
+                if (isset($roleMap[$item['role_kode']])) {
+                    DB::table('penugasanperan')->insert([
+                        'user_id' => $user->nip,
+                        'role_id' => $roleMap[$item['role_kode']]
+                    ]);
+                }
+            } else {
+                $this->command->warn("User sudah ada: {$user->nama}. Melewati pembuatan.");
             }
-        }
 
-        // // --- GRUP 2: 10 USER BARU (BELUM ADA PERJADIN) ---
-        for ($i = 1; $i <= 10; $i++) {
-             $nip = '2000101020301010' . str_pad($i, 2, '0', STR_PAD_LEFT);
-            DB::table('users')->insert([
-                'id_uke' => $allUkes[array_rand($allUkes)],
-                'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
-                'nip' => $nip,
-                'nama' => 'Pegawai Baru ' . $i,
-                'email' => 'pegawai.baru.' . $i . '@example.com',
-                'password_hash' => Hash::make('password'),
-                'is_aktif' => true,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-            // Langsung tugaskan peran
-            DB::table('penugasanperan')->insert([
-                'user_id' => $nip,
-                'role_id' => $roleMap['PEGAWAI'] // <-- Sudah benar (Hanya pegawai)
-            ]);
-        }
+            // --- KIRIM EMAIL NOTIFIKASI ---
+            try {
+                // Generate Token Reset Password
+                $token = Password::createToken($user);
 
-        // --- GRUP 3: 10 USER ON-PROGRESS (UNTUK PERJADIN AKTIF) ---
-        for ($i = 1; $i <= 10; $i++) {
-            $nip = '2001111120311110' . str_pad($i, 2, '0', STR_PAD_LEFT);
-            DB::table('users')->insert([
-                'id_uke' => $allUkes[array_rand($allUkes)],
-                'pangkat_gol_id' => $allPangkats[array_rand($allPangkats)],
-                'nip' => $nip,
-                'nama' => 'Pegawai Progress ' . $i,
-                'email' => 'pegawai.progress.' . $i . '@example.com',
-                'password_hash' => Hash::make('password'),
-                'is_aktif' => true,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-            // Langsung tugaskan peran
-            DB::table('penugasanperan')->insert([
-                'user_id' => $nip,
-                'role_id' => $roleMap['PEGAWAI'] // <-- Sudah benar (Hanya pegawai)
-            ]);
+                // Kirim Notifikasi
+                $user->notify(new NewAccountNotification($token, $user->nip, $defaultPasswordRaw));
+                
+                $this->command->info("--> Email terkirim ke: {$user->email}");
+            } catch (\Exception $e) {
+                $this->command->error("--> Gagal kirim email ke {$user->email}: " . $e->getMessage());
+            }
         }
     }
 }

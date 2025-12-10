@@ -45,9 +45,9 @@ class DatabaseSeeder extends Seeder
         // 5. PANGGIL SEEDER DATA TRANSAKSI PERJADIN
         // PENTING: Ini harus dijalankan setelah Users dan Master
         // DIUBAH: .call menjadi ->call
-        $this->call([
-            PerjadinDataSeeder::class,
-        ]);
+        // $this->call([
+        //     PerjadinDataSeeder::class,
+        // ]);
         
         // 6. Panggilan ke PenugasanPeranSeeder::class DIHAPUS
         // $this->call([
@@ -57,8 +57,8 @@ class DatabaseSeeder extends Seeder
             LaporanKeuanganSeeder::class,
         ]);
 
-        $this->call([
-        DummyPegawaiWithPerjadinSeeder::class,
-        ]);
+        // $this->call([
+        // DummyPegawaiWithPerjadinSeeder::class,
+        // ]);
     }
 }
