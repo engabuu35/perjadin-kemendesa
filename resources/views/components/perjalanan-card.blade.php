@@ -16,7 +16,7 @@
     $geotagMissing = (bool) ($perjalanan->geotag_missing_today ?? false);
 
     // pesan jika semua sudah lengkap
-    $positiveText = "Terima kasih atas kerja kerasnya, sampai jumpa di perjalanan dinas selanjutnya.";
+    $positiveText = "Terima kasih atas kerja kerasnya, Anda telah melengkapi data perjalanan dinas ini.";
 
     $detailRoute = route('perjalanan.detail', $perjalanan->id);
 @endphp

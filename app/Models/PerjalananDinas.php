@@ -162,6 +162,10 @@ class PerjalananDinas extends Model
             return false;
         }
 
+        if (!in_array(intval($this->id_status), array_filter([$belum, $sedang]))) {
+            return false;
+        }
+
         // Jika sedang dalam rentang tanggal -> set Sedang Berlangsung
         if ($this->isOngoing()) {
             if ($sedang && intval($this->id_status) !== intval($sedang)) {

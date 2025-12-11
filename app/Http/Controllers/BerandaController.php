@@ -14,7 +14,7 @@ class BerandaController extends Controller
     {
         $user = Auth::user();
 
-        $daftar = PerjalananDinas::with(['status', 'laporanKeuangan', 'pegawai'])
+        $daftar = PerjalananDinas::with(['status', 'laporanKeuangan', 'pegawai_laporan'])
             ->whereHas('pegawai', function ($q) use ($user) {
                 $q->where('nip', $user->nip);
             })
@@ -47,9 +47,9 @@ class BerandaController extends Controller
             // ===== PER-USER CHECKS (BERANDA) =====
             // 1) Uraian untuk user ini kosong pada pivot? (nama pivot: 'laporan_individu' atau 'uraian')
             $uraianMissing = false;
-            $pivotUser = $p->pegawai->firstWhere('nip', $user->nip);
-            if ($pivotUser) {
-                $laporan = $pivotUser->pivot->laporan_individu ?? $pivotUser->pivot->uraian ?? null;
+            $lapPivotUser = $p->pegawai_laporan->firstWhere('nip', $user->nip);
+            if ($lapPivotUser) {
+                $laporan = $lapPivotUser->pivot->uraian ?? null;
                 $uraianMissing = (! $laporan || trim($laporan) === '');
             } else {
                 // seharusnya tidak terjadi karena whereHas, tapi safe fallback:

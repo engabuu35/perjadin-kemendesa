@@ -112,8 +112,19 @@
             </div>
         </div>
         
-        <x-back-button /> 
-
+        <style>
+        @media (max-width: 768px) {
+            .flex.justify-end.mb-8 {
+                display: none !important;
+            }
+        }
+        </style>    
+        <div class="flex justify-end mb-8">
+            <a href="{{ url('/beranda') }}" 
+            class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -159,7 +170,7 @@
                         @endif
 
                         <p class="text-left text-[11px] text-gray-500 mt-1">
-                            Catatan: <br>Tombol geotag akan aktif kembali setelah Anda mengambil foto untuk geotag sebelumnya dan minimal 5 menit setelah geotag terakhir.
+                            Catatan: <br>Tombol tag lokaig akan aktif kembali setelah Anda mengambil foto untuk tag lokasi sebelumnya, dan harap segera mengambil foto.
                         </p>
 
                         
