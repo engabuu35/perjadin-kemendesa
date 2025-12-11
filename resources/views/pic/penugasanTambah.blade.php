@@ -298,6 +298,7 @@
             const perjalananId = {{ $perjalanan->id }};
             const csrfToken = '{{ csrf_token() }}';
             const mainForm = document.getElementById('formPenugasan');
+            const redirectUrl = '{{ url("/pic/manajemen-perjadin") }}';
 
             // --- STRUKTUR MODAL BARU (DARI KODE TEMAN) ---
             const modal = document.createElement('div');
@@ -349,6 +350,7 @@
             const responseMessage = responseModal.querySelector('#responseMessage');
             const responseOk = responseModal.querySelector('#responseOk');
             const responseBox = responseModal.querySelector('div');
+            let lastResponseWasSuccess = false;
 
             let statusToUpdate = '';
 
@@ -460,7 +462,9 @@
 
             responseOk.addEventListener('click', () => {
                 hideResponse();
-                location.reload(); // Reload halaman setelah sukses
+                if (lastResponseWasSuccess) {
+                    window.location.href = redirectUrl;
+                }
             });
 
     // Logic Fetch/Submit (Gabungan)
@@ -531,6 +535,7 @@
                     return json;
                 })
                 .then(data => {
+                    lastResponseWasSuccess = true;
                     hideModal();
                     setTimeout(() => {
                         const successMsg = data?.message || (statusToUpdate === 'Perbarui' ? 'Data berhasil diperbarui!' : 'Status berhasil diperbarui!');
@@ -539,6 +544,7 @@
                 })
                 .catch(err => {
                     console.error(err);
+                    lastResponseWasSuccess = false;
                     hideModal();
                     setTimeout(() => {
                         showResponse('error', 'Gagal!', err.message || 'Terjadi kesalahan sistem');
