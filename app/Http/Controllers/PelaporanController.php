@@ -129,7 +129,7 @@ class PelaporanController extends Controller
         }
 
         $catBiaya = ['Tiket', 'Uang Harian', 'Penginapan', 'Uang Representasi', 'Sewa Kendaraan', 'Pengeluaran Riil', 'Transport', 'SSPB'];
-        $catPendukung = ['Jenis Transportasi (Pergi)', 'Kode Tiket (Pergi)', 'Nama Transportasi (Pergi)', 'Jenis Transportasi (Pulang)', 'Kode Tiket (Pulang)', 'Nama Transportasi (Pulang)', 'Nama Penginapan', 'Kota'];
+        $catPendukung = ['Jenis Transportasi(Pergi)', 'Kode Tiket(Pergi)', 'Nama Transportasi(Pergi)', 'Jenis Transportasi(Pulang)', 'Kode Tiket(Pulang)', 'Nama Transportasi(Pulang)', 'Nama Penginapan', 'Kota'];
 
         return view('pic.pelaporan.detail', compact('perjalanan', 'allPeserta', 'statusText', 'isReadOnly', 'catBiaya', 'catPendukung'));
     }
