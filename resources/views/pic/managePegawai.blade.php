@@ -48,14 +48,23 @@
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-300 text-green-700 p-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
+        <div class="bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg mb-4 flex items-center gap-3">
+            {{-- Ikon Ceklis --}}
+            <i class="fa-solid fa-circle-check text-green-600 text-lg"></i>
+        
+            {{-- Teks Pesan --}}
+            <span class="font-medium">{{ session('success') }}</span>
+        </div>
         @endif
+
         @if(session('error'))
-            <div class="bg-red-100 border border-red-300 text-red-700 p-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
+        <div class="bg-green-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center gap-3">
+            {{-- Ikon Ceklis --}}
+            <i class="fa-solid fa-circle-cross text-red-600 text-lg"></i>
+        
+            {{-- Teks Pesan --}}
+            <span class="font-medium">{{ session('error') }}</span>
+        </div>
         @endif
 
     <div id="userListContainer">
