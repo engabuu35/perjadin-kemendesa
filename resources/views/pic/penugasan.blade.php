@@ -137,7 +137,7 @@
                                 </p>
                             </div>
 
-                            <div class="flex flex-col items-center gap-3 sm:min-w-[150px]">
+                            <div class="flex flex-col items-end gap-3 sm:min-w-[150px]">
                                 <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
                                     <i class="fa-solid {{ $badgeIcon }} text-xs"></i>
                                     {{ $statusLabel }}
