@@ -17,6 +17,9 @@ class PimpinanController extends Controller
      */
     public function index()
     {
+        $today = Carbon::now('Asia/Jakarta')->startOfDay();
+        $endOfToday = Carbon::now('Asia/Jakarta')->endOfDay();
+        
         // Ambil ID status "Sedang Berlangsung"
         $statusOnProgress = DB::table('statusperjadin')
             ->where('nama_status', 'Sedang Berlangsung')
@@ -56,35 +59,63 @@ class PimpinanController extends Controller
         $barPegawaiBelum    = []; // tugas pegawai yg belum selesai
 
         for ($bulan = 1; $bulan <= 12; $bulan++) {
-            // Ambil ID perjadin yang SELESAI di bulan ini
-            $perjadinIds = DB::table('perjalanandinas')
+            // ambil perjadin yang tgl_selesai pada bulan ini
+            $perjadinRows = DB::table('perjalanandinas')
                 ->whereYear('tgl_selesai', $tahunSekarang)
                 ->whereMonth('tgl_selesai', $bulan)
-                ->pluck('id');
+                ->select('id', 'tgl_selesai')
+                ->get();
 
-            // 1) Total perjadin selesai
-            $totalPerjadin = $perjadinIds->count();
+            $totalPerjadin = $perjadinRows->count();
             $barPerjadinTotal[] = $totalPerjadin;
 
-            // Kalau tidak ada perjadin, otomatis 0 semua
-            if ($perjadinIds->isEmpty()) {
+            if ($perjadinRows->isEmpty()) {
                 $barPegawaiSelesai[] = 0;
                 $barPegawaiBelum[]   = 0;
                 continue;
             }
 
-            // 2) Tugas pegawai di perjadin yang selesai bulan ini
-            $assignQuery = DB::table('pegawaiperjadin')
-                ->whereIn('id_perjadin', $perjadinIds);
+            // total tugas (assignments)
+            $perjadinIds = $perjadinRows->pluck('id')->toArray();
 
-            $totalTugas   = (clone $assignQuery)->count();
-            $tugasSelesai = (clone $assignQuery)->where('is_finished', 1)->count();
-            $tugasBelum   = max($totalTugas - $tugasSelesai, 0);
+            // jumlah tugas yg sudah is_finished = 1 (langsung dari table pegawaiperjadin)
+            $tugasSelesai = DB::table('pegawaiperjadin')
+                ->whereIn('id_perjadin', $perjadinIds)
+                ->where('is_finished', 1)
+                ->count();
+
+            // untuk tugas yang BELUM selesai laporannya tapi sudah overdue (> 3 hari kalender sejak tgl_selesai)
+            $tugasBelumOverdue = 0;
+            $now = Carbon::now();
+
+            foreach ($perjadinRows as $pr) {
+                $tglSelesai = Carbon::parse($pr->tgl_selesai);
+                $deadline = $tglSelesai->copy()->addDays(3)->endOfDay(); // lewat 3 hari kalender -> overdue when now > deadline
+
+                if ($now->gt($deadline)) {
+                    // hitung assignments (pegawaiperjadin) untuk perjadin ini yang BELUM punya laporan_perjadin
+                    // menggunakan NOT EXISTS
+                    $count = DB::table('pegawaiperjadin as pp')
+                        ->where('pp.id_perjadin', $pr->id)
+                        ->whereNotExists(function($query) use ($pr) {
+                            $query->select(DB::raw(1))
+                                ->from('laporan_perjadin as lp')
+                                ->whereRaw('lp.id_perjadin = pp.id_perjadin')
+                                ->whereRaw('lp.id_user = pp.id_user');
+                        })
+                        ->count();
+
+                    $tugasBelumOverdue += $count;
+                }
+            }
+
+            // jumlah total tugas (assignQuery)
+            $totalTugas = DB::table('pegawaiperjadin')->whereIn('id_perjadin', $perjadinIds)->count();
 
             $barPegawaiSelesai[] = $tugasSelesai;
-            $barPegawaiBelum[]   = $tugasBelum;
+            $barPegawaiBelum[]   = $tugasBelumOverdue;
         }
-
+        
         // Total perjadin 30 hari terakhir (berdasarkan tgl_selesai)
         $totalSebulanTerakhir = DB::table('perjalanandinas')
             ->whereBetween('tgl_selesai', [
@@ -161,47 +192,53 @@ class PimpinanController extends Controller
                 ];
             });
         
-        $rawGeo = DB::table('geotagging as g')
+        $geotagRaw = DB::table('geotagging as g')
             ->join('perjalanandinas as pd', 'g.id_perjadin', '=', 'pd.id')
-            ->join('users as u', 'g.id_user', '=', 'u.nip')
+            ->leftJoin('users as u', 'g.id_user', '=', 'u.nip')
             ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
-            ->where('pd.id_status', $statusOnProgress)
+            ->where(function($q) use ($statusOnProgress, $today, $endOfToday) {
+                $q->where('pd.id_status', $statusOnProgress)
+                ->orWhere(function($qq) use ($today, $endOfToday) {
+                    // perjadin yang mulai dan selesai pada tanggal hari ini
+                    $qq->whereDate('pd.tgl_mulai', $today->toDateString())
+                        ->whereDate('pd.tgl_selesai', $today->toDateString());
+                });
+            })
+            // ambil semua kolom yang perlu saja
             ->select(
+                'g.id',
                 'g.latitude',
                 'g.longitude',
                 'g.created_at',
-                'pd.id as id_perjadin',
+                'g.id_perjadin',
+                'g.id_user',
                 'pd.nomor_surat',
                 'pd.tujuan',
                 'u.nama',
                 'u.nip',
                 't.nama_tipe'
             )
+            ->orderBy('g.created_at', 'desc')
             ->get();
 
         // Grouping per (lat,lng,id_perjadin)
-        $geotagMapData = $rawGeo
+        $geotagMapData = $geotagRaw
             ->groupBy(function($row) {
-                return $row->id_perjadin.'|'.$row->latitude.'|'.$row->longitude;
+                return $row->id_perjadin.'|'.trim($row->latitude).'|'.trim($row->longitude);
             })
             ->map(function ($group) {
                 $first = $group->first();
-
+                
                 return [
-                    'lat'        => (float) $first->latitude,
-                    'lng'        => (float) $first->longitude,
-                    'id_perjadin'=> $first->id_perjadin,
-                    'nomor'      => $first->nomor_surat,
-                    'tujuan'     => $first->tujuan,
-                    'waktu'      => $group->max('created_at'),
-                    'tipe'       => $first->nama_tipe,
-                    'jumlah'     => $group->count(),
-                    'pegawai'    => $group->map(function($r){
-                                        return [
-                                            'nama' => $r->nama,
-                                            'nip'  => $r->nip,
-                                        ];
-                                    })->values()->all(),
+                    'lat'         => (float) $first->latitude,
+                    'lng'         => (float) $first->longitude,
+                    'id_perjadin' => $first->id_perjadin,
+                    'nomor'       => $first->nomor_surat ?? '-',
+                    'tujuan'      => $first->tujuan ?? '-',
+                    'waktu'       => $group->max('created_at'),
+                    'tipe'        => $first->nama_tipe,
+                    'jumlah'      => $group->count(),           // jumlah titik pada koordinat ini
+                    // list pegawai dihilangkan dari payload peta sesuai requirement
                 ];
             })
             ->values();
