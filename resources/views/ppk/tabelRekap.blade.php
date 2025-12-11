@@ -175,8 +175,8 @@
                             {{-- BARIS HEADER 3 (LEAF UNTUK SUB-GRUP) --}}
                             <tr style="background-color:#f4c6f4;" class="font-bold text-center">
                                 {{-- Tanggal SPD --}}
-                                <th class="px-3 py-2 border-2 border-gray-500">Brgkt</th>
-                                <th class="px-3 py-2 border-2 border-gray-500">Kmbl</th>
+                                <th class="px-3 py-2 border-2 border-gray-500">Berangkat</th>
+                                <th class="px-3 py-2 border-2 border-gray-500">Kembali</th>
 
                                 {{-- Rincian Biaya --}}
                                 <th class="px-3 py-2 border-2 border-gray-500">Tiket</th>
