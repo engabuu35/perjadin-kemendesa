@@ -397,14 +397,23 @@
             }
 
             function showResponse(type, title, message) {
+                responseOk.className = 'w-full py-3 px-6 text-white rounded-lg font-semibold transition shadow-md';
                 if (type === 'success') {
-                    responseIcon.className = 'w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center';
-                    responseIcon.innerHTML = '<i class="fa-solid fa-check text-green-600 text-2xl"></i>';
-                    responseTitle.className = 'text-xl font-bold mb-2 text-green-600';
+                    // GAYA HIJAU (Seperti Pelaporan Keuangan)
+                    responseIcon.className = 'w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center animate-bounce'; // Tambah animate-bounce
+                    responseIcon.innerHTML = '<i class="fa-solid fa-check text-green-600 text-3xl"></i>'; // Perbesar icon jadi text-3xl
+                    responseTitle.className = 'text-xl font-bold mb-2 text-gray-800'; // Ubah warna teks judul jadi abu-abu gelap (sesuai contoh gambar)
+                    
+                    // Warna Tombol Hijau
+                    responseOk.classList.add('bg-green-600', 'hover:bg-green-700');
                 } else {
+                    // GAYA ERROR (Merah)
                     responseIcon.className = 'w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center';
-                    responseIcon.innerHTML = '<i class="fa-solid fa-times text-red-600 text-2xl"></i>';
-                    responseTitle.className = 'text-xl font-bold mb-2 text-red-600';
+                    responseIcon.innerHTML = '<i class="fa-solid fa-times text-red-600 text-3xl"></i>';
+                    responseTitle.className = 'text-xl font-bold mb-2 text-gray-800';
+                    
+                    // Warna Tombol Merah
+                    responseOk.classList.add('bg-red-600', 'hover:bg-red-700');
                 }
                 
                 responseTitle.textContent = title;
