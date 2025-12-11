@@ -71,7 +71,8 @@
 
                     @else
                         {{-- Status lain (Revisi, Perlu Tindakan, dll) tetap link aktif --}}
-                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" class="block w-full text-center bg-blue-600 text-white hover:bg-blue-700 hover:text-white font-semibold py-2 rounded-lg transition">
+                        <a href="{{ route('pic.pelaporan.detail', $item->id) }}" 
+                           class="block w-full text-center {{ $item->custom_status == 'Perlu Revisi' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700' }} text-white hover:text-white font-semibold py-2 rounded-lg transition">
                             {{ $item->custom_status == 'Perlu Revisi' ? 'Perbaiki Laporan' : 'Proses Laporan' }}
                         </a>
                     @endif
