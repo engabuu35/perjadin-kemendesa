@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\StatusPerjadin;
 use App\Models\LaporanKeuangan;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PerjalananDinas extends Model
 {
@@ -30,14 +31,14 @@ class PerjalananDinas extends Model
         'surat_tugas',
         'catatan_penolakan',
         'dalam_rangka',
-        'selesaikan_manual', // PENAMBAHAN BARU BY ELLA 
+        'selesaikan_manual',
     ];
 
     protected $casts = [
         'approved_at'    => 'datetime',
-        'tanggal_surat'  => 'date',
-        'tgl_mulai'      => 'date',
-        'tgl_selesai'    => 'date',
+        'tanggal_surat'  => 'datetime',
+        'tgl_mulai'      => 'datetime',
+        'tgl_selesai'    => 'datetime',
         'created_at'     => 'datetime',
         'updated_at'     => 'datetime',
     ];
@@ -53,7 +54,7 @@ class PerjalananDinas extends Model
         return isset(self::$statusCache[$name]) ? intval(self::$statusCache[$name]) : null;
     }
 
-    // relations (pembuat, approver, status, laporanKeuangan, pegawai) tetap sama...
+    // relations (pembuat, approver, status, laporanKeuangan, pegawai)
     public function pembuat() { return $this->belongsTo(User::class, 'id_pembuat', 'nip'); }
     public function approver() { return $this->belongsTo(User::class, 'approved_by', 'nip'); }
     public function status() { return $this->belongsTo(StatusPerjadin::class, 'id_status', 'id'); }
@@ -112,9 +113,14 @@ class PerjalananDinas extends Model
             }
 
             if ($model->isDirty(['tgl_mulai', 'tgl_selesai'])) {
-                $belum = self::statusId('Belum Berlangsung');
-                if ($belum) {
-                    $model->id_status = $belum;
+                $newMulai = $model->tgl_mulai ? Carbon::parse($model->tgl_mulai) : null;
+                $now = Carbon::now()->startOfDay();
+
+                if ($newMulai && $newMulai->startOfDay()->gt($now)) {
+                    $belum = self::statusId('Belum Berlangsung');
+                    if ($belum) {
+                        $model->id_status = $belum;
+                    }
                 }
             }
         });
@@ -125,8 +131,67 @@ class PerjalananDinas extends Model
         });
     }
 
+    // Sumber kebenaran: apakah perjalanan sedang berlangsung menurut rentang tanggal?
+    public function isOngoing(): bool
+    {
+        if (!$this->tgl_mulai || !$this->tgl_selesai) {
+            return false;
+        }
+
+        // Gunakan now() dengan timezone aplikatif
+        $now = Carbon::now();
+        $mulai = $this->tgl_mulai->copy()->startOfDay();
+        $selesai = $this->tgl_selesai->copy()->endOfDay();
+
+        return $now->between($mulai, $selesai);
+    }
+
+    // Rekonsiliasi status berdasarkan tanggal: hanya mengubah status yang berbasis tanggal.
+    // Tidak menimpa status final/manual (Diselesaikan Manual / Dibatalkan / manual id 7) Mengembalikan true jika perubahan status dilakukan.
+    public function reconcileStatusByDate(): bool
+    {
+        $belum  = self::statusId('Belum Berlangsung');
+        $sedang = self::statusId('Sedang Berlangsung');
+        // $selesai = self::statusId('Selesai');                // baru selesai jika diverifikasi PPK
+        $final1 = self::statusId('Diselesaikan Manual');
+        $final2 = self::statusId('Dibatalkan');
+        $manualStatusId = 7; // ID 7 merupakan manual
+
+        // Jangan ubah jika sudah final atau manual 
+        if (in_array(intval($this->id_status), array_filter([$final1, $final2, $manualStatusId]))) {
+            return false;
+        }
+
+        // Jika sedang dalam rentang tanggal -> set Sedang Berlangsung
+        if ($this->isOngoing()) {
+            if ($sedang && intval($this->id_status) !== intval($sedang)) {
+                $this->id_status = $sedang;
+                $this->saveQuietly();
+                return true;
+            }
+            return false;
+        }
+
+        // Jika belum mulai => set Belum Berlangsung
+        if ($this->tgl_mulai && Carbon::now()->lt($this->tgl_mulai->copy()->startOfDay())) {
+            if ($belum && intval($this->id_status) !== intval($belum)) {
+                $this->id_status = $belum;
+                $this->saveQuietly();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function updateStatus(): bool
     {
+        // Pastikan sinkron tanggal terlebih dahulu — jika reconcile melakukan perubahan, biarkan perubahan itu berlaku dan hentikan evaluasi lebih lanjut 
+        $reconciled = $this->reconcileStatusByDate();
+        if ($reconciled) {
+            return true;
+        }
+
         $belum     = self::statusId('Belum Berlangsung');
         $sedang    = self::statusId('Sedang Berlangsung');
         $pembuatan = self::statusId('Pembuatan Laporan');
