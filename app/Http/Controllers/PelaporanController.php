@@ -147,6 +147,11 @@ class PelaporanController extends Controller
         $allFiles = $request->file('items') ?? [];
 
         foreach ($items as $nip => $categories) {
+            
+            //ubah paksa nip ke string
+            $nip = (string) $nip; 
+
+            
             $laporan = LaporanPerjadin::firstOrCreate(
                 ['id_perjadin' => $id, 'id_user' => $nip], 
                 ['uraian' => 'Laporan Keuangan', 'is_final' => 1]
