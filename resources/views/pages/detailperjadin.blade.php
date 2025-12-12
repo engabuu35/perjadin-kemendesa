@@ -89,11 +89,24 @@
                 title="Pencatatan Perjalanan Dinas" 
                 subtitle="Halaman untuk mencatat perjalanan dinas Anda" />
                 <div class=" -mb-2">
-                <!-- Surat Tugas -->
-                <p class="bg-white font-semibold rounded-2xl px-3 py-1 text-sm text-gray-500 inline-block">
-                    Surat Tugas: 
-                    <span class="text-blue-600">{{ $perjalanan->nomor_surat }}</span>
-                </p>
+
+                <!-- Surat Tugas (DIPERBARUI) -->
+                @if(!empty($perjalanan->surat_tugas))
+                    <!-- Jika ada file, tampilkan link -->
+                    <a href="{{ asset('storage/'.$perjalanan->surat_tugas) }}" target="_blank" 
+                       class="bg-white border border-blue-200 hover:border-blue-400 font-semibold rounded-2xl px-3 py-1 text-sm text-gray-500 inline-flex items-center gap-1 transition-colors shadow-sm hover:shadow group"
+                       title="Klik untuk melihat dokumen surat tugas">
+                        Surat Tugas: 
+                        <span class="text-blue-600 group-hover:underline">{{ $perjalanan->nomor_surat }}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-blue-400 ml-0.5"></i>
+                    </a>
+                @else
+                    <!-- Jika tidak ada file, tampilkan teks biasa -->
+                    <p class="bg-white font-semibold rounded-2xl px-3 py-1 text-sm text-gray-500 inline-block">
+                        Surat Tugas: 
+                        <span class="text-blue-600">{{ $perjalanan->nomor_surat }}</span>
+                    </p>
+                @endif
 
                 <!-- Badge Status -->
                 @if($isMyTaskFinished)

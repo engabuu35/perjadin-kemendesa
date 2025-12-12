@@ -91,11 +91,28 @@
                     </div>
                 </div>
 
+                {{-- BAGIAN FILE SURAT TUGAS --}}
                 <div class="mb-5">
                     <label for="surat_tugas" class="block text-gray-700 text-sm font-medium mb-2">Surat Tugas (PDF)</label>
                     <input type="file" id="surat_tugas" name="surat_tugas" accept="application/pdf" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-600 transition">
+                    
+                    {{-- PERBAIKAN: Tampilkan Nama File Asli & Link Klik --}}
                     @if(isset($perjalanan) && !empty($perjalanan->surat_tugas))
-                        <p class="text-sm text-gray-600 mt-2">File saat ini: <a href="{{ asset('storage/'.$perjalanan->surat_tugas) }}" target="_blank" class="text-blue-600 underline">Lihat File</a></p>
+                        <div class="mt-3 flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg gap-3">
+                            <div class="bg-white p-2 rounded-full shadow-sm">
+                                <i class="fa-solid fa-file-pdf text-red-600 text-xl"></i>
+                            </div>
+                            <div class="flex-1 overflow-hidden">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">File Terupload Saat Ini</p>
+                                <a href="{{ asset('storage/'.$perjalanan->surat_tugas) }}" target="_blank" class="text-sm font-bold text-blue-700 hover:text-blue-900 hover:underline truncate block" title="Klik untuk melihat file">
+                                    {{-- Menggunakan basename() agar hanya nama file yang muncul, bukan path panjang --}}
+                                    {{ basename($perjalanan->surat_tugas) }}
+                                </a>
+                            </div>
+                            <a href="{{ asset('storage/'.$perjalanan->surat_tugas) }}" target="_blank" class="text-xs font-semibold bg-white text-gray-700 border border-gray-300 px-3 py-1.5 rounded-md hover:bg-gray-50 transition shadow-sm">
+                                <i class="fas fa-external-link-alt mr-1"></i> Buka PDF
+                            </a>
+                        </div>
                     @endif
                 </div>
 
