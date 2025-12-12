@@ -64,36 +64,56 @@ class UsersSeeder extends Seeder
             [
                 'data' => [
                     'id_uke' => $ukeItjen, 'pangkat_gol_id' => $pangkat4a, 'nip' => '198001012010011001',
-                    'nama' => 'Paijo Pimpinan', 'email' => 'pimpinan@example.com',
+                    'nama' => 'Pimpinan 1', 'email' => 'pimpinan@example.com',
                 ],
                 'role_kode' => 'PIMPINAN'
             ],
             [
                 'data' => [
-                    'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199002022020022002',
-                    'nama' => 'Cahyo PPK', 'email' => 'ppk@example.com',
+                    'id_uke' => $ukeItjen, 'pangkat_gol_id' => $pangkat4a, 'nip' => '198001012010011002',
+                    'nama' => 'Pimpinan 2', 'email' => 'pimpinan@example.com',
+                ],
+                'role_kode' => 'PIMPINAN'
+            ],
+            [
+                'data' => [
+                    'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199002022020022001',
+                    'nama' => 'PPK 1', 'email' => 'ppk@example.com',
                 ],
                 'role_kode' => 'PPK'
             ],
             [
                 'data' => [
-                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199103032021031003',
+                    'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199002022020022002',
+                    'nama' => 'PPK 2', 'email' => 'ppk@example.com',
+                ],
+                'role_kode' => 'PPK'
+            ],
+            [
+                'data' => [
+                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199103032021031001',
                     'nama' => 'PIC Irwil 1', 'email' => 'pic.irwil1@example.com',
                 ],
                 'role_kode' => 'PIC'
             ],
             [
                 'data' => [
-                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '221220052212200200',
-                    'nama' => 'Muhammad Raza Anugrah', 'email' => 'razawadawaw@gmail.com',
+                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199103032021031002',
+                    'nama' => 'PIC Irwil 2', 'email' => 'pic.irwil1@example.com',
                 ],
                 'role_kode' => 'PIC'
             ],
-            // ... Tambahkan PIC lain jika perlu, saya ambil sampel representatif
             [
                 'data' => [
-                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3b, 'nip' => '199909092029092009',
-                    'nama' => 'Budi Pegawai', 'email' => 'pegawai.murni@example.com',
+                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3b, 'nip' => '199909092029092001',
+                    'nama' => 'Pegawai 1', 'email' => 'pegawai.murni@example.com',
+                ],
+                'role_kode' => 'PEGAWAI'
+            ],
+            [
+                'data' => [
+                    'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3b, 'nip' => '199909092029092002',
+                    'nama' => 'Pegawai 2', 'email' => 'pegawai.murni@example.com',
                 ],
                 'role_kode' => 'PEGAWAI'
             ],
