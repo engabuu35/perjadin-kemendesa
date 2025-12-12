@@ -473,7 +473,7 @@ class PerjadinController extends Controller
             'longitude'   => $request->longitude
         ]);
 
-        return response()->json(['status' => 'success', 'message' => 'Hadir!']);
+        return response()->json(['status' => 'success', 'message' => 'Lokasi Ditandai!']);
     }
 
     /**
