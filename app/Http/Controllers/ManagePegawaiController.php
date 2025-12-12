@@ -8,8 +8,12 @@ use App\Models\Role;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password; // [BARU] Untuk generate token
+use Illuminate\Support\Facades\Log;      // [BARU] Untuk logging error email
+use Illuminate\Support\Str; 
 use App\Models\PangkatGolongan;
 use App\Models\UnitKerja;
+use App\Notifications\NewAccountNotification; 
 
 class ManagePegawaiController extends Controller
 {
@@ -97,11 +101,30 @@ class ManagePegawaiController extends Controller
             $user->pangkat_gol_id = $validated['pangkat'] ?? null;
 
             // password default — contoh: nip
-            $user->password_hash = Hash::make($validated['nip']);
+            $randomPassword = Str::random(10); 
+            // Simpan hash-nya ke database
+            $user->password_hash = Hash::make($randomPassword);
+            $user->is_aktif = true; // Pastikan user langsung aktif
+            $user->created_at = now();
+            $user->updated_at = now();
 
             $user->save();
 
             $user->roles()->sync([(int)$validated['role']]);
+
+            // Kirim Email Notifikasi
+            try {
+                // 1. Generate Token Reset Password (manual trigger)
+                $token = Password::createToken($user);
+
+                // 2. Kirim Notifikasi (Pakai notifikasi yang sudah dibuat untuk seeder)
+                // Parameter: Token, NIP, Password Asli (belum di-hash)
+                $user->notify(new NewAccountNotification($token, $user->nip, $randomPassword));
+                
+            } catch (\Exception $e) {
+                // Log error jika email gagal, agar tidak membatalkan proses simpan user
+                Log::error("Gagal mengirim email akun baru ke {$user->email}: " . $e->getMessage());
+            }
         });
 
         return redirect()->route('pic.pegawai.index')->with('success', 'Pegawai berhasil ditambahkan.');
