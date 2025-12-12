@@ -654,10 +654,119 @@
         }
     }
 
+
+    async function validateNotificationAccess(id) {
+        try {
+            console.log('🔍 Validating notification access for ID:', id);
+            const response = await fetch(`${API_BASE_URL}/${id}/validate-access`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+
+            console.log('📡 Response status:', response.status);
+
+            if (!response.ok) {
+                console.error('❌ Failed to validate access, status:', response.status);
+                return { has_access: true }; // Default to allowing access if validation fails
+            }
+
+            const data = await response.json();
+            console.log('📦 Validation data:', data);
+            return data;
+        } catch (error) {
+            console.error('💥 Error validating notification access:', error);
+            return { has_access: true }; // Default to allowing access if error occurs
+        }
+    }
+
+    function showUnavailablePopup() {
+        const popupHtml = `
+            <div id="unavailablePopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] transition-opacity duration-300" style="opacity: 0;">
+                <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-95" style="animation: slideUp 0.3s ease-out forwards;">
+                    <div class="flex flex-col items-center text-center">
+                        <!-- Icon -->
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Perjalanan Dinas Tidak Tersedia</h3>
+                        
+                        <!-- Message -->
+                        <p class="text-gray-600 text-sm mb-6">
+                            Anda telah dihapus dari penugasan perjalanan dinas ini oleh PIC. Notifikasi ini tidak lagi valid.
+                        </p>
+                        
+                        <!-- Close Button -->
+                        <button onclick="closeUnavailablePopup()" 
+                                class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Mengerti
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(20px) scale(0.95);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0) scale(1);
+                        opacity: 1;
+                    }
+                }
+            </style>
+        `;
+
+        // Remove existing popup if any
+        const existing = document.getElementById('unavailablePopup');
+        if (existing) existing.remove();
+
+        // Add popup to body
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+        // Fade in
+        setTimeout(() => {
+            const popup = document.getElementById('unavailablePopup');
+            if (popup) popup.style.opacity = '1';
+        }, 10);
+    }
+
+    function closeUnavailablePopup() {
+        const popup = document.getElementById('unavailablePopup');
+        if (popup) {
+            popup.style.opacity = '0';
+            setTimeout(() => popup.remove(), 300);
+        }
+    }
+
     async function handleNotificationClick(id, actionUrl) {
+        console.log('🔔 Notification clicked:', { id, actionUrl });
+        
+        // Validate access before redirecting
+        const validation = await validateNotificationAccess(id);
+        console.log('✅ Validation result:', validation);
+
+        // Mark as read regardless of access
         await markAsRead(id);
+
         if (actionUrl) {
-            window.location.href = actionUrl;
+            // Check if user has access
+            if (validation.has_access) {
+                console.log('✓ User has access, redirecting...');
+                // User still has access, redirect normally
+                window.location.href = actionUrl;
+            } else {
+                console.log('✗ User does NOT have access, showing popup');
+                // User no longer has access, show popup
+                showUnavailablePopup();
+            }
         }
     }
 

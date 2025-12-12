@@ -213,6 +213,60 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function validatePerjadinAccess($notificationId)
+    {
+        try {
+            $user = Auth::user();
+
+            // Get notification and verify it belongs to the user
+            $notification = DB::table('notifications')
+                ->where('id', $notificationId)
+                ->where('user_id', $user->nip)
+                ->first();
+
+            if (!$notification) {
+                return response()->json([
+                    'success' => false,
+                    'has_access' => false,
+                    'message' => 'Notification not found',
+                ], 404);
+            }
+
+            // Check if this is a perjalanan dinas notification
+            $actionUrl = $notification->action_url;
+            if (!$actionUrl || !preg_match('/\/perjalanan\/(\d+)/', $actionUrl, $matches)) {
+                // Not a perjadin notification, allow access
+                return response()->json([
+                    'success' => true,
+                    'has_access' => true,
+                    'action_url' => $actionUrl,
+                ]);
+            }
+
+            $perjadinId = $matches[1];
+
+            // Check if user is still assigned to this perjalanan dinas
+            $isAssigned = DB::table('pegawaiperjadin')
+                ->where('id_perjadin', $perjadinId)
+                ->where('id_user', $user->nip)
+                ->exists();
+
+            return response()->json([
+                'success' => true,
+                'has_access' => $isAssigned,
+                'action_url' => $actionUrl,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error validating perjadin access: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'has_access' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function formatNotification($notification)
     {
         $createdAt = $notification->created_at;

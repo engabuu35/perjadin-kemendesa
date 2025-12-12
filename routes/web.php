@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
         Route::get('/unread', [NotificationController::class, 'unread'])->name('unread');
         Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unreadCount');
+        Route::get('/{id}/validate-access', [NotificationController::class, 'validatePerjadinAccess'])->name('validateAccess');
         Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('markAsRead');
         Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
         Route::delete('/{id}', [NotificationController::class, 'delete'])->name('delete');
@@ -86,7 +87,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/uraian', [PerjadinController::class, 'storeUraian'])->name('storeUraian');
         Route::post('/{id}/bukti', [PerjadinController::class, 'storeBukti'])->name('storeBukti');
         Route::post('/{id}/foto-geotag', [PerjadinController::class, 'storeFotoGeotagging'])->name('fotoGeotag');
-        
+
         // Route Selesaikan (Finalisasi)
         Route::post('/{id}/selesaikan', [PerjadinController::class, 'selesaikanTugasSaya'])->name('selesaikan');
     });
@@ -96,12 +97,12 @@ Route::middleware('auth')->group(function () {
 
     // Laporan Keuangan Lama (Jika masih dipakai)
     Route::prefix('laporan-keuangan')->name('laporan.')->controller(LaporanKeuanganController::class)->group(function () {
-        Route::get('/', 'index')->name('index')->middleware('role:PIC,PPK,PIMPINAN'); 
-        Route::get('/export-excel', 'generateExcel')->name('export')->middleware('role:PIC,PPK,PIMPINAN'); 
-        Route::get('/{id}', 'show')->name('show'); 
-        Route::get('/{id}/edit', 'edit')->name('edit')->middleware('role:PIC,PPK'); 
-        Route::put('/{id}', 'update')->name('update')->middleware('role:PIC,PPK'); 
-        Route::post('/{id}/verify', 'verify')->name('verify')->middleware('role:PPK'); 
+        Route::get('/', 'index')->name('index')->middleware('role:PIC,PPK,PIMPINAN');
+        Route::get('/export-excel', 'generateExcel')->name('export')->middleware('role:PIC,PPK,PIMPINAN');
+        Route::get('/{id}', 'show')->name('show');
+        Route::get('/{id}/edit', 'edit')->name('edit')->middleware('role:PIC,PPK');
+        Route::put('/{id}', 'update')->name('update')->middleware('role:PIC,PPK');
+        Route::post('/{id}/verify', 'verify')->name('verify')->middleware('role:PPK');
     });
 
     Route::view('/nyoba', 'nyoba')->name('nyoba');
@@ -125,7 +126,7 @@ Route::middleware(['auth', 'role:PIC'])->prefix('pic')->name('pic.')->group(func
     Route::patch('/penugasan-perjadin/{id}/status', [\App\Http\Controllers\PerjadinTambahController::class, 'updateStatus'])->name('penugasan.updateStatus');
     Route::get('/pelaporan-perjadin', fn() => view('pic.pelaporanPerjalanan'))->name('pelaporan');
     Route::get('/lsrampung', [\App\Http\Controllers\LSRampungController::class, 'index'])->name('lsrampung');
-    
+
 
     // PELAPORAN KEUANGAN PIC (MANUAL)
     Route::get('/pelaporan-keuangan', [PelaporanController::class, 'index'])->name('pelaporan.index');
@@ -172,7 +173,7 @@ Route::middleware(['auth', 'role:PPK'])->prefix('ppk')->name('ppk.')->group(func
     // [ROUTE BARU - DITAMBAHKAN] Approve & Reject
     Route::post('/verifikasi/{id}/approve', [PPKController::class, 'approve'])->name('verifikasi.approve');
     Route::post('/verifikasi/{id}/reject', [PPKController::class, 'reject'])->name('verifikasi.reject');
-    
+
     Route::get('/pelaporan', [PPKController::class, 'index'])->name('pelaporan');
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', [PPKController::class, 'tabelRekap'])->name('tabelrekap');
