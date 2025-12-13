@@ -192,56 +192,43 @@ class PimpinanController extends Controller
                 ];
             });
         
+        // ==========================
+        //   DATA PETA GEOTAGGING (HANYA TAGGING HARI INI)
+        // ==========================
+        $todayDate = Carbon::now('Asia/Jakarta')->toDateString();
+
         $geotagRaw = DB::table('geotagging as g')
             ->join('perjalanandinas as pd', 'g.id_perjadin', '=', 'pd.id')
-            ->leftJoin('users as u', 'g.id_user', '=', 'u.nip')
-            ->leftJoin('tipegeotagging as t', 'g.id_tipe', '=', 't.id')
-            ->where(function($q) use ($statusOnProgress, $today, $endOfToday) {
-                $q->where('pd.id_status', $statusOnProgress)
-                ->orWhere(function($qq) use ($today, $endOfToday) {
-                    // perjadin yang mulai dan selesai pada tanggal hari ini
-                    $qq->whereDate('pd.tgl_mulai', $today->toDateString())
-                        ->whereDate('pd.tgl_selesai', $today->toDateString());
-                });
-            })
-            // ambil semua kolom yang perlu saja
+            ->where('pd.id_status', $statusOnProgress)
+            ->whereDate('g.created_at', $todayDate) // 🔴 KUNCI UTAMA
             ->select(
-                'g.id',
                 'g.latitude',
                 'g.longitude',
                 'g.created_at',
                 'g.id_perjadin',
-                'g.id_user',
                 'pd.nomor_surat',
-                'pd.tujuan',
-                'u.nama',
-                'u.nip',
-                't.nama_tipe'
+                'pd.tujuan'
             )
-            ->orderBy('g.created_at', 'desc')
             ->get();
+
 
         // Grouping per (lat,lng,id_perjadin)
         $geotagMapData = $geotagRaw
-            ->groupBy(function($row) {
-                return $row->id_perjadin.'|'.trim($row->latitude).'|'.trim($row->longitude);
-            })
-            ->map(function ($group) {
-                $first = $group->first();
-                
-                return [
-                    'lat'         => (float) $first->latitude,
-                    'lng'         => (float) $first->longitude,
-                    'id_perjadin' => $first->id_perjadin,
-                    'nomor'       => $first->nomor_surat ?? '-',
-                    'tujuan'      => $first->tujuan ?? '-',
-                    'waktu'       => $group->max('created_at'),
-                    'tipe'        => $first->nama_tipe,
-                    'jumlah'      => $group->count(),           // jumlah titik pada koordinat ini
-                    // list pegawai dihilangkan dari payload peta sesuai requirement
-                ];
-            })
-            ->values();
+        ->groupBy(fn($row) => $row->id_perjadin.'|'.$row->latitude.'|'.$row->longitude)
+        ->map(function ($group) {
+            $first = $group->first();
+
+            return [
+                'lat'         => (float) $first->latitude,
+                'lng'         => (float) $first->longitude,
+                'id_perjadin' => $first->id_perjadin,
+                'nomor'       => $first->nomor_surat,
+                'tujuan'      => $first->tujuan,
+                'jumlah'      => $group->count(), // jumlah tagging hari ini di titik tsb
+            ];
+        })
+        ->values();
+
 
         return view('pimpinan.monitoringPegawai', compact(
             'pegawaiOnProgress',
