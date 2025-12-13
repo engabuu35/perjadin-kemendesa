@@ -24,25 +24,30 @@
 <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl group border border-gray-100 relative">
 
     <!-- Garis status kiri -->
-    <div class="absolute left-0 top-0 bottom-0 w-1 {{ $statusClass }}"></div>
+    <div class="absolute left-0 top-0 bottom-0 w-0.5 sm:w-1 {{ $statusClass }}"></div>
 
     <!-- Konten utama -->
-    <div class="p-6 pl-8">
-        <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+    <div class="p-4 pl-6 sm:p-6 sm:pl-8">
+        <div class="flex flex-row justify-between items-start gap-3">
 
             <!-- Kiri -->
             <div class="flex-1 space-y-3 min-w-0">
-                <h3 class="text-blue-800 font-bold text-xl tracking-wide border-b-2 border-blue-200 pb-2 truncate">
+                <h3 class="text-blue-800 font-bold text-lg sm:text-xl tracking-wide border-b-2 border-blue-200 pb-2 truncate">
                     {{ $perjalanan->nomor_surat }}
                 </h3>
 
                 <div class="space-y-2">
-                    <p class="flex items-start gap-3 text-gray-700 text-base">
-                        <i class="fa-solid fa-location-dot w-5 mt-0.5 text-gray-400"></i>
-                        <span class="font-medium break-words">{{ $perjalanan->lokasi }}</span>
+                    <p class="flex items-center gap-2 text-gray-700 text-sm sm:text-base whitespace-nowrap">
+                        <span class="w-4 h-4 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </span>
+                        <span class="font-medium truncate">{{ $perjalanan->lokasi }}</span>
                     </p>
-                    <p class="flex items-start gap-3 text-gray-600 text-sm">
-                        <i class="fa-regular fa-calendar w-5 mt-0.5 text-gray-400"></i>
+
+                    <p class="flex items-center gap-2 text-gray-600 text-xs sm:text-sm whitespace-nowrap">
+                        <span class="w-4 h-4 flex items-center justify-center text-gray-400">
+                            <i class="fa-solid fa-calendar"></i>
+                        </span>
                         <span>{{ $perjalanan->tanggal }}</span>
                     </p>
                 </div>
@@ -51,7 +56,7 @@
             <!-- Kanan -->
             <div class="flex flex-col items-end gap-3 sm:min-w-[150px]">
 
-                <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
+                <span class="px-3 py-1.5 text-xs sm:text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
                     <i class="fa-solid {{ $badgeIcon }} text-xs"></i>
                     <span>{{ $statusText }}</span>
                 </span>

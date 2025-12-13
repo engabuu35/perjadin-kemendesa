@@ -152,6 +152,49 @@
             border-radius: 15px;
             opacity: 1;
         }
+        .sidebar:not(.active) .sidebar-menu a {
+            overflow: visible !important;
+            position: relative;
+        }
+
+        /* 2. Tooltip muncul saat hover */
+        .sidebar:not(.active) .sidebar-menu a:hover span:last-child {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+
+            position: absolute;
+            left: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+
+            background: linear-gradient(to bottom, #1f2937, #111827) !important;
+            color: #ffffff !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            padding: 8px 12px !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #374151 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+
+            width: max-content;
+            white-space: nowrap;
+            z-index: 99999;
+            pointer-events: none;
+        }
+
+        /* 3. Panah tooltip */
+        .sidebar:not(.active) .sidebar-menu a:hover span:last-child::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 6px solid #1f2937;
+        }
 
         /* Ripple Animation */
         @keyframes ripple-effect-1 {
@@ -322,6 +365,8 @@
         #mobileProfilePopup i {
             transition: color 0.2s ease;
         }
+
+
 
         /* Mobile: Sidebar keluar dari kiri */
         @media (max-width: 640px) {

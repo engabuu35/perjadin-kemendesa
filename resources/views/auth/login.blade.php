@@ -11,10 +11,13 @@
 
     @vite('resources/css/app.css')
 </head>
-<body class="relative flex items-center justify-center min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat">
+<body class="relative min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat">
     <div class="absolute inset-0 bg-gray-200/45"></div>
 
-    <div class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg p-8 pt-12 pb-12 w-[400px] z-10">
+    <div class="relative z-10 min-h-screen flex items-center justify-center px-4 py-6 sm:px-0">
+        <div class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg
+                    w-full max-w-sm px-5 py-6 sm:px-8 sm:py-8">
+
         <div class="flex flex-col items-center">
             <img src="{{ asset('img/logo_kementerian_desa.png') }}" alt="Logo" class="w-24 h-24 mt-1 mb-5 drop-shadow" />
             <p class="text-center text-xl text-[#2954B0] font-bold">Inspektorat Jenderal</p>
@@ -113,7 +116,7 @@
             </div>
         </form>
     </div>
-
+</div>
     <!-- SCRIPT TOGGLE PASSWORD -->
     <script>
         function togglePassword() {

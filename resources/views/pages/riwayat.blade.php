@@ -74,37 +74,47 @@
                         : route('perjalanan.detail', $riwayat->id);
                 @endphp
                 
-                <div class="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group" style="background-color: #BCBCBF;">
-                    <div class="p-5">
-                        <div class="flex flex-col sm:flex-row justify-between items-start gap-1.5">
+                <div class="rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group bg-[#BCBCBF]">
+                    <div class="p-4 sm:p-5">
+                        <div class="flex flex-row justify-between items-start gap-3">
+
                             
                             <!-- Info Kiri -->
-                            <div class="flex-1 space-y-2.5">
-                                <h3 class="text-white font-bold text-xl group-hover:translate-x-1 transition-transform duration-300">
+                            <div class="flex-1 min-w-0 space-y-2">
+
+                                <!-- Judul -->
+                                <h3 class="text-white font-bold text-lg sm:text-xl truncate">
                                     {{ $riwayat->nomor_surat ?? 'Nomor surat tidak tersedia' }}
                                 </h3>
-                                
-                                <div class="space-y-1.5">
-                                    <p class="flex items-center gap-3 text-white text-base group-hover:translate-x-1 transition-transform duration-300 delay-75">
-                                        <i class="fa-solid fa-map-marker-alt w-5"></i>
-                                        <span>{{ $lokasi }}</span>
-                                    </p>
-                                    <p class="flex items-center gap-3 text-white text-base group-hover:translate-x-1 transition-transform duration-300 delay-100">
-                                        <i class="fa-solid fa-calendar-days w-5"></i>
-                                        <span>{{ $tanggal }}</span>
-                                    </p>
-                                </div>
+
+                                <!-- Lokasi -->
+                                <p class="flex items-center gap-2 text-white text-sm sm:text-base whitespace-nowrap">
+                                    <span class="w-4 h-4 flex items-center justify-center opacity-90">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                    </span>
+                                    <span class="truncate">{{ $lokasi }}</span>
+                                </p>
+
+                                <!-- Tanggal -->
+                                <p class="flex items-center gap-2 text-white text-xs sm:text-sm whitespace-nowrap">
+                                    <span class="w-4 h-4 flex items-center justify-center opacity-90">
+                                        <i class="fa-solid fa-calendar"></i>
+                                    </span>
+                                    <span>{{ $tanggal }}</span>
+                                </p>
+
                             </div>
 
+
                             <!-- Info Kanan -->
-                            <div class="flex flex-col items-start sm:items-end gap-3 sm:min-w-[140px]">
+                            <div class="flex flex-col items-start sm:items-end gap-2 sm:min-w-[140px]">
                                 <span class="px-5 py-2 text-sm font-semibold text-white rounded-full bg-green-500 shadow-sm flex items-center gap-2 hover:bg-green-600 transition-colors duration-200">
                                     <i class="fa-solid fa-circle text-xs animate-pulse"></i>
                                     {{ $riwayat->status ?? 'Selesai' }}
                                 </span>
                                 
                                 <a href="{{ $detailRoute }}" 
-                                class="text-gray-200 hover:text-white hover:underline text-sm font-medium transition-all duration-200 flex items-center gap-1.5 group/link">
+                                class="text-gray-200 hover:text-white hover:underline text-sm font-medium transition-all duration-200 flex items-center gap-1.5 group/link ml-3 sm:ml-0">
                                     <span>Lihat Detail</span>
                                     <i class="fa-solid fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform duration-200"></i>
                                 </a>

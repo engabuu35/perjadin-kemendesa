@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="id">
 
+<style>
+    @media (max-width: 640px) {
+    html {
+        font-size: 14px;
+    }
+    input, button, select, textarea {
+        font-size: 0.9rem;
+    }
+    
+}
+</style>   
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
