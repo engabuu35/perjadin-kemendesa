@@ -64,28 +64,28 @@ class UsersSeeder extends Seeder
             [
                 'data' => [
                     'id_uke' => $ukeItjen, 'pangkat_gol_id' => $pangkat4a, 'nip' => '198001012010011001',
-                    'nama' => 'Pimpinan 1', 'email' => 'pimpinan@example.com',
+                    'nama' => 'Pimpinan 1', 'email' => 'pimpinan1@example.com',
                 ],
                 'role_kode' => 'PIMPINAN'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeItjen, 'pangkat_gol_id' => $pangkat4a, 'nip' => '198001012010011002',
-                    'nama' => 'Pimpinan 2', 'email' => 'pimpinan@example.com',
+                    'nama' => 'Pimpinan 2', 'email' => 'pimpinan2@example.com',
                 ],
                 'role_kode' => 'PIMPINAN'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199002022020022001',
-                    'nama' => 'PPK 1', 'email' => 'ppk@example.com',
+                    'nama' => 'PPK 1', 'email' => 'ppk1@example.com',
                 ],
                 'role_kode' => 'PPK'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeSetitjen, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199002022020022002',
-                    'nama' => 'PPK 2', 'email' => 'ppk@example.com',
+                    'nama' => 'PPK 2', 'email' => 'ppk2@example.com',
                 ],
                 'role_kode' => 'PPK'
             ],
@@ -99,21 +99,21 @@ class UsersSeeder extends Seeder
             [
                 'data' => [
                     'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3a, 'nip' => '199103032021031002',
-                    'nama' => 'PIC Irwil 2', 'email' => 'pic.irwil1@example.com',
+                    'nama' => 'PIC Irwil 2', 'email' => 'pic.irwil2@example.com',
                 ],
                 'role_kode' => 'PIC'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3b, 'nip' => '199909092029092001',
-                    'nama' => 'Pegawai 1', 'email' => 'pegawai.murni@example.com',
+                    'nama' => 'Pegawai 1', 'email' => 'pegawai1@example.com',
                 ],
                 'role_kode' => 'PEGAWAI'
             ],
             [
                 'data' => [
                     'id_uke' => $ukeIrwil1, 'pangkat_gol_id' => $pangkat3b, 'nip' => '199909092029092002',
-                    'nama' => 'Pegawai 2', 'email' => 'pegawai.murni@example.com',
+                    'nama' => 'Pegawai 2', 'email' => 'pegawai2@example.com',
                 ],
                 'role_kode' => 'PEGAWAI'
             ],
