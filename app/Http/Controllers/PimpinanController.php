@@ -17,6 +17,11 @@ class PimpinanController extends Controller
      */
     public function index()
     {
+        $statusSelesaiIds = DB::table('statusperjadin')
+            ->whereIn('nama_status', ['Selesai', 'Diselesaikan Manual'])
+            ->pluck('id')
+            ->toArray();
+
         $today = Carbon::now('Asia/Jakarta')->startOfDay();
         $endOfToday = Carbon::now('Asia/Jakarta')->endOfDay();
         
@@ -61,10 +66,13 @@ class PimpinanController extends Controller
         for ($bulan = 1; $bulan <= 12; $bulan++) {
             // ambil perjadin yang tgl_selesai pada bulan ini
             $perjadinRows = DB::table('perjalanandinas')
+                ->whereIn('id_status', $statusSelesaiIds) // 🔴 FILTER STATUS
+                ->whereNotNull('tgl_selesai')
                 ->whereYear('tgl_selesai', $tahunSekarang)
                 ->whereMonth('tgl_selesai', $bulan)
                 ->select('id', 'tgl_selesai')
                 ->get();
+
 
             $totalPerjadin = $perjadinRows->count();
             $barPerjadinTotal[] = $totalPerjadin;
@@ -118,6 +126,7 @@ class PimpinanController extends Controller
         
         // Total perjadin 30 hari terakhir (berdasarkan tgl_selesai)
         $totalSebulanTerakhir = DB::table('perjalanandinas')
+            ->whereIn('id_status', $statusSelesaiIds)
             ->whereBetween('tgl_selesai', [
                 Carbon::now()->subDays(30),
                 Carbon::now()
