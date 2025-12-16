@@ -748,7 +748,7 @@
 
     async function handleNotificationClick(id, actionUrl) {
         console.log('🔔 Notification clicked:', { id, actionUrl });
-        
+
         // Validate access before redirecting
         const validation = await validateNotificationAccess(id);
         console.log('✅ Validation result:', validation);

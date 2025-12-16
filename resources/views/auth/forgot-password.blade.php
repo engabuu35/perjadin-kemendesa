@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -11,16 +12,21 @@
 
     @vite('resources/css/app.css')
 </head>
-<body class="relative flex items-center justify-center min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat">
+
+<body
+    class="relative flex items-center justify-center min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat px-4">
     <div class="absolute inset-0 bg-gray-200/45"></div>
 
-    <div class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg p-8 pt-12 pb-12 w-[400px] z-10">
+    <div
+        class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg p-5 pt-8 pb-8 sm:p-8 sm:pt-12 sm:pb-12 w-full max-w-[320px] sm:w-[400px] sm:max-w-none z-10">
         <div class="flex flex-col items-center">
-            <img src="{{ asset('img/logo_kementerian_desa.png') }}" alt="Logo" class="w-24 h-24 mt-1 mb-5 drop-shadow" />
+            <img src="{{ asset('img/logo_kementerian_desa.png') }}" alt="Logo"
+                class="w-20 h-20 sm:w-24 sm:h-24 mt-1 mb-4 sm:mb-5 drop-shadow" />
 
-            <h2 class="text-lg font-semibold text-gray-800 mb-1">Lupa Password</h2>
-            <p class="text-sm text-gray-500 text-center mb-5">Masukkan NIP/NIK Anda<br>sistem akan mengirim link reset ke email yang terdaftar.</p>
-            
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800 mb-1">Lupa Password</h2>
+            <p class="text-xs sm:text-sm text-gray-500 text-center mb-4 sm:mb-5">Masukkan NIP/NIK Anda<br>sistem akan
+                mengirim link reset ke email yang terdaftar.</p>
+
             @error('nip')
                 <p id="nip-error" class=" mb-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
@@ -38,13 +44,9 @@
                     <div class="relative">
                         <i class="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
 
-                        <input id="nip" name="nip" type="text" required autofocus
-                            autocomplete="username"
-                            aria-label="NIP atau NIK"
-                            aria-invalid="{{ $errors->has('nip') ? 'true' : 'false' }}"
-                            @if($errors->has('nip')) aria-describedby="nip-error" @endif
-                            value="{{ old('nip') }}"
-                            class="w-full text-sm pl-11 pr-4 py-2 rounded-full border
+                        <input id="nip" name="nip" type="text" required autofocus autocomplete="username"
+                            aria-label="NIP atau NIK" aria-invalid="{{ $errors->has('nip') ? 'true' : 'false' }}"
+                            @if($errors->has('nip')) aria-describedby="nip-error" @endif value="{{ old('nip') }}" class="w-full text-sm pl-11 pr-4 py-2 rounded-full border
                                    {{ $errors->has('nip') ? 'border-red-400' : 'border-blue-200' }}
                                    focus:outline-none focus:ring-2 focus:ring-blue-300"
                             placeholder="Masukkan NIP atau NIK Anda">
@@ -54,12 +56,14 @@
 
                 <div class="flex justify-between items-center mt-8 space-x-4">
                     <a href="{{ route('login') }}" class="w-1/2">
-                        <button type="button" class="w-full px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-full shadow font-medium">
+                        <button type="button"
+                            class="w-full px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-full shadow font-medium">
                             &lt; Kembali
                         </button>
                     </a>
 
-                    <button type="submit" class="w-1/2 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full shadow text-sm font-medium">
+                    <button type="submit"
+                        class="w-1/2 inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full shadow text-sm font-medium">
                         <i class="fa-solid fa-envelope-circle-check mr-2"></i>
                         Kirim Link
                     </button>
@@ -68,4 +72,5 @@
         </div>
     </div>
 </body>
+
 </html>

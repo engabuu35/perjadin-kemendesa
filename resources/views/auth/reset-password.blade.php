@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -11,14 +12,19 @@
 
     @vite('resources/css/app.css')
 </head>
-<body class="relative flex items-center justify-center min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat">
+
+<body
+    class="relative flex items-center justify-center min-h-screen bg-login-pattern bg-cover bg-center bg-no-repeat px-4">
     <div class="absolute inset-0 bg-gray-200/45"></div>
 
-    <div class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg p-8 pt-12 pb-12 w-[400px] z-10">
+    <div
+        class="bg-white rounded-2xl border-2 border-blue-500 shadow-lg p-5 pt-8 pb-8 sm:p-8 sm:pt-12 sm:pb-12 w-full max-w-[320px] sm:w-[400px] sm:max-w-none z-10">
         <div class="flex flex-col items-center">
-            <img src="{{ asset('img/logo_kementerian_desa.png') }}" alt="Logo" class="w-24 h-24 mt-1 mb-5 drop-shadow" />
-            <h2 class="text-lg font-semibold text-gray-800 mb-1">Reset Password</h2>
-            <p class="text-sm text-gray-500 text-center mb-5">Gunakan kombinasi huruf dan angka untuk keamanan akun anda.</p>
+            <img src="{{ asset('img/logo_kementerian_desa.png') }}" alt="Logo"
+                class="w-20 h-20 sm:w-24 sm:h-24 mt-1 mb-4 sm:mb-5 drop-shadow" />
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800 mb-1">Reset Password</h2>
+            <p class="text-xs sm:text-sm text-gray-500 text-center mb-4 sm:mb-5">Gunakan kombinasi huruf dan angka untuk
+                keamanan akun anda.</p>
         </div>
 
         <!-- Status / Errors -->
@@ -37,9 +43,8 @@
                 <label for="nip" class="text-sm font-medium text-black block mb-2">NIP / NIK</label>
                 <div class="relative">
                     <i class="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input id="nip" name="nip" type="text"
-                        value="{{ old('nip', $request->nip ?? '') }}"
-                        required autofocus
+                    <input id="nip" name="nip" type="text" value="{{ old('nip', $request->nip ?? '') }}" required
+                        autofocus
                         class="w-full text-sm pl-11 pr-4 py-2 rounded-full border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
                 </div>
                 @error('nip')
@@ -57,8 +62,7 @@
                         class="w-full text-sm pl-11 pr-11 py-2 rounded-full border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
 
                     <!-- Toggle -->
-                    <button type="button"
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                    <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
                         onclick="togglePassword('password', this)">
                         <i class="fa-solid fa-eye"></i>
                     </button>
@@ -67,7 +71,8 @@
 
             <!-- KONFIRMASI PASSWORD -->
             <div class="mb-4">
-                <label for="password_confirmation" class="text-sm font-medium text-black block mb-2">Konfirmasi Password</label>
+                <label for="password_confirmation" class="text-sm font-medium text-black block mb-2">Konfirmasi
+                    Password</label>
                 <div class="relative">
                     <i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
 
@@ -75,8 +80,7 @@
                         class="w-full text-sm pl-11 pr-11 py-2 rounded-full border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300">
 
                     <!-- Toggle -->
-                    <button type="button"
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                    <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
                         onclick="togglePassword('password_confirmation', this)">
                         <i class="fa-solid fa-eye"></i>
                     </button>
@@ -116,4 +120,5 @@
     </script>
 
 </body>
+
 </html>

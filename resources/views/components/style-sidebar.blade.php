@@ -1,400 +1,409 @@
 <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        /* Sidebar Active State */
-        .sidebar.active {
-            width: 210px;
-        }
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
 
-        .sidebar.active .sidebar-menu a span:last-child {
-            flex: 0;
-            text-align: center;
-            opacity: 1;
-        }
+    /* Sidebar Active State */
+    .sidebar.active {
+        width: 210px;
+    }
 
-        .sidebar.active .user-profile {
-            align-items: center;
-            padding-left: 20px;
-            padding-right: 20px;
-            padding-top: 12px;
-            padding-bottom: 20px;
-            bottom: 15px;
-            margin-bottom: 0;
-        }
+    .sidebar.active .sidebar-menu a span:last-child {
+        flex: 0;
+        text-align: center;
+        opacity: 1;
+    }
 
-        /* Tambahkan setelah line 42 */
-        .sidebar:not(.active) .user-profile {
-            bottom: -10px;
-        }
+    .sidebar.active .user-profile {
+        align-items: center;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 12px;
+        padding-bottom: 20px;
+        bottom: 15px;
+        margin-bottom: 0;
+    }
 
-        .sidebar.active .user-profile .name,
-        .sidebar.active .user-profile .role {
-            opacity: 1;
-        }
-        
-        .sidebar.active .logout-btn {
-            opacity: 1;
-        }
+    /* Tambahkan setelah line 42 */
+    .sidebar:not(.active) .user-profile {
+        bottom: -10px;
+    }
 
-        /* Overlay Active State */
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
+    .sidebar.active .user-profile .name,
+    .sidebar.active .user-profile .role {
+        opacity: 1;
+    }
 
-        /* Sidebar Background */
-        .bg-sidebar {
-            background-image: 
-                url('/img/sidebar-pattern.png'),
-                linear-gradient(to bottom, #2954B0, #24519D);
-            background-repeat: repeat, no-repeat;
-            background-size: 200px, cover;
-            background-position: 7px 20px, center;
-        }
+    .sidebar.active .logout-btn {
+        opacity: 1;
+    }
 
-        /* Hover Effect Bulat untuk Menu */
-        .sidebar-menu a {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s cubic-bezier(0.3, 0, 0.2, 1);
-        }
+    /* Overlay Active State */
+    .overlay.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
 
-        .sidebar-menu a::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+    /* Sidebar Background */
+    .bg-sidebar {
+        background-image:
+            url('/img/sidebar-pattern.png'),
+            linear-gradient(to bottom, #2954B0, #24519D);
+        background-repeat: repeat, no-repeat;
+        background-size: 200px, cover;
+        background-position: 7px 20px, center;
+    }
+
+    /* Hover Effect Bulat untuk Menu */
+    .sidebar-menu a {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s cubic-bezier(0.3, 0, 0.2, 1);
+    }
+
+    .sidebar-menu a::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        background-color: #EDEDFF;
+        border-radius: 50%;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 0;
+        opacity: 0;
+    }
+
+    .sidebar-menu a:hover::before {
+        width: 38px;
+        height: 38px;
+        opacity: 1;
+    }
+
+    .sidebar-menu a:active::before {
+        width: 38px;
+        height: 38px;
+        opacity: 1;
+    }
+
+    .sidebar-menu a.active::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 38px;
+        height: 38px;
+        background: #ffffffd0;
+        border-radius: 50%;
+        opacity: 1;
+        z-index: -1;
+    }
+
+    .sidebar-menu a.active .icon {
+        color: #2954B0;
+        transform: scale(1.1);
+    }
+
+    .sidebar-menu a.active span:last-child {
+        color: #2954B0 !important;
+    }
+
+    .sidebar-menu a.active {
+        background: none !important;
+    }
+
+    .sidebar-menu a .icon {
+        position: relative;
+    }
+
+    /* icon active berubah biru */
+    .sidebar-menu a.active .icon {
+        color: #2954B0 !important;
+    }
+
+    /* Hover memanjang saat sidebar aktif */
+    .sidebar.active .sidebar-menu a {
+        justify-content: flex-start;
+        padding-left: 50px;
+        padding-right: 30px;
+    }
+
+    .sidebar.active .sidebar-menu a:hover::before {
+        width: calc(100% - 30px);
+        height: 40px;
+        border-radius: 15px;
+        opacity: 1;
+    }
+
+    .sidebar.active .sidebar-menu a:active::before {
+        width: calc(100% - 30px);
+        height: 40px;
+        border-radius: 15px;
+        opacity: 1;
+    }
+
+    .sidebar.active .sidebar-menu a.active::before {
+        width: calc(100% - 30px);
+        height: 40px;
+        border-radius: 15px;
+        opacity: 1;
+    }
+
+    .sidebar:not(.active) .sidebar-menu a {
+        overflow: visible !important;
+        position: relative;
+    }
+
+    /* 1. Default tooltip state (hidden) */
+    .sidebar:not(.active) .sidebar-menu a span:last-child {
+        display: block !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        position: absolute;
+        left: 60px;
+        top: 50%;
+        transform: translateY(-50%) translateX(-8px) scale(0.95);
+        margin-left: 10px;
+        background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+        color: #ffffff !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        padding: 8px 14px !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(59, 130, 246, 0.2) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+        width: max-content;
+        white-space: nowrap;
+        z-index: 99999;
+        pointer-events: none;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* 2. Tooltip muncul saat hover - smooth animation */
+    .sidebar:not(.active) .sidebar-menu a:hover span:last-child {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(-50%) translateX(0) scale(1);
+    }
+
+    /* 3. Panah tooltip */
+    .sidebar:not(.active) .sidebar-menu a span:last-child::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-right: 6px solid #1e293b;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Ripple Animation */
+    @keyframes ripple-effect-1 {
+        0% {
             width: 0;
             height: 0;
-            background-color: #EDEDFF;
-            border-radius: 50%;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 0;
+            opacity: 1;
+        }
+
+        100% {
+            width: 80px;
+            height: 80px;
             opacity: 0;
         }
+    }
 
-        .sidebar-menu a:hover::before {
-            width: 38px;
-            height: 38px;
-            opacity: 1;
-        }
-        
-        .sidebar-menu a:active::before {
-            width: 38px;
-            height: 38px;
-            opacity: 1;
-        }
+    /* Pastikan sidebar punya overflow visible tapi ripple tetap di dalam */
+    .sidebar {
+        overflow: visible;
+    }
 
-        .sidebar-menu a.active::before {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 38px;
-            height: 38px;
-            background: #ffffffd0;
-            border-radius: 50%;
-            opacity: 1;
-            z-index: -1;
-        }
+    /* Container untuk ripple effect agar tidak keluar sidebar */
+    .sidebar::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 1;
+    }
 
-        .sidebar-menu a.active .icon {
-            color: #2954B0;
-            transform: scale(1.1);
-        }
+    .sidebar-menu a .icon {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 30;
+    }
 
-        .sidebar-menu a.active span:last-child {
-            color: #2954B0 !important;
-        }
-        
-        .sidebar-menu a.active {
-            background: none !important;
-        }
-        
-        .sidebar-menu a .icon {
-            position: relative;
-        }
+    .sidebar-menu a:hover .icon {
+        color: #2954B0;
+    }
 
-        /* icon active berubah biru */
-        .sidebar-menu a.active .icon {
-            color: #2954B0 !important;
-        }
+    .sidebar-menu a:active .icon {
+        color: #2954B0 !important;
+        transform: none !important;
+    }
 
-        /* Hover memanjang saat sidebar aktif */
-        .sidebar.active .sidebar-menu a {
-            justify-content: flex-start;
-            padding-left: 50px;
-            padding-right: 30px;
-        }
+    .sidebar.active .sidebar-menu a:active .icon {
+        color: #2954B0 !important;
+        transform: none !important;
+    }
 
-        .sidebar.active .sidebar-menu a:hover::before {
-            width: calc(100% - 30px);
-            height: 40px;
-            border-radius: 15px;
-            opacity: 1;
-        }
-        
-        .sidebar.active .sidebar-menu a:active::before {
-            width: calc(100% - 30px);
-            height: 40px;
-            border-radius: 15px;
-            opacity: 1;
-        }
+    .sidebar-menu a span:last-child {
+        position: relative;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 30;
+    }
 
-        .sidebar.active .sidebar-menu a.active::before {
-            width: calc(100% - 30px);
-            height: 40px;
-            border-radius: 15px;
-            opacity: 1;
-        }
-        .sidebar:not(.active) .sidebar-menu a {
-            overflow: visible !important;
-            position: relative;
-        }
+    .sidebar.active .sidebar-menu a span:last-child {
+        opacity: 1;
+        transform: translateX(0);
+        color: white;
+    }
 
-        /* 2. Tooltip muncul saat hover */
-        .sidebar:not(.active) .sidebar-menu a:hover span:last-child {
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
+    .sidebar-menu a:hover span:last-child {
+        color: #2954B0 !important;
+    }
 
-            position: absolute;
-            left: 60px;
-            top: 50%;
-            transform: translateY(-50%);
-            margin-left: 10px;
+    .sidebar.active .sidebar-menu a:hover span:last-child {
+        color: #2954B0 !important;
+    }
 
-            background: linear-gradient(to bottom, #1f2937, #111827) !important;
-            color: #ffffff !important;
-            font-size: 12px !important;
-            font-weight: 500 !important;
-            padding: 8px 12px !important;
-            border-radius: 0.5rem !important;
-            border: 1px solid #374151 !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+    .sidebar-menu a:active span:last-child {
+        color: #2954B0 !important;
+    }
 
-            width: max-content;
-            white-space: nowrap;
-            z-index: 99999;
-            pointer-events: none;
-        }
+    .sidebar.active .sidebar-menu a:active span:last-child {
+        color: #2954B0 !important;
+    }
 
-        /* 3. Panah tooltip */
-        .sidebar:not(.active) .sidebar-menu a:hover span:last-child::before {
-            content: '';
-            position: absolute;
-            left: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-top: 6px solid transparent;
-            border-bottom: 6px solid transparent;
-            border-right: 6px solid #1f2937;
-        }
+    /* Hover Effect untuk Logout Button */
+    .logout-btn {
+        position: relative;
+        overflow: hidden;
+        transform-origin: center;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-        /* Ripple Animation */
-        @keyframes ripple-effect-1 {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 1;
-            }
-            100% {
-                width: 80px;
-                height: 80px;
-                opacity: 0;
-            }
-        }
-        
-        /* Pastikan sidebar punya overflow visible tapi ripple tetap di dalam */
+    .logout-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        background: linear-gradient(to right, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
+        border-radius: 50%;
+        transition: all 0.7s ease-out;
+        z-index: -1;
+    }
+
+    .logout-btn:hover {
+        transform: scale(1.05);
+        background-color: rgba(239, 68, 68, 0.2);
+        box-shadow: 0 5px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .logout-btn:hover::before {
+        width: 180px;
+        height: 180px;
+    }
+
+    .logout-btn:active {
+        transform: scale(0.95);
+        transition: all 0.1s ease-in-out;
+    }
+
+    .logout-btn i {
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .logout-btn:hover i {
+        transform: translateX(-3px) rotate(-10deg);
+    }
+
+    /* Hover Effect untuk Profile Popup Items */
+    #profilePopup a,
+    #profilePopup button,
+    #mobileProfilePopup a,
+    #mobileProfilePopup button {
+        transition: all 0.2s ease;
+    }
+
+    #profilePopup a:hover,
+    #mobileProfilePopup a:hover {
+        background-color: rgba(41, 84, 176, 0.08);
+    }
+
+    #profilePopup a:hover i,
+    #mobileProfilePopup a:hover i {
+        color: #2954B0;
+    }
+
+    #profilePopup button:hover,
+    #mobileProfilePopup button:hover {
+        background-color: rgba(239, 68, 68, 0.08);
+    }
+
+    #profilePopup button:hover i,
+    #mobileProfilePopup button:hover i {
+        color: #ef4444;
+    }
+
+    #profilePopup a:active,
+    #profilePopup button:active,
+    #mobileProfilePopup a:active,
+    #mobileProfilePopup button:active {
+        transform: scale(0.98);
+        transition: all 0.1s ease;
+    }
+
+    #profilePopup i,
+    #mobileProfilePopup i {
+        transition: color 0.2s ease;
+    }
+
+
+
+    /* Mobile: Sidebar keluar dari kiri */
+    @media (max-width: 640px) {
         .sidebar {
-            overflow: visible;
-        }
-        
-        /* Container untuk ripple effect agar tidak keluar sidebar */
-        .sidebar::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 1;
+            position: fixed;
+            left: 0;
+            top: 50px !important;
+            width: 240px;
+            height: calc(100dvh - 50px);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: block !important;
+            /* Override hidden */
+
         }
 
-        .sidebar-menu a .icon {
-            position: relative;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 30;
-        }
-
-        .sidebar-menu a:hover .icon {
-            color: #2954B0;
-        }
-
-        .sidebar-menu a:active .icon {
-            color: #2954B0 !important;
-            transform: none !important;
-        }
-
-        .sidebar.active .sidebar-menu a:active .icon {
-            color: #2954B0 !important;
-            transform: none !important;
-        }
-
-        .sidebar-menu a span:last-child {
-            position: relative;
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 30;
-        }
-
-        .sidebar.active .sidebar-menu a span:last-child {
-            opacity: 1;
+        .sidebar.active {
             transform: translateX(0);
-            color: white;
+            width: 240px;
         }
 
-        .sidebar-menu a:hover span:last-child {
-            color: #2954B0 !important;
-        }
-        
-        .sidebar.active .sidebar-menu a:hover span:last-child {
-            color: #2954B0 !important;
-        }
-        
-        .sidebar-menu a:active span:last-child {
-            color: #2954B0 !important;
-        }
-        
-        .sidebar.active .sidebar-menu a:active span:last-child {
-            color: #2954B0 !important;
+        /* Menu text langsung terlihat di mobile */
+        .sidebar .sidebar-menu span:last-child {
+            opacity: 1 !important;
         }
 
-        /* Hover Effect untuk Logout Button */
-        .logout-btn {
-            position: relative;
-            overflow: hidden;
-            transform-origin: center;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* Sembunyikan user profile di mobile */
+        .sidebar .user-profile {
+            display: none !important;
         }
-
-        .logout-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 0;
-            height: 0;
-            background: linear-gradient(to right, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
-            border-radius: 50%;
-            transition: all 0.7s ease-out;
-            z-index: -1;
-        }
-
-        .logout-btn:hover {
-            transform: scale(1.05);
-            background-color: rgba(239, 68, 68, 0.2);
-            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.3);
-        }
-
-        .logout-btn:hover::before {
-            width: 180px;
-            height: 180px;
-        }
-
-        .logout-btn:active {
-            transform: scale(0.95);
-            transition: all 0.1s ease-in-out;
-        }
-
-        .logout-btn i {
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .logout-btn:hover i {
-            transform: translateX(-3px) rotate(-10deg);
-        }
-
-        /* Hover Effect untuk Profile Popup Items */
-        #profilePopup a, 
-        #profilePopup button,
-        #mobileProfilePopup a,
-        #mobileProfilePopup button {
-            transition: all 0.2s ease;
-        }
-
-        #profilePopup a:hover,
-        #mobileProfilePopup a:hover {
-            background-color: rgba(41, 84, 176, 0.08);
-        }
-
-        #profilePopup a:hover i,
-        #mobileProfilePopup a:hover i {
-            color: #2954B0;
-        }
-
-        #profilePopup button:hover,
-        #mobileProfilePopup button:hover {
-            background-color: rgba(239, 68, 68, 0.08);
-        }
-
-        #profilePopup button:hover i,
-        #mobileProfilePopup button:hover i {
-            color: #ef4444;
-        }
-
-        #profilePopup a:active,
-        #profilePopup button:active,
-        #mobileProfilePopup a:active,
-        #mobileProfilePopup button:active {
-            transform: scale(0.98);
-            transition: all 0.1s ease;
-        }
-
-        #profilePopup i,
-        #mobileProfilePopup i {
-            transition: color 0.2s ease;
-        }
-
-
-
-        /* Mobile: Sidebar keluar dari kiri */
-        @media (max-width: 640px) {
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 50px !important;
-                width: 240px;
-                height: calc(100dvh - 50px);
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                display: block !important; /* Override hidden */
-                
-            }
-            
-            .sidebar.active {
-                transform: translateX(0);
-                width: 240px;
-            }
-
-            /* Menu text langsung terlihat di mobile */
-            .sidebar .sidebar-menu span:last-child {
-                opacity: 1 !important;
-            }
-
-            /* Sembunyikan user profile di mobile */
-            .sidebar .user-profile {
-                display: none !important;
-            }
-        }
-    </style>
+    }
+</style>
