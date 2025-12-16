@@ -15,12 +15,17 @@
 </head>
 
 <body class="flex flex-col min-h-screen">
+    @php
+    $desktopOnly = request()->is('ppk/*');
+    @endphp    
     @include('partials.navbar')
+
+    <x-desktop-warning :desktopOnly="$desktopOnly" />
 
     <div class="flex flex-1">
         @include('partials.sidebarPPK')
 
-        <main class="flex-1 p-6 overflow-y-auto">
+        <main class="flex-1 p-6 overflow-y-auto {{ $desktopOnly ? 'mt-[52px] lg:mt-0' : '' }}">
             @yield('content')
         </main>
     </div>

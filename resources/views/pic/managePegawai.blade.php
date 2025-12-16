@@ -24,22 +24,35 @@
                 </div>
             </form>
 
-            <a href="{{ route('pic.pegawai.create') }}"
-            class="px-4 py-2 border-2 border-dashed border-blue-600 text-blue-700 rounded-2xl hover:bg-blue-50">
-                + Tambah
-            </a>
+<div class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+    
+    <a href="{{ route('pic.pegawai.create') }}"
+       class="w-full sm:w-auto text-center
+              px-4 py-2
+              border-2 border-dashed border-blue-600
+              text-blue-700 rounded-2xl
+              hover:bg-blue-50 transition">
+        + Tambah
+    </a>
 
-            <form id="bulkDeleteForm" action="{{ route('pic.pegawai.bulkDelete') }}" method="POST" class="m-0 p-0">
-                @csrf
-                <input type="hidden" name="nips[]" id="bulkNips">
+    <form id="bulkDeleteForm" action="{{ route('pic.pegawai.bulkDelete') }}" method="POST" class="w-full sm:w-auto">
+        @csrf
+        <input type="hidden" name="nips[]" id="bulkNips">
 
-                <button type="button" id="openBulkModal"
-                    class="flex items-center gap-2 px-4 py-2 border-2 border-red-600 text-white bg-red-600 rounded-2xl hover:bg-red-700">
+        <button type="button" id="openBulkModal"
+            class="w-full sm:w-auto
+                   flex items-center justify-center gap-2
+                   px-4 py-2
+                   border-2 border-red-600
+                   text-white bg-red-600
+                   rounded-2xl hover:bg-red-700 transition">
+            <i class="fas fa-trash"></i>
+            Hapus
+        </button>
+    </form>
 
-                    <i class="fas fa-trash"></i>
-                    Hapus
-                </button>
-            </form>
+</div>
+
             
             <button type="button" id="cancelDeleteModeBtn"
                 class="hidden px-4 py-2 border-2 border-gray-400 text-gray-600 bg-gray-100 rounded-2xl hover:bg-gray-200 transition">
@@ -69,29 +82,47 @@
 
     <div id="userListContainer">
         @forelse($users as $user)
-            <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex justify-between items-center mb-3 transition-all">
-                
-                {{-- PERUBAHAN DI SINI: items-start jadi items-center, hapus mt-1 --}}
-                <div class="flex items-center gap-4">
-                    <input type="checkbox" name="nips[]" value="{{ $user->nip }}" class="select-checkbox opacity-0 transition-all duration-300">
-                    <div>
-                        <div class="text-blue-700 font-semibold text-lg">{{ $user->nama }}</div>
-                        <div class="text-gray-600 text-sm">NIP {{ $user->nip }}</div>
-                        <div class="text-gray-600 text-sm">{{ $user->email ?? '-' }}</div>
+<div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm
+            flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-3">
+            <div class="flex items-center gap-4">
+                <input type="checkbox"
+                    name="nips[]"
+                    value="{{ $user->nip }}"
+                    class="select-checkbox opacity-0 transition-all duration-300">
+
+                <div>
+                    <div class="text-blue-700 font-semibold text-lg">
+                        {{ $user->nama }}
+                    </div>
+                    <div class="text-gray-600 text-sm">
+                        NIP {{ $user->nip }}
+                    </div>
+                    <div class="text-gray-600 text-sm">
+                        {{ $user->email ?? '-' }}
                     </div>
                 </div>
-
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('pic.pegawai.edit', $user->nip) }}" class="text-blue-700">Edit</a>
-
-                    <button type="button"
-                            class="text-red-600 openSingleDeleteModal"
-                            data-nip="{{ $user->nip }}"
-                            data-nama="{{ $user->nama }}">
-                        Hapus
-                    </button>
-                </div>
             </div>
+            <div class="flex gap-4 sm:gap-3
+                        w-full sm:w-auto
+                        justify-end sm:justify-start">
+
+                <a href="{{ route('pic.pegawai.edit', $user->nip) }}"
+                class="w-full sm:w-auto
+                        text-center text-blue-700 font-medium">
+                    Edit
+                </a>
+
+                <button type="button"
+                        class="w-full sm:w-auto
+                            text-center text-red-600 font-medium
+                            openSingleDeleteModal"
+                        data-nip="{{ $user->nip }}"
+                        data-nama="{{ $user->nama }}">
+                    Hapus
+                </button>
+            </div>
+        </div>
+
         @empty
             <div class="text-gray-500 text-sm text-center py-8">Tidak ada data pegawai.</div>
         @endforelse
