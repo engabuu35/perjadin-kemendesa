@@ -1,57 +1,62 @@
 <style>
-@media (max-width: 768px) {
-    #mainFooter {
-        background-image: url('/img/background-mobile.png') !important;
-        background-size: 100% 100%;
-        background-position: top center !important;
-        background-repeat: no-repeat !important;
-        background-color: #000 !important; /* optional */
-    }
-}
-
-@media (max-width: 768px) {
-    #mainFooter .-mt-10 {
-        margin-top: 0 !important;
-    }
-}
-@media (max-width: 768px) {
-    #mainFooter img.w-24,
-    #mainFooter img.h-24 {
-        width: 70px !important;
-        height: 70px !important;
+    @media (max-width: 768px) {
+        #mainFooter {
+            background-image: url('/img/background-mobile.png') !important;
+            background-size: 100% 100%;
+            background-position: top center !important;
+            background-repeat: no-repeat !important;
+            background-color: #000 !important;
+            /* optional */
+        }
     }
 
-    #mainFooter h2 {
-        font-size: 1.4rem !important;
-        text-align: center;
+    @media (max-width: 768px) {
+        #mainFooter .-mt-10 {
+            margin-top: 0 !important;
+        }
     }
 
-    #mainFooter p {
-        text-align: center;
-    }
-}
-@media (max-width: 768px) {
-    #mainFooter .absolute {
-    position: static !important;
-    margin-top: 10px !important;
-    margin-bottom: 20px;
-    }
-}
-@media (min-width: 769px) {
-    #mainFooter {
-        background-position: center calc(100% + 50px) !important;
-    }
-}
-@media (min-width: 769px) {
-    #mainFooter {
-        padding-top: 50px !important; /* sesuaikan angka */
-    }
-}
+    @media (max-width: 768px) {
 
+        #mainFooter img.w-24,
+        #mainFooter img.h-24 {
+            width: 70px !important;
+            height: 70px !important;
+        }
 
+        #mainFooter h2 {
+            font-size: 1.4rem !important;
+            text-align: center;
+        }
+
+        #mainFooter p {
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #mainFooter .absolute {
+            position: static !important;
+            margin-top: 10px !important;
+            margin-bottom: 20px;
+        }
+    }
+
+    @media (min-width: 769px) {
+        #mainFooter {
+            background-position: center calc(100% + 50px) !important;
+        }
+    }
+
+    @media (min-width: 769px) {
+        #mainFooter {
+            padding-top: 50px !important;
+            /* sesuaikan angka */
+        }
+    }
 </style>
 <footer id="mainFooter"
-    class="relative w-full pl-0 md:pl-[60px] bg-footer-pattern bg-[length:100%_100%] bg-no-repeat text-white transition-all duration-300 ease-in-out z-40">
+    class="relative w-full pl-0 md:pl-[60px] bg-footer-pattern bg-[length:100%_100%] bg-no-repeat text-white transition-all duration-300 ease-in-out z-0">
     <div class="relative max-w-7xl mx-auto px-6 py-12 md:py-20">
         <div class="flex flex-col md:flex-row justify-between gap-8 md:gap-12">
 
@@ -59,7 +64,7 @@
             <div class="flex flex-col items-center md:items-start md:w-auto -mt-10">
                 <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 items-center">
                     <img src="{{ asset('img/logo_kementerian.png') }}" alt="Logo Kementerian"
-                        class="w-24 h-24 md:w-32 md:h-32">
+                        class="w-24 h-24 md:w-32 md:h-32 object-contain flex-shrink-0">
 
                     <div class="flex flex-col leading-tight">
                         <h2 class="text-2xl md:text-3xl font-bold">Inspektorat Jenderal</h2>
@@ -71,7 +76,7 @@
                 </div>
 
                 <div class="flex justify-center md:justify-start mt-6 md:mt-8">
-                    <img src="{{ asset('img/logo_berakhlak.webp') }}" alt="Logo BerAKHLAK" class="w-auto h-20 md:h-24">
+                    <img src="{{ asset('img/logo_berakhlak.webp') }}" alt="Logo BerAKHLAK" class="w-auto h-20 md:h-24 object-contain flex-shrink-0">
                 </div>
             </div>
 
