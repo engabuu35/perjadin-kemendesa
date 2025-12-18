@@ -6,20 +6,22 @@
 <main class="transition-all duration-300 ml-0 sm:ml-[60px] min-h-screen">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-center sm:justify-between gap-4 mb-8">
             
             {{-- Judul dengan Garis Bawah (Sesuai Request) --}}
              <div class="flex flex-col gap-0.5 mb-1">
             <x-page-title 
             title="Penugasan Perjalanan Dinas"
             subtitle="Kelola perjalanan dinas pegawai: tambah, edit, selesaikan manual, atau batalkan." />
-        </div>   
+            </div>   
 
             <a href="{{ route('pic.penugasan.create') }}"
-               class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i>
-                <span>Tambah Penugasan</span>
-            </a>
+                class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold
+                        shadow-md hover:bg-blue-700 hover:shadow-lg transition-all
+                        flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Tambah Penugasan</span>
+                </a>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -119,37 +121,58 @@
                     $lokasi = $perjalanan->tujuan ?? ($perjalanan->lokasi ?? '-');
                 @endphp
 
-                {{-- KARTU ASLI (BORDER-T-4) --}}
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
-                    <div class="border-t-4 border-blue-600 p-6">
-                        <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <div class="flex-1 space-y-3 min-w-0">
-                                <h3 class="text-blue-800 font-bold text-xl tracking-wide border-b-2 border-blue-200 pb-2 truncate w-full">{{ $perjalanan->nomor_surat }}</h3>
+                {{-- KARTU ASLI --}}
+                           
+                <div class="bg-white rounded-3xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+                    <div class="border-t-4 border-blue-600 p-4 pl-6 sm:p-6 sm:pl-8">
+                        <div class="flex flex-row justify-between items-start gap-3">
 
-                                <p class="flex items-center gap-2 text-gray-700 text-md font-medium">
-                                    <i class="fa-solid fa-map-marker-alt w-4 text-center text-gray-400"></i>
-                                    <span>{{ $lokasi }}</span>
-                                </p>
-                                <p class="flex items-center gap-2 text-gray-700 text-sm">
-                                    <i class="fa-solid fa-calendar-days w-4 text-center text-gray-400"></i>
-                                    <span>{{ \Carbon\Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') }}
-                                        - {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}</span>
-                                </p>
+                            {{-- KIRI --}}
+                            <div class="flex-1 space-y-3 min-w-0">
+                                <h3 class="text-blue-800 font-bold text-lg sm:text-xl tracking-wide border-b-2 border-blue-200 pb-2 truncate">
+                                    {{ $perjalanan->nomor_surat }}
+                                </h3>
+
+                                <div class="space-y-2">
+                                    <p class="flex items-center gap-2 text-gray-700 text-sm sm:text-base whitespace-nowrap">
+                                        <span class="w-4 h-4 flex items-center justify-center text-gray-400">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                        </span>
+                                        <span class="font-medium truncate">{{ $lokasi }}</span>
+                                    </p>
+
+                                    <p class="flex items-center gap-2 text-gray-600 text-xs sm:text-sm whitespace-nowrap">
+                                        <span class="w-4 h-4 flex items-center justify-center text-gray-400">
+                                            <i class="fa-solid fa-calendar"></i>
+                                        </span>
+                                        <span>
+                                            {{ \Carbon\Carbon::parse($perjalanan->tgl_mulai)->format('d M Y') }}
+                                            – {{ \Carbon\Carbon::parse($perjalanan->tgl_selesai)->format('d M Y') }}
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
 
+                            {{-- KANAN --}}
                             <div class="flex flex-col items-end gap-3 sm:min-w-[150px]">
-                                <span class="px-4 py-2 text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
+
+                                <span class="px-3 py-1.5 text-xs sm:text-sm font-bold text-white rounded-full shadow-md {{ $statusClass }} flex items-center gap-2">
                                     <i class="fa-solid {{ $badgeIcon }} text-xs"></i>
-                                    {{ $statusLabel }}
+                                    <span>{{ $statusLabel }}</span>
                                 </span>
 
-                                <a href="{{ route('pic.penugasan.edit', $perjalanan->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-semibold flex items-center gap-2 px-2 py-1 rounded hover:bg-blue-50">
+                                <a href="{{ route('pic.penugasan.edit', $perjalanan->id) }}"
+                                class="text-blue-600 hover:text-blue-800 hover:underline
+                                        text-sm font-semibold flex items-center gap-2
+                                        px-2 py-1 rounded hover:bg-blue-50">
                                     <span>Lihat Detail</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </a>
+
                             </div>
                         </div>
                     </div>
+
 
                     @php
                         $miss = $missingUraian[$perjalanan->id] ?? [];
