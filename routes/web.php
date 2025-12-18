@@ -15,6 +15,8 @@ use App\Http\Controllers\ManagePegawaiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
 
+use Illuminate\Support\Facades\Artisan;
+
 // hapus klo ga kepake ini untuk testing aja
 Route::get('/preview-email-tailwind', function () {
     $perjalanan = \App\Models\PerjalananDinas::first();
@@ -178,5 +180,12 @@ Route::middleware(['auth', 'role:PPK'])->prefix('ppk')->name('ppk.')->group(func
     Route::get('/pelaporan/{id}', [PPKController::class, 'detailPelaporan'])->name('detailPelaporan');
     Route::get('/tabelrekap', [PPKController::class, 'tabelRekap'])->name('tabelrekap');
     Route::get('/tabelrekap/export', [PPKController::class, 'exportRekap'])->name('tabelrekap.export');
+
+    
+
+    Route::get('/linkstorage', function () {
+        Artisan::call('storage:link');
+        return 'Storage link has been created.';
+    });
 
 });
