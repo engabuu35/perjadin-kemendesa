@@ -63,7 +63,7 @@
                     <div class="px-5 pb-5 pt-2">
                         <div class="pl-10 pr-10">
                             <div class="border-l-4 pl-4 py-3 bg-blue-50 rounded-r-lg" style="border-color: #2954B0;">
-                                <p class="text-gray-700 text-sm leading-relaxed">Anda dapat login menggunakan NIP dan password yang telah terdaftar. Pastikan Anda sudah memiliki akun yang diaktivasi oleh administrator sistem.</p>
+                                <p class="text-gray-700 text-sm leading-relaxed">Anda dapat login menggunakan NIP dan password yang telah terdaftar. Pastikan Anda sudah memiliki akun yang diaktivasi oleh PIC (administrator sistem).</p>
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
                     <div class="px-5 pb-5 pt-2">
                         <div class="pl-10 pr-10">
                             <div class="border-l-4 pl-4 py-3 bg-blue-50 rounded-r-lg" style="border-color: #2954B0;">
-                                <p class="text-gray-700 text-sm leading-relaxed">Buka halaman 'Profile', klik tombol 'Edit' di bagian bawah, lalu ubah data yang diperlukan seperti nomor HP atau email. Jangan lupa klik 'Simpan' setelah selesai.</p>
+                                <p class="text-gray-700 text-sm leading-relaxed">Buka halaman 'Profile', klik tombol 'Edit' di bagian bawah, lalu ubah data. NIP tidak dapat diubah. Email hanya dapat diubah oleh PIC, silahkan hubungi PIC terkait untuk mengubah email Anda. Jangan lupa klik 'Simpan' setelah selesai.</p>
                             </div>
                         </div>
                     </div>
@@ -129,7 +129,7 @@
                         <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mr-4 mt-0.5 transition-all duration-300" style="background-color: rgba(41, 84, 176, 0.1);">
                             <span class="text-xs font-bold" style="color: #2954B0;">5</span>
                         </div>
-                        <span class="font-semibold text-gray-900 text-md group-hover:text-blue-700 transition-colors">Bagaimana cara membuat laporan perjalanan dinas?</span>
+                        <span class="font-semibold text-gray-900 text-md group-hover:text-blue-700 transition-colors">Bagaimana cara melakukan tag lokasi/geotagging?</span>
                     </div>
                     <div id="icon-5" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300" style="background-color: rgba(41, 84, 176, 0.1);">
                         <svg class="w-4 h-4 transition-transform duration-300" style="color: #2954B0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,10 @@
                     <div class="px-5 pb-5 pt-2">
                         <div class="pl-10 pr-10">
                             <div class="border-l-4 pl-4 py-3 bg-blue-50 rounded-r-lg" style="border-color: #2954B0;">
-                                <p class="text-gray-700 text-sm leading-relaxed">Setelah perjalanan dinas selesai, masuk ke menu 'Laporan', pilih pengajuan yang sudah dilakukan, lalu lengkapi laporan dengan detail kegiatan, hasil, dan dokumentasi. Upload bukti kuitansi pengeluaran.</p>
+                                <p class="text-gray-700 text-sm leading-relaxed">Untuk melakukan tag lokasi/geotagging, masuk ke menu 'Beranda', pilih perjalanan dinas dengan nomor surat terkait, kemudian klik "lihat detail". 
+                                    Di halaman Pencatatan Perjalanan Dinas, klik "Tandai Lokasi Saya", lalu ambil foto dengan mengaktifkan kamera dan simpan dengan klik "Simpan" pada preview foto, pastikan foto dan lokasi sudah sesuai.
+                                    Anda diwajibkan mengaktifkan GPS pada perangkat Anda agar fitur geotagging berfungsi dengan baik.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -155,7 +158,7 @@
                         <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mr-4 mt-0.5 transition-all duration-300" style="background-color: rgba(41, 84, 176, 0.1);">
                             <span class="text-xs font-bold" style="color: #2954B0;">6</span>
                         </div>
-                        <span class="font-semibold text-gray-900 text-md group-hover:text-blue-700 transition-colors">Siapa yang bisa saya hubungi jika mengalami kendala?</span>
+                        <span class="font-semibold text-gray-900 text-md group-hover:text-blue-700 transition-colors">Mengapa Perjalanan Dinas saya tidak bisa diakhiri?</span>
                     </div>
                     <div id="icon-6" class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300" style="background-color: rgba(41, 84, 176, 0.1);">
                         <svg class="w-4 h-4 transition-transform duration-300" style="color: #2954B0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +170,7 @@
                     <div class="px-5 pb-5 pt-2">
                         <div class="pl-10 pr-10">
                             <div class="border-l-4 pl-4 py-3 bg-blue-50 rounded-r-lg" style="border-color: #2954B0;">
-                                <p class="text-gray-700 text-sm leading-relaxed">Anda dapat menghubungi Admin SIPERDIN melalui email: admin@stis.ac.id atau telepon ke bagian Kepegawaian di nomor 08xxxxxxx pada jam kerja.</p>
+                                <p class="text-gray-700 text-sm leading-relaxed">Anda hanya bisa mengakhiri Perjalanan Dinas di hari terakhir perjalanan dinas dan Anda telah mengisi uraian perjalanan dinas minimal 100 kata.</p>
                             </div>
                         </div>
                     </div>
@@ -187,16 +190,50 @@
                         <p class="text-blue-100 text-sm leading-relaxed mb-4">
                             Jika pertanyaan Anda tidak terjawab di FAQ ini, jangan ragu untuk menghubungi kami.
                         </p>
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <a href="mailto:admin@stis.ac.id" class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222312965@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
                                 <i class="fas fa-envelope mr-2"></i>
-                                admin@stis.ac.id
+                                Amanda Atika Putri
                             </a>
-                            <a href="tel:08xxxxxxx" class="inline-flex items-center px-4 py-2 bg-white bg-opacity-10 text-white rounded-lg text-sm font-semibold hover:bg-opacity-20 transition-all duration-200 border border-white border-opacity-30">
-                                <i class="fas fa-phone mr-2"></i>
-                                08xxxxxxx
+
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222312994@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Arif Budiman
+                            </a>
+
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222313080@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Farhiya Salsa Billa
+                            </a>
+
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222313139@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Immanuella Risna S. Tumanggor
+                            </a>
+
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222313184@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-envelope mr-2"></i>
+                                M. Alfarizi Nul Hakim
+                            </a>
+
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222313191@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-envelope mr-2"></i>
+                                M. Arkillah Ibnu Ashshiddiqie
+                            </a>
+
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=222313256@stis.ac.id" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-white text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-envelope mr-2"></i>
+                                M. Raza Anugrah
                             </a>
                         </div>
+
                     </div>
                 </div>
             </div>
